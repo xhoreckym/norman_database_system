@@ -124,6 +124,7 @@ class PassiveController extends Controller
         
         $resultsObjects = PassiveSamplingMain::with([
             'country', 
+            'substance',
         ]);
         
         // Apply country filter

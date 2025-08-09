@@ -125,7 +125,8 @@ class IndoorController extends Controller
             'country', 
             'matrix', 
             'environmentType', 
-            'environmentCategory'
+            'environmentCategory',
+            'substance'
         ]);
         
         // Apply country filter

@@ -1,10 +1,28 @@
 <x-app-layout>
   <x-slot name="header">
-    @if (request()->is('empodat/templates/entity/empodat*'))
-    @include('empodat.header')
-    @else
-    @include('dashboard.header')
-    @endif
+    @php($code = $databaseEntity->code ?? null)
+    @switch($code)
+      @case('empodat')
+        @include('empodat.header')
+        @break
+      @case('ecotox')
+        @include('ecotox.header')
+        @break
+      @case('arbg')
+        @include('arbg.header')
+        @break
+      @case('indoor')
+        @include('indoor.header')
+        @break
+      @case('passive')
+        @include('passive.header')
+        @break
+      @case('bioassay')
+        @include('bioassay.header')
+        @break
+      @default
+        @include('dashboard.header')
+    @endswitch
   </x-slot>
   
   <div class="py-4">

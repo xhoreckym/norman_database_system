@@ -36,3 +36,4 @@ database/seeders/seeds/ecotox_tables/ecotox_pnec3.csv
 !/storage/app/public
 !/storage/app/public/templates
 !/storage/app/public/templates/*
+database/seeders/seeds/ecotox_tables/ecotox3.csv

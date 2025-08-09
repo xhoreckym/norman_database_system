@@ -1,8 +1,8 @@
-{{-- <span class="mr-12 font-bold text-lime-700">
-  Chemical Occurance Data:
-</span> --}}
+<span class="mr-12 font-bold text-lime-700">
+  Bioassays
+</span>
 
-<x-nav-link-header :href="route('bioassayhome.index')" :active="request()->is('*bioassay*')">
+<x-nav-link-header :href="route('bioassayhome.index')" :active="request()->is('*home*')">
   Home
 </x-nav-link-header>
 
@@ -10,9 +10,9 @@
   Search
 </x-nav-link-header>
 
-{{-- <x-nav-link-header :href="route('dctitems.index')" :active="request()->is('*dctitems*')">
+<x-nav-link-header :href="route('templates.specific.index', ['code' => 'bioassay'])" :active="request()->is('backend/templates/entity/bioassay*')">
   DCT Download
-</x-nav-link-header> --}}
+</x-nav-link-header>
 
 @role('super_admin')
 <x-nav-link-header :href="route('querylog.index')" :active="request()->is('*querylog*')">
