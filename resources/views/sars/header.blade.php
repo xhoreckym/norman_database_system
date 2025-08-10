@@ -1,6 +1,6 @@
-{{-- <span class="mr-12 font-bold text-lime-700">
-  Chemical Occurance Data:
-</span> --}}
+<span class="mr-12 font-bold text-lime-700">
+  SARS-CoV-2
+</span>
 
 <x-nav-link-header :href="route('sars.home.index')" :active="request()->is('*home*')">
   Home
@@ -10,19 +10,18 @@
   Search
 </x-nav-link-header>
 
-{{-- <x-nav-link-header :href="route('dctitems.index')" :active="request()->is('*dctitems*')">
+<x-nav-link-header :href="route('templates.specific.index', ['code' => 'sars'])" :active="request()->is('backend/templates/entity/sars*')">
   DCT Download
-</x-nav-link-header> --}}
+</x-nav-link-header>
 
 @role('super_admin')
-{{-- <x-nav-link-header :href="route('querylog.index')" :active="request()->is('*querylog*')">
+<x-nav-link-header :href="route('querylog.index', ['module' => 'sars'])" :active="request()->is('*querylog*')">
   History of search
-</x-nav-link-header> --}}
+</x-nav-link-header>
 @else
-{{-- <x-nav-link-header>
+<x-nav-link-header>
   History of search <i class="fas fa-lock ml-2"></i>
-</x-nav-link-header> --}}
-
+</x-nav-link-header>
 @endrole
 
 {{-- @if(request()->is('*filter') == true)

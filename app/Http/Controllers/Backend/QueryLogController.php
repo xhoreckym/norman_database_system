@@ -21,7 +21,7 @@ class QueryLogController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         //
 
@@ -48,7 +48,20 @@ class QueryLogController extends Controller
         // get max id from query log
         $maxId = QueryLog::max('id');
 
-        $queries = QueryLog::with('users')->where('id', '>=', max($maxId - 100, 0))->orderBy('id', 'desc')->paginate(20);
+        $activeModule = $request->query('module');
+
+        $query = QueryLog::with('users')
+            ->where('id', '>=', max($maxId - 100, 0));
+
+        if (!empty($activeModule)) {
+            if ($activeModule === 'arbg') {
+                $query->where('database_key', 'like', 'arbg.%');
+            } else {
+                $query->where('database_key', 'like', $activeModule . '%');
+            }
+        }
+
+        $queries = $query->orderBy('id', 'desc')->paginate(20);
         // dd($queries);
         return view('backend.querylog.index', [
             'queries' => $queries,
@@ -62,6 +75,17 @@ class QueryLogController extends Controller
             'dataSourceLaboratories' => $dataSourceLaboratories,
             'analyticalMethods' => $analyticalMethods,
             'qualityAnalyticalMethods' => $qualityAnalyticalMethods,
+            'activeModule' => $activeModule,
+            'modules' => [
+                '' => 'All',
+                'empodat' => 'Empodat',
+                'ecotox' => 'Ecotox',
+                'passive' => 'Passive',
+                'indoor' => 'Indoor',
+                'bioassay' => 'Bioassay',
+                'arbg' => 'ARBG',
+                'sars' => 'SARS',
+            ],
         ]);
     }
 

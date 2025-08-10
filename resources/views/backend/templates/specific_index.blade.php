@@ -20,6 +20,9 @@
       @case('bioassay')
         @include('bioassay.header')
         @break
+      @case('sars')
+        @include('sars.header')
+        @break
       @default
         @include('dashboard.header')
     @endswitch

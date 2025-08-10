@@ -15,7 +15,7 @@
 </x-nav-link-header>
 
 @role('super_admin')
-<x-nav-link-header :href="route('querylog.index')" :active="request()->is('*querylog*')">
+<x-nav-link-header :href="route('querylog.index', ['module' => 'bioassay'])" :active="request()->is('*querylog*')">
   History of search
 </x-nav-link-header>
 @else
