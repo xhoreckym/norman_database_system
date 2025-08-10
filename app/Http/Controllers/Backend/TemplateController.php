@@ -35,7 +35,10 @@ class TemplateController extends Controller
     public function create()
     {
         $template = new Template();
-        $databaseEntities = DatabaseEntity::orderBy('name')->get();
+        $databaseEntities = DatabaseEntity::whereNull('parent_id')
+            ->whereNotLike('dashboard_route_name', '%https://%')
+            ->orderBy('name')
+            ->get();
         $isCreate = true;
         
         return view('backend.templates.upsert', compact('template', 'databaseEntities', 'isCreate'));
@@ -111,7 +114,10 @@ class TemplateController extends Controller
      */
     public function edit(Template $template)
     {
-        $databaseEntities = DatabaseEntity::orderBy('name')->get();
+        $databaseEntities = DatabaseEntity::whereNull('parent_id')
+            ->whereNotLike('dashboard_route_name', '%https://%')
+            ->orderBy('name')
+            ->get();
         $isCreate = false;
         
         return view('backend.templates.upsert', compact('template', 'databaseEntities', 'isCreate'));
