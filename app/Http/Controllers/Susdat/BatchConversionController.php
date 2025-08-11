@@ -42,6 +42,7 @@ class BatchConversionController extends Controller
                     $results[] = [
                         'input' => $identifier,
                         'susdat_id' => $substance->code,
+                        'substance_id' => $substance->id,
                         'substance_name' => $substance->name,
                         'cas_no' => $substance->cas_number,
                         'std_inchikey' => $substance->stdinchikey,
@@ -69,6 +70,16 @@ class BatchConversionController extends Controller
             'batch_conversion_results' => $results,
             'batch_conversion_input_type' => $inputType
         ]);
+
+        // Sort results by code (susdat_id)
+        usort($results, function($a, $b) {
+            // Handle null values (not found substances)
+            if ($a['susdat_id'] === null && $b['susdat_id'] === null) return 0;
+            if ($a['susdat_id'] === null) return 1;
+            if ($b['susdat_id'] === null) return -1;
+            
+            return strcmp($a['susdat_id'], $b['susdat_id']);
+        });
 
         return view('susdat.batch.results', compact('results', 'inputType'));
     }

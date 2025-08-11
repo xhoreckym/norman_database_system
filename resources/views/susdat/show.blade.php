@@ -27,15 +27,29 @@
               <td class="p-1 font-bold">{{$key}}</td>
               @if (substr($key, 0, 8) == 'metadata')
               @php
-              // Convert JSON to pretty-printed format and escape HTML characters
-              $decodedJson = json_decode($value, true);
-              $prettyJson = json_encode($decodedJson, JSON_PRETTY_PRINT);
-              $escapedJson = htmlspecialchars($prettyJson, ENT_QUOTES, 'UTF-8');
+              // Handle both string and array values for metadata
+              if (is_string($value)) {
+                $decodedJson = json_decode($value, true);
+              } else {
+                $decodedJson = $value;
+              }
+              
+              // Ensure we have an array to work with
+              if (is_array($decodedJson)) {
+                $prettyJson = json_encode($decodedJson, JSON_PRETTY_PRINT);
+                $escapedJson = htmlspecialchars($prettyJson, ENT_QUOTES, 'UTF-8');
+              } else {
+                $decodedJson = [];
+              }
               @endphp
               <td class="p-1">
-                @foreach ($decodedJson as $keyInner => $valueInner)
-                  <span class="block py-1"><span class="font-bold">{{$keyInner}}:</span> {{$valueInner}}</span>
-                @endforeach
+                @if (is_array($decodedJson) && !empty($decodedJson))
+                  @foreach ($decodedJson as $keyInner => $valueInner)
+                    <span class="block py-1"><span class="font-bold">{{$keyInner}}:</span> {{$valueInner}}</span>
+                  @endforeach
+                @else
+                  <span class="text-gray-500">No metadata available</span>
+                @endif
               </td>
               @else
               <td>{{$value}}</td>

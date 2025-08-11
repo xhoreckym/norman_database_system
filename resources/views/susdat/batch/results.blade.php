@@ -143,9 +143,9 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     @if($result['found'])
-                      <a href="{{ route('substances.show', $result['susdat_id']) }}" 
+                      <a href="{{ route('substances.show', $result['substance_id']) }}" 
                          class="text-lime-600 hover:text-lime-900 font-medium">
-                        {{ $result['susdat_id'] }}
+                        <code class="bg-gray-100 px-2 py-1 rounded text-xs">NS{{ $result['susdat_id'] }}</code>
                       </a>
                     @else
                       <span class="text-gray-400">-</span>
