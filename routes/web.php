@@ -105,6 +105,12 @@ Route::prefix('susdat')->group(function () {
 
     Route::get('substances-audited', [SubstanceController::class, 'withAudits'])->name('substances.audited');
     Route::get('substances/{substance}/audits', [SubstanceController::class, 'audits'])->name('substances.audits');
+    
+    // Batch Conversion Routes
+    Route::get('batch', [App\Http\Controllers\Susdat\BatchConversionController::class, 'index'])->name('susdat.batch.index');
+    Route::post('batch/convert', [App\Http\Controllers\Susdat\BatchConversionController::class, 'convert'])->name('susdat.batch.convert');
+    Route::get('batch/update', [App\Http\Controllers\Susdat\BatchConversionController::class, 'update'])->name('susdat.batch.update');
+    Route::get('batch/download/csv', [App\Http\Controllers\Susdat\BatchConversionController::class, 'downloadCsv'])->name('susdat.batch.download.csv');
 });
 
 Route::prefix('empodat')->group(function () {
@@ -215,7 +221,7 @@ Route::prefix('sle')->group(function () {
 Route::prefix('arbg')->group(function () {
     Route::resource('arbghome', ARBGHomeController::class)->only(['index']);
     Route::resource('arbghome', ARBGHomeController::class)->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
-    Route::get('countAll', [ARBGHomeController::class, 'countAll'])->middleware('auth')->name('arbg.countAll');
+    Route::get('countAll', [ARBGHomeController::class, 'countAllBacteria'])->middleware('auth')->name('arbg.bacteria.countAll');
     
     
     
