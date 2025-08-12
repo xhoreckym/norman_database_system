@@ -33,7 +33,7 @@
                   
                   <div class="space-y-1 pr-2">
                     @foreach ($categories as $category)
-                    <div class="flex items-center space-x-3 p-1.5 rounded hover:bg-gray-100 transition-colors duration-150">
+                    <div class="flex items-center space-x-3 p-0.5 rounded hover:bg-gray-100 transition-colors duration-150">
                       <input type="checkbox" name="categoriesSearch[]" value="{{$category->id}}" id="category_{{$category->id}}" class="w-5 h-5 text-lime-600 border-gray-300 rounded focus:ring-lime-500 focus:ring-2">
                       <label for="category_{{$category->id}}" class="text-base text-gray-700 cursor-pointer select-none">
                         {!! preg_replace('/\s*\(/', '&nbsp;(', $category->name_abbreviation, 1) !!}

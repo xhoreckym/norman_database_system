@@ -1,20 +1,20 @@
 <div>
   <form name="searchSpecificSubstanceForm" id="searchSpecificSubstanceForm" action="{{route('substances.search')}}" method="GET">
     <input type="hidden" value="1" name="searchSubstance">
-    <input type="text" wire:model.live.debounce.300ms="search" name="searchSubstanceString" id="searchSubstanceString" class="w-full px-4 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ease-in-out">
+    <input type="text" wire:model.live.debounce.300ms="search" name="searchSubstanceString" id="searchSubstanceString" class="w-full px-4 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition duration-200 ease-in-out">
     <div class="mt-4">
       <span class="text-gray-700">Search by:</span>
       <div class="mt-2">
         <label class="inline-flex items-center">
-          <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="cas_number">
+          <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="cas_number" class="text-lime-600 border-gray-300 rounded focus:ring-lime-500 focus:ring-2">
           <span class="ml-2">CAS</span>
         </label>
         <label class="inline-flex items-center ml-6">
-          <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="name" checked>
+          <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="name" checked class="text-lime-600 border-gray-300 rounded focus:ring-lime-500 focus:ring-2">
           <span class="ml-2">Name</span>
         </label>
         <label class="inline-flex items-center ml-6">
-          <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="stdinchikey">
+          <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="stdinchikey" class="text-lime-600 border-gray-300 rounded focus:ring-lime-500 focus:ring-2">
           <span class="ml-2">StdInChIKey</span>
         </label>
       </div>
@@ -25,7 +25,7 @@
       @foreach ($results as $result)
       <div class="block p-1">
         <span>
-          <input type="checkbox" name="substancesSearch[]" value="{{$result->id}}">
+          <input type="checkbox" name="substancesSearch[]" value="{{$result->id}}" class="text-lime-600 border-gray-300 rounded focus:ring-lime-500 focus:ring-2">
         </span>
         <span class="ml-1">
           {{$result->name}} <span class="text-sm"> ({{$result->cas_number}} | {{$result->stdinchikey}})</span>
