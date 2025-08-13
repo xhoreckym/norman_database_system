@@ -24,6 +24,40 @@
               </a>
             </div>
             
+            {{-- Flash Messages --}}
+            @if(session('success'))
+              <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div class="flex items-center space-x-3">
+                  <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <div class="text-green-800">{{ session('success') }}</div>
+                </div>
+              </div>
+            @endif
+            
+            @if(session('error'))
+              <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center space-x-3">
+                  <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                  <div class="text-red-800">{{ session('error') }}</div>
+                </div>
+              </div>
+            @endif
+            
+            @if(session('info'))
+              <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center space-x-3">
+                  <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <div class="text-blue-800">{{ session('info') }}</div>
+                </div>
+              </div>
+            @endif
+            
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div class="flex items-start space-x-3">
                 <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +68,8 @@
                     Canonical Reference System Merge History
                   </h3>
                   <p class="text-blue-700 mt-1">
-                    View all substance merge operations and audit trail. Merged substances are preserved but hidden from normal searches.
+                    View all substance merge operations and audit trail. Merged substances are preserved but hidden from normal searches. 
+                    Use the <span class="font-medium">Restore</span> button to reactivate merged substances if needed.
                   </p>
                 </div>
               </div>
@@ -124,7 +159,7 @@
                     <tr class="hover:bg-gray-50">
                       <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">
-                          {{ $mergedSubstance->code }}
+                          {{ $mergedSubstance->prefixed_code }}
                         </div>
                         @if($mergedSubstance->name)
                           <div class="text-sm text-gray-500">
@@ -138,7 +173,7 @@
                       
                       <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-green-900">
-                          {{ $mergedSubstance->canonical->code ?? 'N/A' }}
+                          {{ $mergedSubstance->canonical->prefixed_code ?? 'N/A' }}
                         </div>
                         @if($mergedSubstance->canonical && $mergedSubstance->canonical->name)
                           <div class="text-sm text-green-700">
@@ -174,11 +209,21 @@
                       </td>
                       
                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button type="button" 
-                                onclick="showSubstanceDetails({{ $mergedSubstance->id }})"
-                                class="text-blue-600 hover:text-blue-900">
-                          View Details
-                        </button>
+                        <div class="flex space-x-2">
+                          <button type="button" 
+                                  onclick="showSubstanceDetails({{ $mergedSubstance->id }})"
+                                  class="text-blue-600 hover:text-blue-900">
+                            View Details
+                          </button>
+                          <form method="POST" action="{{ route('duplicates.restore', $mergedSubstance->id) }}" class="inline">
+                            @csrf
+                            <button type="submit" 
+                                    onclick="return confirmRestore(event, '{{ $mergedSubstance->prefixed_code }}')"
+                                    class="text-green-600 hover:text-green-900">
+                              Restore
+                            </button>
+                          </form>
+                        </div>
                       </td>
                     </tr>
                   @empty
@@ -243,5 +288,14 @@
         closeSubstanceModal();
       }
     });
+    
+    // Enhanced confirmation for restore action
+    function confirmRestore(event, substanceCode) {
+      if (!confirm('Are you sure you want to restore substance "' + substanceCode + '"?\n\nThis will:\n• Make the substance active again\n• Remove it from the merge history\n• Allow it to appear in searches again\n\nThis action cannot be undone.')) {
+        event.preventDefault();
+        return false;
+      }
+      return true;
+    }
   </script>
 </x-app-layout>
