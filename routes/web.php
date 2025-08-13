@@ -238,7 +238,8 @@ Route::prefix('sle')->group(function () {
 Route::prefix('arbg')->group(function () {
     Route::resource('arbghome', ARBGHomeController::class)->only(['index']);
     Route::resource('arbghome', ARBGHomeController::class)->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
-    Route::get('countAll', [ARBGHomeController::class, 'countAllBacteria'])->middleware('auth')->name('arbg.bacteria.countAll');
+    Route::get('countAll', [ARBGHomeController::class, 'countAll'])->middleware('auth')->name('arbg.countAll');
+    Route::get('bacteria/countAll', [ARBGHomeController::class, 'countAllBacteria'])->middleware('auth')->name('arbg.bacteria.countAll');
     
     
     

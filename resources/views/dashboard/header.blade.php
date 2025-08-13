@@ -1,3 +1,7 @@
+<span class="mr-12 font-bold text-lime-700">
+  Backend Management
+</span>
+
 <x-nav-link-header :href="route('dashboard')" :active="request()->routeIs('dashboard')">
   Main panel
 </x-nav-link-header>
