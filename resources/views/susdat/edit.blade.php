@@ -19,15 +19,35 @@
                   <td>
                     @if (substr($value, 0, 8) === 'metadata')
                       @php
-                        $metadataArray = $substance->$value ?? [];
+                        try {
+                          // Handle both string and array values for metadata
+                          $metadataValue = $substance->$value ?? null;
+                          if (is_string($metadataValue)) {
+                            $metadataArray = json_decode($metadataValue, true) ?? [];
+                          } else {
+                            $metadataArray = is_array($metadataValue) ? $metadataValue : [];
+                          }
+                          
+                          // Additional safety check - ensure we always have an array
+                          if (!is_array($metadataArray)) {
+                            $metadataArray = [];
+                          }
+                        } catch (\Exception $e) {
+                          // Fallback to empty array if there's any error
+                          $metadataArray = [];
+                        }
                       @endphp
-                      @foreach ($metadataArray as $keyInner => $valueInner)
-                        <span class="block py-1">
-                          <span class="font-bold">{{ $keyInner }}:</span>
-                          <input type="text" name="{{ $value }}[{{ $keyInner }}]"
-                            value="{{ $valueInner }}" class="form-text-small text-sm">
-                        </span>
-                      @endforeach
+                      @if (!empty($metadataArray))
+                        @foreach ($metadataArray as $keyInner => $valueInner)
+                          <span class="block py-1">
+                            <span class="font-bold">{{ $keyInner }}:</span>
+                            <input type="text" name="{{ $value }}[{{ $keyInner }}]"
+                              value="{{ $valueInner }}" class="form-text-small text-sm">
+                          </span>
+                        @endforeach
+                      @else
+                        <span class="text-gray-500 text-sm">No metadata available</span>
+                      @endif
                     @else
                       <input type="text" name="{{ $value }}" value="{{ $substance->$value }}"
                         class="form-text">

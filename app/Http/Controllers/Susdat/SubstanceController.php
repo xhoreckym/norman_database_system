@@ -88,6 +88,7 @@ class SubstanceController extends Controller
     //
     $substance = Substance::findOrFail($id);
     $editables = $this->getEditableColumns();
+    
     // dd($substance);
     $categories = Category::orderBy('name', 'asc')->get();
     $sources = SuspectListExchangeSource::orderBy('id', 'asc')->get();

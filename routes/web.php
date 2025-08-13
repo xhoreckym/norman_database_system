@@ -104,6 +104,7 @@ Route::prefix('susdat')->group(function () {
     
     Route::get('duplicates/records/{pivot}/{pivot_value}', [DuplicateController::class, 'records'])->name('duplicates.records');
     Route::post('duplicates/records/handle', [DuplicateController::class, 'handleDuplicates'])->middleware('auth')->name('duplicates.handleDuplicates');
+    Route::get('duplicates/merge-history', [DuplicateController::class, 'mergeHistory'])->name('duplicates.mergeHistory');
     
     Route::resource('substances', SubstanceController::class)->only(['index', 'show']);
     Route::resource('substances', SubstanceController::class)->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
