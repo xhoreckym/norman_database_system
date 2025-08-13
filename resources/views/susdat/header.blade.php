@@ -29,7 +29,7 @@
 @auth
   @if(auth()->user()->hasRole(['super_admin', 'admin', 'susdat']))
     <x-nav-link-header :href="route('substances.audited')" :active="request()->routeIs('substances.audited')">
-      Audited
+      View all changes (SUSDAT Audit)
     </x-nav-link-header>
   @endif
 @endauth

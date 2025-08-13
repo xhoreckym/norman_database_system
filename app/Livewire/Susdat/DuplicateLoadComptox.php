@@ -4,12 +4,15 @@ namespace App\Livewire\Susdat;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Http;
+use Exception;
 
 class DuplicateLoadComptox extends Component
 {
     
     public $response = '';
     public $dtxsid;
+    public $error = null;
+    public $isLoading = true;
 
     public function mount($dtxsid)
     {
@@ -17,17 +20,39 @@ class DuplicateLoadComptox extends Component
     }
 
     public function init(){
-        foreach($this->dtxsid as $dtx){
-            $h = Http::withHeaders([
-                'accept' => 'application/json',
-                'x-api-key' => '30348b9a-9119-418e-85eb-7f7bbf4606c8'])
-                ->get('https://api-ccte.epa.gov/chemical/detail/search/by-dtxsid/'.$dtx);
-            $response[$dtx] = collect(json_decode($h->getBody(), true))->mapWithKeys(function($value, $key){
-                return [$this->remapComptoxToNorman()[$key] ?? null => $value];
-            });
+        try {
+            $this->isLoading = true;
+            $this->error = null;
+            $response = [];
+            
+            foreach($this->dtxsid as $dtx){
+                try {
+                    $h = Http::withHeaders([
+                        'accept' => 'application/json',
+                        'x-api-key' => '30348b9a-9119-418e-85eb-7f7bbf4606c8'
+                    ])->get('https://api-ccte.epa.gov/chemical/detail/search/by-dtxsid/'.$dtx);
+                    
+                    if ($h->successful()) {
+                        $response[$dtx] = collect(json_decode($h->getBody(), true))->mapWithKeys(function($value, $key){
+                            return [$this->remapComptoxToNorman()[$key] ?? null => $value];
+                        });
+                    } else {
+                        throw new Exception("HTTP request failed with status: " . $h->status());
+                    }
+                } catch (Exception $e) {
+                    $this->error = "Reading from external source has failed: " . $e->getMessage();
+                    $this->isLoading = false;
+                    return;
+                }
+            }
+            
+            $this->response = $response;
+            $this->isLoading = false;
+            
+        } catch (Exception $e) {
+            $this->error = "Reading from external source has failed: " . $e->getMessage();
+            $this->isLoading = false;
         }
-        
-        $this->response = $response;
     }
     
     public function render()
@@ -36,6 +61,8 @@ class DuplicateLoadComptox extends Component
             'response' => $this->response,
             'dtxsid_out' => $this->dtxsid,
             'columns' => $this->remapComptoxToNorman(),
+            'error' => $this->error,
+            'isLoading' => $this->isLoading,
         ]);
     }
     

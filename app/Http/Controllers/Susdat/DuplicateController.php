@@ -7,6 +7,8 @@ use App\Models\Susdat\Category;
 use App\Models\Susdat\Substance;
 use App\Http\Controllers\Controller;
 use App\Models\SLE\SuspectListExchangeSource;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class DuplicateController extends Controller
 {
@@ -63,7 +65,12 @@ class DuplicateController extends Controller
             abort(404, 'Invalid pivot column');
         }
 
+        // Get substances, excluding already merged ones
         $substances = Substance::where($pivot, $pivot_value)
+            ->where(function($query) {
+                $query->whereNull('canonical_id')
+                      ->orWhere('status', 'active');
+            })
             ->orderBy('id')
             ->withTrashed()
             ->paginate(10)
@@ -81,54 +88,133 @@ class DuplicateController extends Controller
     }
 
     /**
-     * Handle duplicate resolution (delete/restore)
+     * Show merge history for substances
+     */
+    public function mergeHistory(Request $request)
+    {
+        $query = Substance::with(['canonical', 'mergedBy'])
+            ->whereNotNull('canonical_id')
+            ->where('status', 'merged');
+
+        // Apply filters
+        if ($request->filled('date_from')) {
+            $query->whereDate('merged_at', '>=', $request->input('date_from'));
+        }
+        
+        if ($request->filled('date_to')) {
+            $query->whereDate('merged_at', '<=', $request->input('date_to'));
+        }
+        
+        if ($request->filled('merged_by')) {
+            $query->where('merged_by', $request->input('merged_by'));
+        }
+
+        $mergedSubstances = $query->orderBy('merged_at', 'desc')
+            ->paginate(20)
+            ->withQueryString();
+
+        $users = User::orderBy('first_name')->get();
+
+        return view('susdat.duplicates.merge-history', [
+            'mergedSubstances' => $mergedSubstances,
+            'users' => $users,
+            'filters' => $request->only(['date_from', 'date_to', 'merged_by']),
+        ]);
+    }
+
+    /**
+     * Handle duplicate resolution using canonical reference system
      */
     public function handleDuplicates(Request $request)
     {
-        $deletedCount = 0;
-        $restoredCount = 0;
+        $request->validate([
+            'canonical_id' => 'required|integer|exists:susdat_substances,id',
+            'merge_reason' => 'required|string|max:500',
+            'duplicateChoice' => 'required|array',
+            'duplicateChoice.*' => 'integer|exists:susdat_substances,id',
+        ]);
 
-        // Handle deletions
-        if ($request->filled('duplicateChoice')) {
-            foreach ($request->input('duplicateChoice') as $id => $choice) {
-                if ($choice == 0) {
-                    $substance = Substance::find($id);
-                    if ($substance) {
-                        $substance->delete();
-                        $deletedCount++;
-                    }
-                }
-            }
+        // Additional validation: ensure canonical_id is not in duplicateChoice
+        if (in_array($request->input('canonical_id'), $request->input('duplicateChoice'))) {
+            session()->flash('error', 'The active substance cannot be marked as deprecated.');
+            return redirect()->back()->withErrors(['canonical_id' => 'Active substance cannot be deprecated.']);
         }
 
-        // Handle restorations
-        if ($request->filled('duplicateRestore')) {
-            foreach ($request->input('duplicateRestore') as $id => $choice) {
-                if ($choice == 1) {
-                    $substance = Substance::withTrashed()->find($id);
-                    if ($substance) {
-                        $substance->restore();
-                        $restoredCount++;
-                    }
-                }
-            }
-        }
+        $mergedCount = $this->executeMerge(
+            $request->input('canonical_id'),
+            $request->input('duplicateChoice'),
+            $request->input('merge_reason')
+        );
 
-        $message = '';
-        if ($deletedCount > 0) {
-            $message .= "Deleted {$deletedCount} duplicate(s). ";
-        }
-        if ($restoredCount > 0) {
-            $message .= "Restored {$restoredCount} record(s). ";
-        }
-
-        if ($message) {
-            session()->flash('success', trim($message));
-        } else {
-            session()->flash('info', 'No changes were made.');
-        }
+        $message = "Successfully merged {$mergedCount} duplicate(s) into canonical record.";
+        session()->flash('success', $message);
 
         return redirect()->back();
+    }
+
+    /**
+     * Execute merge operation using canonical reference system
+     */
+    private function executeMerge($canonicalId, $duplicateIds, $mergeReason)
+    {
+        $canonical = Substance::findOrFail($canonicalId);
+        
+        // Ensure canonical substance is active
+        if ($canonical->status !== 'active') {
+            throw new \InvalidArgumentException('Canonical substance must be active');
+        }
+
+        $mergedCount = 0;
+        $userId = auth()->id();
+
+        foreach ($duplicateIds as $duplicateId) {
+            if ($duplicateId == $canonicalId) {
+                continue; // Skip if trying to merge canonical with itself
+            }
+
+            $duplicate = Substance::findOrFail($duplicateId);
+            
+            // Update duplicate to point to canonical
+            $duplicate->update([
+                'canonical_id' => $canonicalId,
+                'status' => 'merged',
+                'merged_at' => now(),
+                'merged_by' => $userId,
+                'merge_reason' => $mergeReason,
+            ]);
+
+            $mergedCount++;
+        }
+
+        return $mergedCount;
+    }
+
+    /**
+     * Get impact analysis for substances (how many other tables reference each)
+     */
+    private function getSubstanceImpact($substanceId)
+    {
+        $impact = [];
+        
+        // Check various related tables - you can expand this based on your actual relationships
+        $tables = [
+            'categories' => 'susdat_category_substance_joins',
+            'sources' => 'susdat_source_substance_joins',
+            // Add more tables as needed
+        ];
+        
+        foreach ($tables as $tableName => $table) {
+            try {
+                $count = DB::table($table)
+                    ->where('substance_id', $substanceId)
+                    ->count();
+                $impact[$tableName] = $count;
+            } catch (\Exception $e) {
+                $impact[$tableName] = 0;
+            }
+        }
+        
+        return $impact;
     }
 
     /**
