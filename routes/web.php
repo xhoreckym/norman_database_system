@@ -35,6 +35,7 @@ use App\Http\Controllers\Empodat\UniqueSearchController;
 use App\Http\Controllers\Bioassay\BioassayHomeController;
 use App\Http\Controllers\Dashboard\DashboardMainController;
 use App\Http\Controllers\SLE\SuspectListExchangeHomeController;
+use App\Http\Controllers\SLE\SuspectListExchangeController;
 use App\Http\Controllers\Prioritisation\ModellingDanubeController;
 use App\Http\Controllers\Prioritisation\ModellingScarceController;
 use App\Http\Controllers\Prioritisation\MonitoringDanubeController;
@@ -50,6 +51,11 @@ use App\Http\Controllers\ARGB\AntibioticResistanceBacteriaGeneHomeController;
 // Route::get('/landing', [DatabaseDirectoryController::class, 'index'])->name('landing.index');
 
 Route::get('/', [DatabaseDirectoryController::class, 'index'])->name('home');
+
+// Test route to check if global auth is working
+Route::get('/test-public', function() {
+    return 'This is a public test route';
+})->name('test.public');
 
 
 Route::prefix('backend')->middleware('auth')->group(function () {
@@ -212,10 +218,21 @@ Route::prefix('ecotox')->group(function () {
 });
 
 Route::prefix('sle')->group(function () {
-    Route::resource('slehome', SuspectListExchangeHomeController::class)->only(['index']);
-    Route::resource('slehome', SuspectListExchangeHomeController::class)->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
+    Route::get('slehome', [SuspectListExchangeHomeController::class, 'index'])->name('slehome.index');
+    // Route::resource('slehome', SuspectListExchangeHomeController::class)->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
     
     Route::get('slehome/countAll', [SuspectListExchangeHomeController::class, 'countAll'])->middleware('auth')->name('slehome.countAll');
+    
+    // CRUD routes for SuspectListExchangeSource
+    Route::get('sources', [SuspectListExchangeController::class, 'index'])->name('sle.sources.index')->withoutMiddleware(['auth', 'role:admin|super_admin|sle']);
+    Route::resource('sources', SuspectListExchangeController::class)->middleware('auth')->except(['index'])->names([
+        'create'  => 'sle.sources.create',
+        'store'   => 'sle.sources.store',
+        'show'    => 'sle.sources.show',
+        'edit'    => 'sle.sources.edit',
+        'update'  => 'sle.sources.update',
+        'destroy' => 'sle.sources.destroy',
+    ]);
 });
 
 Route::prefix('arbg')->group(function () {

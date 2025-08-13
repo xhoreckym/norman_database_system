@@ -1,9 +1,13 @@
-{{-- <span class="mr-12 font-bold text-lime-700">
-  Chemical Occurance Data:
-</span> --}}
+<span class="mr-12 font-bold text-lime-700">
+  NORMAN Suspect List Exchange
+</span>
 
-<x-nav-link-header :href="route('slehome.index')" :active="request()->is('*sle*')">
+<x-nav-link-header :href="route('slehome.index')" :active="request()->is('*slehome*')">
   Home
+</x-nav-link-header>
+
+<x-nav-link-header :href="route('sle.sources.index')" :active="request()->is('*sources*')">
+  Sources Management
 </x-nav-link-header>
 
 {{-- <x-nav-link-header :href="route('codsearch.filter')" :active="request()->is('*codsearch*')">

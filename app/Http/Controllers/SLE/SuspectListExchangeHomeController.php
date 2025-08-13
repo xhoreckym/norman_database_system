@@ -15,10 +15,7 @@ class SuspectListExchangeHomeController extends Controller
     public function index()
     {
         //
-        $sleSources = SuspectListExchangeSource::orderBy('order', 'asc')->where('show', 1)->get();
-        return view('sle.home.index', [
-            'sleSources' => $sleSources,
-        ]);
+        return redirect()->route('sle.sources.index');
 
     }
 

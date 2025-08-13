@@ -1,11 +1,11 @@
 <x-app-layout>
   <x-slot name="header">
-    @include('ecotox.header')
+    @include('sle.header')
   </x-slot>
   
   
   <div class="py-4">
-    <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
       <div class="bg-white shadow-lg sm:rounded-lg">
         <div class="p-6 text-gray-900">
           
@@ -32,6 +32,16 @@
           </p>
           
 
+          <!-- Admin Actions -->
+          @role('admin|super_admin|sle')
+          <div class="mb-4 flex justify-end">
+            <a href="{{ route('sle.sources.create') }}" class="btn-create">
+              <i class="fa fa-plus mr-2"></i>
+              Add new source
+            </a>
+          </div>
+          @endrole
+
           <table class="table-standard">
             <thead>
               <tr class="bg-gray-600 text-white">
@@ -39,7 +49,12 @@
                 <th>Code</th>
                 <th>Name</th>
                 <th>Description</th>
+                <th>Link Full List</th>
+                <th>Link InChI Key List</th>
+                <th>Link References</th>
+                @role('admin|super_admin|sle')
                 <th>Actions</th>
+                @endrole
               </tr>
             </thead>
             <tbody>
@@ -57,10 +72,45 @@
                 <td class="p-1 text-center">
                   {{ $sle->description }} 
                 </td>
-                <td class="p-1 text-center">
-                  {{-- <a href="{{ route('sle.show', $sle->id) }}" class="text-blue-500 hover:text-blue-700">Edit</a> --}}
-                  <a href="" class="link-lime">Edit <i class="fa fas-lock"></i></a>
+                <td class="p-1 text-left">
+                  @if($sle->link_full_list)
+                    <div class="prose max-w-none">
+                      {!! preg_replace('/<a\s+href=/', '<a class="link-lime-text" href=', $sle->link_full_list) !!}
+                    </div>
+                  @else
+                    <span class="text-gray-400">-</span>
+                  @endif
                 </td>
+                <td class="p-1 text-left">
+                  @if($sle->link_inchikey_list)
+                    <div class="prose max-w-none">
+                      {!! preg_replace('/<a\s+href=/', '<a class="link-lime-text" href=', $sle->link_inchikey_list) !!}
+                    </div>
+                  @else
+                    <span class="text-gray-400">-</span>
+                  @endif
+                </td>
+                <td class="p-1 text-left">
+                  @if($sle->link_references)
+                    <div class="prose max-w-none">
+                      {!! preg_replace('/<a\s+href=/', '<a class="link-lime-text" href=', $sle->link_references) !!}
+                    </div>
+                  @else
+                    <span class="text-gray-400">-</span>
+                  @endif
+                </td>
+                @role('admin|super_admin|sle')
+                                  <td class="p-1 text-center">
+                    <div class="flex space-x-2 justify-center">
+                      <a href="{{ route('sle.sources.show', $sle) }}" class="text-blue-600 hover:text-blue-900" title="View">
+                        <i class="fa fa-eye"></i>
+                      </a>
+                      <a href="{{ route('sle.sources.edit', $sle) }}" class="text-yellow-600 hover:text-yellow-900" title="Edit">
+                        <i class="fa fa-edit"></i>
+                      </a>
+                    </div>
+                  </td>
+                @endrole
               </tr>
               @endforeach
             </tbody>
