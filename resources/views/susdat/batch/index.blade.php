@@ -30,10 +30,26 @@
                 <option value="cas_no" {{ isset($formData['input_type']) && $formData['input_type'] == 'cas_no' ? 'selected' : '' }}>CAS Number</option>
                 <option value="substance_name" {{ isset($formData['input_type']) && $formData['input_type'] == 'substance_name' ? 'selected' : '' }}>Substance Name</option>
                 <option value="std_inchikey" {{ isset($formData['input_type']) && $formData['input_type'] == 'std_inchikey' ? 'selected' : '' }}>StdInChIKey</option>
+                <option value="susdat_id" {{ isset($formData['input_type']) && $formData['input_type'] == 'susdat_id' ? 'selected' : '' }}>Susdat ID</option>
               </select>
               @error('input_type')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
               @enderror
+            </div>
+            
+            <!-- Exact Match Checkbox -->
+            <div>
+              <div class="flex items-center">
+                <input type="checkbox" name="exact_match" id="exact_match" value="1" 
+                       {{ isset($formData['exact_match']) && $formData['exact_match'] ? 'checked' : '' }}
+                       class="h-4 w-4 text-lime-600 focus:ring-lime-500 border-gray-300 rounded">
+                <label for="exact_match" class="ml-2 block text-sm text-gray-700">
+                  Exact match only
+                </label>
+              </div>
+              <p class="mt-1 text-sm text-gray-500">
+                When checked, searches for exact values only. When unchecked, performs partial matching.
+              </p>
             </div>
             
             <!-- Identifiers Input -->
@@ -42,7 +58,7 @@
                 Identifiers (one per line)
               </label>
               <textarea name="identifiers" id="identifiers" rows="10" required
-                        placeholder="Enter identifiers here, one per line&#10;Example:&#10;67-56-1&#10;108-88-3&#10;71-43-2"
+                        placeholder="Enter identifiers here, one per line&#10;Example:&#10;67-56-1&#10;108-88-3&#10;71-43-2&#10;&#10;For Susdat ID:&#10;NS12345&#10;67890&#10;NS99999"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-lime-500 focus:border-lime-500 font-mono text-sm">{{ $formData['identifiers'] ?? '' }}</textarea>
               @error('identifiers')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -66,21 +82,33 @@
             <ul class="space-y-2 text-sm text-gray-600">
               <li class="flex items-start">
                 <span class="text-lime-600 mr-2">1.</span>
-                <span>Select the type of input data you're providing (CAS Number, Substance Name, or StdInChIKey)</span>
+                <span>Select the type of input data you're providing (CAS Number, Substance Name, StdInChIKey, or Susdat ID)</span>
               </li>
               <li class="flex items-start">
                 <span class="text-lime-600 mr-2">2.</span>
-                <span>Enter your identifiers in the text area, one per line</span>
+                <span>Choose whether to search for exact matches only or allow partial matching</span>
               </li>
               <li class="flex items-start">
                 <span class="text-lime-600 mr-2">3.</span>
-                <span>Click "Convert Identifiers" to process your list</span>
+                <span>Enter your identifiers in the text area, one per line</span>
               </li>
               <li class="flex items-start">
                 <span class="text-lime-600 mr-2">4.</span>
-                <span>View the results table with SUSDAT ID, substance name, CAS number, and StdInChIKey</span>
+                <span>Click "Convert Identifiers" to process your list</span>
+              </li>
+              <li class="flex items-start">
+                <span class="text-lime-600 mr-2">5.</span>
+                <span>View the results table with Input Identifier, SUSDAT ID, substance name, CAS number, and StdInChIKey</span>
               </li>
             </ul>
+            
+            <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <h4 class="text-sm font-medium text-blue-900 mb-2">Note about Susdat ID:</h4>
+              <p class="text-sm text-blue-700">
+                When using "Susdat ID" as input type, you can enter IDs with or without the "NS" prefix. 
+                The system will automatically handle both formats and search in the code column.
+              </p>
+            </div>
           </div>
           
         </div>

@@ -16,6 +16,9 @@
               Input type: <span class="font-medium">{{ ucfirst(str_replace('_', ' ', $inputType)) }}</span>
             </p>
             <p class="text-gray-600">
+              Match mode: <span class="font-medium">{{ $exactMatch ? 'Exact match only' : 'Partial matching allowed' }}</span>
+            </p>
+            <p class="text-gray-600">
               Total identifiers processed: <span class="font-medium">{{ count($results) }}</span>
             </p>
           </div>
