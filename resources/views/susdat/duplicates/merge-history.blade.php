@@ -210,16 +210,12 @@
                       
                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="flex space-x-2">
-                          <button type="button" 
-                                  onclick="showSubstanceDetails({{ $mergedSubstance->id }})"
-                                  class="text-blue-600 hover:text-blue-900">
-                            View Details
-                          </button>
+
                           <form method="POST" action="{{ route('duplicates.restore', $mergedSubstance->id) }}" class="inline">
                             @csrf
-                            <button type="submit" 
-                                    onclick="return confirmRestore(event, '{{ $mergedSubstance->prefixed_code }}')"
-                                    class="text-green-600 hover:text-green-900">
+                            <button type="button" 
+                                    onclick="confirmRestore('{{ $mergedSubstance->prefixed_code }}', '{{ $mergedSubstance->name ?? 'N/A' }}', this.closest('form'))"
+                                    class="btn-submit-danger">
                               Restore
                             </button>
                           </form>
@@ -250,6 +246,65 @@
     </div>
   </div>
 
+  {{-- Restore Confirmation Modal --}}
+  <div id="restoreModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-lg bg-white">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-medium text-gray-900">Confirm Substance Restoration</h3>
+            <p class="text-sm text-gray-500">This action will reactivate the merged substance</p>
+          </div>
+        </div>
+        <button onclick="cancelRestore()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Body -->
+      <div class="mb-6">
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <p class="text-yellow-800">
+            You are about to restore substance <strong id="modalSubstanceCode"></strong> 
+            (<span id="modalSubstanceName"></span>). This action cannot be undone.
+          </p>
+        </div>
+        
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <h5 class="font-medium text-blue-800 text-sm mb-2">This restoration will:</h5>
+          <ul class="text-blue-700 text-sm space-y-1">
+            <li>• Make the substance active again</li>
+            <li>• Remove it from the merge history</li>
+            <li>• Allow it to appear in searches again</li>
+            <li>• Reset its canonical reference status</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+        <button onclick="cancelRestore()" 
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+          Cancel
+        </button>
+        <button onclick="executeRestore()" 
+                class="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700">
+          Restore Substance
+        </button>
+      </div>
+    </div>
+  </div>
+
   {{-- Substance Details Modal --}}
   <div id="substanceModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
     <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
@@ -270,6 +325,8 @@
   </div>
 
   <script>
+    let currentRestoreForm = null;
+    
     function showSubstanceDetails(substanceId) {
       // Show modal
       document.getElementById('substanceModal').classList.remove('hidden');
@@ -289,13 +346,31 @@
       }
     });
     
-    // Enhanced confirmation for restore action
-    function confirmRestore(event, substanceCode) {
-      if (!confirm('Are you sure you want to restore substance "' + substanceCode + '"?\n\nThis will:\n• Make the substance active again\n• Remove it from the merge history\n• Allow it to appear in searches again\n\nThis action cannot be undone.')) {
-        event.preventDefault();
-        return false;
-      }
-      return true;
+    // Restore confirmation functions
+    function confirmRestore(code, name, formElement) {
+      currentRestoreForm = formElement;
+      document.getElementById('modalSubstanceCode').textContent = code;
+      document.getElementById('modalSubstanceName').textContent = name;
+      document.getElementById('restoreModal').classList.remove('hidden');
     }
+    
+    function executeRestore() {
+      if (currentRestoreForm) {
+        currentRestoreForm.submit();
+      }
+      cancelRestore();
+    }
+    
+    function cancelRestore() {
+      document.getElementById('restoreModal').classList.add('hidden');
+      currentRestoreForm = null;
+    }
+    
+    // Close restore modal when clicking outside
+    document.getElementById('restoreModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        cancelRestore();
+      }
+    });
   </script>
 </x-app-layout>

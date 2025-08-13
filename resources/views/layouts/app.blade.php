@@ -24,6 +24,8 @@
   
   <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+  
+
 
   {{-- Leaflet --}}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
