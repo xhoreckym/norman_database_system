@@ -24,7 +24,8 @@ class BatchConversionController extends Controller
     {
         $request->validate([
             'identifiers' => 'required|string|max:10000',
-            'input_type' => 'required|in:cas_no,substance_name,std_inchikey'
+            'input_type' => 'required|in:cas_no,substance_name,std_inchikey,susdat_id',
+            'exact_match' => 'boolean'
         ]);
 
         $identifiers = array_filter(
@@ -33,10 +34,11 @@ class BatchConversionController extends Controller
         );
 
         $inputType = $request->input_type;
+        $exactMatch = $request->boolean('exact_match');
         $results = [];
 
         foreach ($identifiers as $identifier) {
-            $substances = $this->findSubstance($identifier, $inputType);
+            $substances = $this->findSubstance($identifier, $inputType, $exactMatch);
             if ($substances && $substances->count() > 0) {
                 foreach ($substances as $substance) {
                     $results[] = [
@@ -65,10 +67,12 @@ class BatchConversionController extends Controller
         session([
             'batch_conversion_data' => [
                 'identifiers' => $request->identifiers,
-                'input_type' => $inputType
+                'input_type' => $inputType,
+                'exact_match' => $exactMatch
             ],
             'batch_conversion_results' => $results,
-            'batch_conversion_input_type' => $inputType
+            'batch_conversion_input_type' => $inputType,
+            'batch_conversion_exact_match' => $exactMatch
         ]);
 
         // Sort results by code (susdat_id)
@@ -81,7 +85,7 @@ class BatchConversionController extends Controller
             return strcmp($a['susdat_id'], $b['susdat_id']);
         });
 
-        return view('susdat.batch.results', compact('results', 'inputType'));
+        return view('susdat.batch.results', compact('results', 'inputType', 'exactMatch'));
     }
 
     /**
@@ -110,18 +114,20 @@ class BatchConversionController extends Controller
         return response()->streamDownload(function () use ($results) {
             $output = fopen('php://output', 'w');
             
-            // Add header row with only specified columns
+            // Add header row with input identifier as first column
             fputcsv($output, [
+                'Input Identifier',
                 'SUSDAT ID',
                 'Substance Name',
                 'CAS No.',
                 'StdInChIKey'
             ]);
             
-            // Add data rows with only specified columns
+            // Add data rows with input identifier as first column
             foreach ($results as $result) {
                 if ($result['found']) {
                     fputcsv($output, [
+                        $result['input'],
                         'NS' . $result['susdat_id'],
                         $result['substance_name'] ?? '-',
                         $result['cas_no'] ?? '-',
@@ -139,21 +145,46 @@ class BatchConversionController extends Controller
     /**
      * Find substances based on input type and identifier
      */
-    private function findSubstance($identifier, $inputType)
+    private function findSubstance($identifier, $inputType, $exactMatch = false)
     {
         switch ($inputType) {
             case 'cas_no':
-                return Substance::where('cas_number', $identifier)->get();
+                if ($exactMatch) {
+                    return Substance::where('cas_number', 'ILIKE', $identifier)->get();
+                } else {
+                    return Substance::where('cas_number', 'ILIKE', '%' . $identifier . '%')->get();
+                }
             
             case 'substance_name':
-                return Substance::where('name', 'LIKE', '%' . $identifier . '%')
-                    ->orWhere('name_dashboard', 'LIKE', '%' . $identifier . '%')
-                    ->orWhere('name_chemspider', 'LIKE', '%' . $identifier . '%')
-                    ->orWhere('name_iupac', 'LIKE', '%' . $identifier . '%')
-                    ->get();
+                if ($exactMatch) {
+                    return Substance::where('name', 'ILIKE', $identifier)
+                        ->orWhere('name_dashboard', 'ILIKE', $identifier)
+                        ->orWhere('name_chemspider', 'ILIKE', $identifier)
+                        ->orWhere('name_iupac', 'ILIKE', $identifier)
+                        ->get();
+                } else {
+                    return Substance::where('name', 'ILIKE', '%' . $identifier . '%')
+                        ->orWhere('name_dashboard', 'ILIKE', '%' . $identifier . '%')
+                        ->orWhere('name_chemspider', 'ILIKE', '%' . $identifier . '%')
+                        ->orWhere('name_iupac', 'ILIKE', '%' . $identifier . '%')
+                        ->get();
+                }
             
             case 'std_inchikey':
-                return Substance::where('stdinchikey', $identifier)->get();
+                if ($exactMatch) {
+                    return Substance::where('stdinchikey', 'ILIKE', $identifier)->get();
+                } else {
+                    return Substance::where('stdinchikey', 'ILIKE', '%' . $identifier . '%')->get();
+                }
+            
+            case 'susdat_id':
+                // Remove NS prefix if present and search in code column
+                $cleanIdentifier = ltrim($identifier, 'NS');
+                if ($exactMatch) {
+                    return Substance::where('code', 'ILIKE', $cleanIdentifier)->get();
+                } else {
+                    return Substance::where('code', 'ILIKE', '%' . $cleanIdentifier . '%')->get();
+                }
             
             default:
                 return null;
