@@ -24,6 +24,40 @@
               </a>
             </div>
             
+            {{-- Flash Messages --}}
+            @if(session('success'))
+              <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div class="flex items-center space-x-3">
+                  <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <div class="text-green-800">{{ session('success') }}</div>
+                </div>
+              </div>
+            @endif
+            
+            @if(session('error'))
+              <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center space-x-3">
+                  <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                  <div class="text-red-800">{{ session('error') }}</div>
+                </div>
+              </div>
+            @endif
+            
+            @if(session('info'))
+              <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center space-x-3">
+                  <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <div class="text-blue-800">{{ session('info') }}</div>
+                </div>
+              </div>
+            @endif
+            
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div class="flex items-start space-x-3">
                 <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +68,8 @@
                     Canonical Reference System Merge History
                   </h3>
                   <p class="text-blue-700 mt-1">
-                    View all substance merge operations and audit trail. Merged substances are preserved but hidden from normal searches.
+                    View all substance merge operations and audit trail. Merged substances are preserved but hidden from normal searches. 
+                    Use the <span class="font-medium">Restore</span> button to reactivate merged substances if needed.
                   </p>
                 </div>
               </div>
@@ -124,7 +159,7 @@
                     <tr class="hover:bg-gray-50">
                       <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">
-                          {{ $mergedSubstance->code }}
+                          {{ $mergedSubstance->prefixed_code }}
                         </div>
                         @if($mergedSubstance->name)
                           <div class="text-sm text-gray-500">
@@ -138,7 +173,7 @@
                       
                       <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-green-900">
-                          {{ $mergedSubstance->canonical->code ?? 'N/A' }}
+                          {{ $mergedSubstance->canonical->prefixed_code ?? 'N/A' }}
                         </div>
                         @if($mergedSubstance->canonical && $mergedSubstance->canonical->name)
                           <div class="text-sm text-green-700">
@@ -174,11 +209,17 @@
                       </td>
                       
                       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button type="button" 
-                                onclick="showSubstanceDetails({{ $mergedSubstance->id }})"
-                                class="text-blue-600 hover:text-blue-900">
-                          View Details
-                        </button>
+                        <div class="flex space-x-2">
+
+                          <form method="POST" action="{{ route('duplicates.restore', $mergedSubstance->id) }}" class="inline">
+                            @csrf
+                            <button type="button" 
+                                    onclick="confirmRestore('{{ $mergedSubstance->prefixed_code }}', '{{ $mergedSubstance->name ?? 'N/A' }}', this.closest('form'))"
+                                    class="btn-submit-danger">
+                              Restore
+                            </button>
+                          </form>
+                        </div>
                       </td>
                     </tr>
                   @empty
@@ -205,6 +246,65 @@
     </div>
   </div>
 
+  {{-- Restore Confirmation Modal --}}
+  <div id="restoreModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-lg bg-white">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-medium text-gray-900">Confirm Substance Restoration</h3>
+            <p class="text-sm text-gray-500">This action will reactivate the merged substance</p>
+          </div>
+        </div>
+        <button onclick="cancelRestore()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Body -->
+      <div class="mb-6">
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <p class="text-yellow-800">
+            You are about to restore substance <strong id="modalSubstanceCode"></strong> 
+            (<span id="modalSubstanceName"></span>). This action cannot be undone.
+          </p>
+        </div>
+        
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <h5 class="font-medium text-blue-800 text-sm mb-2">This restoration will:</h5>
+          <ul class="text-blue-700 text-sm space-y-1">
+            <li>• Make the substance active again</li>
+            <li>• Remove it from the merge history</li>
+            <li>• Allow it to appear in searches again</li>
+            <li>• Reset its canonical reference status</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+        <button onclick="cancelRestore()" 
+                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+          Cancel
+        </button>
+        <button onclick="executeRestore()" 
+                class="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700">
+          Restore Substance
+        </button>
+      </div>
+    </div>
+  </div>
+
   {{-- Substance Details Modal --}}
   <div id="substanceModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
     <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
@@ -225,6 +325,8 @@
   </div>
 
   <script>
+    let currentRestoreForm = null;
+    
     function showSubstanceDetails(substanceId) {
       // Show modal
       document.getElementById('substanceModal').classList.remove('hidden');
@@ -241,6 +343,33 @@
     document.getElementById('substanceModal').addEventListener('click', function(e) {
       if (e.target === this) {
         closeSubstanceModal();
+      }
+    });
+    
+    // Restore confirmation functions
+    function confirmRestore(code, name, formElement) {
+      currentRestoreForm = formElement;
+      document.getElementById('modalSubstanceCode').textContent = code;
+      document.getElementById('modalSubstanceName').textContent = name;
+      document.getElementById('restoreModal').classList.remove('hidden');
+    }
+    
+    function executeRestore() {
+      if (currentRestoreForm) {
+        currentRestoreForm.submit();
+      }
+      cancelRestore();
+    }
+    
+    function cancelRestore() {
+      document.getElementById('restoreModal').classList.add('hidden');
+      currentRestoreForm = null;
+    }
+    
+    // Close restore modal when clicking outside
+    document.getElementById('restoreModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        cancelRestore();
       }
     });
   </script>

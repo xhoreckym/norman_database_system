@@ -272,6 +272,48 @@ class DuplicateController extends Controller
     }
 
     /**
+     * Restore a merged substance
+     */
+    public function restore(Request $request, string $id)
+    {
+        $mergedSubstance = Substance::where('id', $id)
+            ->where('status', 'merged')
+            ->whereNotNull('canonical_id')
+            ->firstOrFail();
+
+        // Check if user has permission to restore
+        if (!auth()->check()) {
+            abort(403, 'You must be logged in to restore substances.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Restore the substance to active status
+            $mergedSubstance->update([
+                'canonical_id' => null,
+                'status' => 'active',
+                'merged_at' => null,
+                'merged_by' => null,
+                'merge_reason' => null,
+            ]);
+
+            // Log the restore action (using session flash for now)
+            session()->flash('info', 'Restore action logged for substance ID: ' . $id);
+
+            DB::commit();
+
+            session()->flash('success', 'Substance has been successfully restored and is now active again.');
+            return redirect()->route('duplicates.mergeHistory');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            session()->flash('error', 'Failed to restore substance. Please try again.');
+            return redirect()->back();
+        }
+    }
+
+    /**
      * Unused resource methods
      */
     public function create() { /* Not implemented */ }
