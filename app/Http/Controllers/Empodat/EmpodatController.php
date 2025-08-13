@@ -41,6 +41,7 @@ use App\Models\List\SamplingCollectionDevice;
 use App\Models\SLE\SuspectListExchangeSource;
 use App\Models\List\QualityEmpodatAnalyticalMethods;
 use App\Models\List\AnalyticalMethod as AnalyticalMethodList;
+use Illuminate\Support\Facades\Log;
 
 class EmpodatController extends Controller
 {
@@ -79,9 +80,10 @@ class EmpodatController extends Controller
       // Eager load relationships (as needed)
       ->with('concentrationIndicator')
       ->with('station')
+      ->with('substance')
+      ->with('matrix')
       ->with('analyticalMethod')
-      ->with('dataSource')
-      // ->with('substance') 
+      ->with('dataSource') 
 
       // Joins
       ->leftJoin('susdat_substances', 'empodat_main.substance_id', '=', 'susdat_substances.id')
@@ -236,7 +238,10 @@ class EmpodatController extends Controller
     $sources = SuspectListExchangeSource::select('id', 'code', 'name')->get()->keyBy('id');
     $sourceList = [];
     foreach ($sources as $s) {
-      $sourceList[$s->id] = $s->code . ' - ' . $s->name;
+      // Filter to ensure only letters and numbers are allowed
+      $code = preg_replace('/[^a-zA-Z0-9]/', '', $s->code);
+      $name = preg_replace('/[^a-zA-Z0-9]/', '', $s->name);
+      $sourceList[$s->id] = $code . ' - ' . $name;
     }
 
     $categoriesList = [];
@@ -327,7 +332,7 @@ class EmpodatController extends Controller
     
     // Build query using model scopes
     $empodats = EmpodatMain::withSearchRelations()
-        ->normanRelevant()
+        // ->normanRelevant() // Temporarily commented out for debugging
         ->byCountries($searchInputs['countrySearch'])
         ->byMatrices($searchInputs['matrixSearch'])
         ->bySubstances($request->input('substances', []))
@@ -357,6 +362,12 @@ class EmpodatController extends Controller
     
     // Log query if not paginated request
     $queryLogId = $this->logQuery($empodats, $mainRequest, $request);
+    
+    // Debug: Log the SQL query
+    if (config('app.debug')) {
+        Log::info('Empodat query SQL: ' . $empodats->toSql());
+        Log::info('Empodat query bindings: ' . json_encode($empodats->getBindings()));
+    }
     
     // Apply pagination
     $empodats = $this->applyPagination($empodats, $request);

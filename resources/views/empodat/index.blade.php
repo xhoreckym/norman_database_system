@@ -86,6 +86,7 @@
           </span>
         </div>
         
+        
         <table class="table-standard">
           <thead>
             <tr class="bg-gray-600 text-white">
@@ -104,37 +105,59 @@
               <td class="p-1 text-center">
                 <div  class="">
                   {{ $e->id }}
-                  {{-- <livewire:empodat.show-empodat-entry :recordId="$e->id" /> --}}
                   <a href="{{ route('codsearch.show', $e->id) }}" class="link-lime-text" x-on:click.prevent="openModal({{ $e->id }})">
                     <i class="fas fa-search"></i>
                   </a>
                 </div>
               </td>
               <td class="p-1 text-center">
-                {{ $e->substance_name }}
+                @if($e->substance)
+                  {{ $e->substance->name ?? 'N/A' }}
+                @else
+                  N/A (ID: {{ $e->substance_id }})
+                @endif
                 @role('super_admin')
                 <span class="text-xss text-gray-500"> ({{ $e->substance_id }})</span>
                 @endrole
               </td>
               <td class="p-1 text-center">
-                @if($e->concentration_indicator_id == 0) {{ $e->concentration_indicator_id }} @endif
-                @if($e->concentration_indicator_id > 1)
-                {{ $e->concentrationIndicator->name }}
+                @if($e->concentration_indicator_id == 0) 
+                  {{ $e->concentration_indicator_id }} 
+                @elseif($e->concentration_indicator_id > 1)
+                  @if($e->concentrationIndicator)
+                    {{ $e->concentrationIndicator->name ?? 'N/A' }}
+                  @else
+                    N/A
+                  @endif
                 @else
-                <span class="font-medium">{{ $e->concentration_value}}</span>&nbsp;{{$e->concentration_unit }}
+                  <span class="font-medium">{{ $e->concentration_value ?? 'N/A' }}</span>&nbsp;{{ $e->matrix ? ($e->matrix->unit ?? '') : '' }}
                 @endif
               </td>
               <td class="p-1 text-center">
-                {{ $e->matrix_name }}
+                @if($e->matrix)
+                  {{ $e->matrix->name ?? 'N/A' }}
+                @else
+                  N/A
+                @endif
               </td>
               <td class="p-1 text-center">
-                {{ $e->country_name }} - {{ $e->country_code }}
+                @if($e->station && $e->station->country && is_object($e->station->country))
+                  {{ $e->station->country->name ?? 'N/A' }} - {{ $e->station->country->code ?? 'N/A' }}
+                @elseif($e->station && $e->station->country)
+                  {{ $e->station->country ?? 'N/A' }}
+                @else
+                  N/A
+                @endif
               </td> 
               <td class="p-1 text-center">
                 {{ $e->sampling_date_year }}
               </td>  
               <td class="p-1 text-center">
-                {{ $e->station_name }}
+                @if($e->station)
+                  {{ $e->station->name ?? 'N/A' }}
+                @else
+                  N/A
+                @endif
               </td>     
             </tr>
             @endforeach
@@ -177,7 +200,7 @@
           <div class="bg-white w-11/12 md:w-2/3 lg:w-1/2 xl:w-1/3 rounded shadow-lg relative" x-trap.inert="showModal">
             <!-- Modal Header -->
             <div class="flex justify-between items-center border-b px-4 py-2">
-              <h3 class="text-lg font-semibold">Record ID: <span x-text="record?.id"></span></h3>
+              <h3 class="text-lg font-semibold">Record ID: <span x-text="recordId"></span></h3>
               <button @click="closeModal()" class="text-gray-500 hover:text-gray-700 text-xl">
                 &times;
               </button>
@@ -270,6 +293,7 @@
             return {
               showModal: false,
               record: null,
+              recordId: null,
               mapInstance: null,
               stationArray: [],
               analyticalMethodArray: [],
@@ -293,13 +317,25 @@
                 },
                 
                 async openModal(recordId) {
+                  console.log('Opening modal for record ID:', recordId);
+                  this.recordId = recordId; // Store the record ID
+                  
                   // Fetch record data from our /records/:id/json route
                   const response = await fetch(
                   "{{ route('codsearch.show', ':id') }}"
                   .replace(':id', recordId)
-                  );                 
-                  this.record = await response.json();
+                  );
                   
+                  if (!response.ok) {
+                    console.error('Failed to fetch record data:', response.status, response.statusText);
+                    return;
+                  }
+                  
+                  this.record = await response.json();
+                  console.log('Fetched record data:', this.record);
+                  console.log('recordId from parameter:', this.recordId);
+                  console.log('record.id from API response:', this.record?.id);
+                  console.log('Are they the same?', this.recordId === this.record?.id);
                   
                   // Build an array of station entries, skipping unwanted keys and empty/null values
                   if (this.record.station) {
@@ -361,13 +397,14 @@
                     // Add a marker
                     L.marker([this.record.station.latitude, this.record.station.longitude])
                     .addTo(this.mapInstance)
-                    .bindPopup(`Record ID: ${this.record.id}`);
+                    .bindPopup(`Record ID: ${this.recordId}`);
                   }
                 },
                 
                 closeModal() {
                   this.showModal = false;
                   this.record = null;
+                  this.recordId = null;
                   // Optionally reset map or let it persist
                 }
               }
