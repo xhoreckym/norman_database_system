@@ -3,6 +3,7 @@
 namespace App\Livewire\Susdat;
 
 use Livewire\Component;
+use Illuminate\Support\Facades\Log;
 
 class DuplicateLoadPubchem extends Component
 {
@@ -21,10 +22,25 @@ class DuplicateLoadPubchem extends Component
         $response = $client->request('GET', $url);
         $jsonData = json_decode($response->getBody())->PropertyTable->Properties;
         $pubchem = [];
+        
+        // Get all expected Norman field names
+        $expectedFields = array_values($this->remapPubchemToNorman());
+        
         foreach($jsonData as $key => $value){
-            $pubchem[$value->CID] = collect($value)->mapWithKeys(function($value, $key){
-                return [$this->remapPubchemToNorman()[$key] ?? null => $value];
-            });
+            $mappedData = [];
+            // Initialize all expected fields with null
+            foreach($expectedFields as $field) {
+                $mappedData[$field] = null;
+            }
+            
+            // Map PubChem data to Norman fields
+            foreach($value as $pubchemKey => $pubchemValue) {
+                $normanField = $this->remapPubchemToNorman()[$pubchemKey] ?? null;
+                if ($normanField) {
+                    $mappedData[$normanField] = $pubchemValue;
+                }
+            }
+            $pubchem[$value->CID] = $mappedData;
         }
         
         $this->response = $pubchem;
@@ -34,7 +50,6 @@ class DuplicateLoadPubchem extends Component
     {
         return view('livewire.susdat.duplicate-load-pubchem', [
             'response' => $this->response,
-            // 'dtxsid_out' => $this->dtxsid,
             'columns' => $this->remapPubchemToNorman(),
         ]);
     }

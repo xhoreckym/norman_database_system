@@ -4,20 +4,20 @@
         <table class="table-standard">
             <thead>
                 <tr class="bg-gray-600 text-white">
-                    @foreach ($columns as $c)
-                    <th class="py-1 px-2">{{$c}}</th>
+                    @foreach ($columns as $pubchemField => $normanField)
+                    <th class="py-1 px-2">{{$normanField}}</th>
                     @endforeach
                 </tr>
             </thead>
             <tbody>
                 @foreach ($response as $r)
                 <tr class="@if($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
-                    @foreach ($columns as $c)
+                    @foreach ($columns as $pubchemField => $normanField)
                     <td class="p-1">
-                        @if(is_null($r[$c]))
+                        @if(is_null($r[$normanField]))
                         <span class="text-slate-600 pl-5">No data available</span>
                         @else
-                        {{$r[$c]}}
+                        {{$r[$normanField]}}
                         @endif
                     </td>
                     @endforeach
