@@ -16,7 +16,6 @@ class Substance extends Model implements Auditable
     use SoftDeletes;
     use AuditableTrait;
 
-
     /**
      * The table associated with the model.
      *
@@ -50,6 +49,11 @@ class Substance extends Model implements Auditable
         'metadata_ms_ready',
         'metadata_general',
         'added_by',
+        'canonical_id', // ADD THIS
+        'status', // ADD THIS
+        'merged_at', // ADD THIS
+        'merged_by', // ADD THIS
+        'merge_reason', // ADD THIS
     ];
 
     /**
@@ -64,6 +68,9 @@ class Substance extends Model implements Auditable
         'metadata_ms_ready' => 'array',
         'metadata_general' => 'array',
         'added_by' => 'integer',
+        'canonical_id' => 'integer', // ADD THIS
+        'merged_at' => 'datetime', // ADD THIS
+        'merged_by' => 'integer', // ADD THIS
     ];
 
     /**
@@ -72,6 +79,21 @@ class Substance extends Model implements Auditable
      * @var array
      */
     protected $appends = ['prefixed_code'];
+
+    public static function boot()
+    {
+        parent::boot();
+
+        // Validate canonical_id references active substance
+        static::saving(function ($substance) {
+            if ($substance->canonical_id && $substance->isDirty('canonical_id')) {
+                $canonical = self::find($substance->canonical_id);
+                if (!$canonical || $canonical->status !== 'active') {
+                    throw new \InvalidArgumentException('canonical_id must reference an active substance');
+                }
+            }
+        });
+    }
 
     /**
      * Get the user who added this substance.
@@ -86,12 +108,7 @@ class Substance extends Model implements Auditable
      */
     public function categories()
     {
-        return $this->belongsToMany(
-            Category::class,
-            'susdat_category_substance',
-            'substance_id',
-            'category_id'
-        )->withTimestamps();
+        return $this->belongsToMany(Category::class, 'susdat_category_substance', 'substance_id', 'category_id')->withTimestamps();
     }
 
     /**
@@ -99,12 +116,7 @@ class Substance extends Model implements Auditable
      */
     public function sources()
     {
-        return $this->belongsToMany(
-            SuspectListExchangeSource::class,
-            'susdat_source_substance',
-            'substance_id',
-            'source_id'
-        );
+        return $this->belongsToMany(SuspectListExchangeSource::class, 'susdat_source_substance', 'substance_id', 'source_id');
     }
 
     /**
@@ -132,7 +144,7 @@ class Substance extends Model implements Auditable
     /**
      * Get the primary name for display purposes.
      * Prioritizes dashboard name over regular name.
-     * 
+     *
      * @return string|null
      */
     public function getDisplayNameAttribute()
@@ -142,7 +154,7 @@ class Substance extends Model implements Auditable
 
     /**
      * Get formatted CAS number for display.
-     * 
+     *
      * @return string|null
      */
     public function getFormattedCasAttribute()
@@ -150,7 +162,7 @@ class Substance extends Model implements Auditable
         if (!$this->cas_number) {
             return null;
         }
-        
+
         // If CAS number doesn't contain dashes, format it
         if (!str_contains($this->cas_number, '-')) {
             $cas = $this->cas_number;
@@ -159,23 +171,23 @@ class Substance extends Model implements Auditable
                 return substr($cas, 0, -3) . '-' . substr($cas, -3, 2) . '-' . substr($cas, -1);
             }
         }
-        
+
         return $this->cas_number;
     }
 
     /**
      * Get all synonyms from metadata.
-     * 
+     *
      * @return array
      */
     public function getAllSynonymsAttribute()
     {
         $synonyms = [];
-        
+
         if ($this->metadata_synonyms && is_array($this->metadata_synonyms)) {
             $synonyms = array_merge($synonyms, $this->metadata_synonyms);
         }
-        
+
         // Add other name fields as synonyms if they exist and are different
         $nameFields = ['name', 'name_dashboard', 'name_chemspider', 'name_iupac'];
         foreach ($nameFields as $field) {
@@ -183,13 +195,13 @@ class Substance extends Model implements Auditable
                 $synonyms[] = $this->$field;
             }
         }
-        
+
         return array_unique(array_filter($synonyms));
     }
 
     /**
      * Check if substance has molecular structure data.
-     * 
+     *
      * @return bool
      */
     public function getHasStructureDataAttribute()
@@ -199,25 +211,25 @@ class Substance extends Model implements Auditable
 
     /**
      * Get external database links.
-     * 
+     *
      * @return array
      */
     public function getExternalLinksAttribute()
     {
         $links = [];
-        
+
         if ($this->pubchem_cid) {
             $links['pubchem'] = "https://pubchem.ncbi.nlm.nih.gov/compound/{$this->pubchem_cid}";
         }
-        
+
         if ($this->chemspider_id) {
             $links['chemspider'] = "https://www.chemspider.com/Chemical-Structure.{$this->chemspider_id}.html";
         }
-        
+
         if ($this->dtxid) {
             $links['comptox'] = "https://comptox.epa.gov/dashboard/chemical/details/{$this->dtxid}";
         }
-        
+
         return $links;
     }
 
@@ -228,11 +240,11 @@ class Substance extends Model implements Auditable
     {
         return $query->where(function ($q) use ($searchTerm) {
             $q->where('name', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('name_dashboard', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('name_chemspider', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('name_iupac', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('cas_number', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('code', 'LIKE', "%{$searchTerm}%");
+                ->orWhere('name_dashboard', 'LIKE', "%{$searchTerm}%")
+                ->orWhere('name_chemspider', 'LIKE', "%{$searchTerm}%")
+                ->orWhere('name_iupac', 'LIKE', "%{$searchTerm}%")
+                ->orWhere('cas_number', 'LIKE', "%{$searchTerm}%")
+                ->orWhere('code', 'LIKE', "%{$searchTerm}%");
         });
     }
 
@@ -256,9 +268,92 @@ class Substance extends Model implements Auditable
     public function scopeWithStructureData($query)
     {
         return $query->where(function ($q) {
-            $q->whereNotNull('smiles')
-              ->orWhereNotNull('stdinchi')
-              ->orWhereNotNull('molecular_formula');
+            $q->whereNotNull('smiles')->orWhereNotNull('stdinchi')->orWhereNotNull('molecular_formula');
         });
+    }
+
+    /**
+     * Get the canonical substance this points to.
+     */
+    public function canonical()
+    {
+        return $this->belongsTo(Substance::class, 'canonical_id');
+    }
+
+    /**
+     * Get substances that point to this as canonical.
+     */
+    public function deprecatedVersions()
+    {
+        return $this->hasMany(Substance::class, 'canonical_id');
+    }
+
+    /**
+     * Get the user who merged this substance.
+     */
+    public function mergedBy()
+    {
+        return $this->belongsTo(User::class, 'merged_by');
+    }
+
+    /**
+     * Get the canonical version of this substance.
+     *
+     * @return Substance
+     */
+    public function getCanonicalSubstanceAttribute()
+    {
+        if ($this->canonical_id === null) {
+            return $this; // This IS the canonical version
+        }
+
+        // Follow the chain to find canonical (handles multiple levels)
+        return $this->canonical->canonicalSubstance;
+    }
+
+    /**
+     * Get the resolved canonical ID.
+     *
+     * @return int
+     */
+    public function getCanonicalIdResolvedAttribute()
+    {
+        return $this->canonical_id ?? $this->id;
+    }
+
+    /**
+     * Scope to only show active (canonical) substances.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    /**
+     * Scope to exclude deprecated/merged substances.
+     */
+    public function scopeCanonicalOnly($query)
+    {
+        return $query->whereNull('canonical_id');
+    }
+
+    /**
+     * Check if this substance is the canonical version.
+     *
+     * @return bool
+     */
+    public function getIsCanonicalAttribute()
+    {
+        return $this->canonical_id === null && $this->status === 'active';
+    }
+
+    /**
+     * Check if substance has been merged/deprecated.
+     *
+     * @return bool
+     */
+    public function getIsDeprecatedAttribute()
+    {
+        return in_array($this->status, ['deprecated', 'merged']);
     }
 }
