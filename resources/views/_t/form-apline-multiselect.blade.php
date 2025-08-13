@@ -1,4 +1,3 @@
-
 @if (is_string($active_ids))
 @php
 $active_ids = json_decode($active_ids, true);
@@ -17,17 +16,17 @@ $active_ids = [];
     <div
     x-data="multiselect(
       { 
-        items: [
-    @foreach ($list as $key => $value)
-    @if(is_array($value))
-      { label: '{!! preg_replace("/'/", '`', $value) !!}', value: '{{$value['id']}}' @if (in_array($value['id'], $active_ids)) , selected: true @endif},
-    @else
-    { label: '{!! preg_replace("/'/", '`', $value) !!}', value: '{{$key}}'@if (in_array($key, $active_ids)) , selected: true @endif},
-    @endif
-    @endforeach
-    ],
-    size: 6,
-})"
+            items: [
+        @foreach ($list as $key => $value)
+        @if(is_array($value))
+        { label: '{!! preg_replace("/[\'\"&\\\\<>]/", "", $value) !!}', value: '{{$value['id']}}' @if (in_array($value['id'], $active_ids)) , selected: true @endif},
+        @else
+        { label: '{!! preg_replace("/[\'\"&\\\\<>]/", "", $value) !!}', value: '{{$key}}'@if (in_array($key, $active_ids)) , selected: true @endif},
+        @endif
+        @endforeach
+        ],
+        size: 6,
+    })"
     x-init="onInit"
     @focusout="handleBlur"
     class="relative"

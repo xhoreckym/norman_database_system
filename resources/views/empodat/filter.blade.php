@@ -71,7 +71,7 @@
                 <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                   <label class="inline-flex items-center">
                     <input type="radio" 
-                           class="form-radio text-indigo-600" 
+                           class="form-radio text-slate-600" 
                            name="displayOption" 
                            value="1" 
                            @if (request('displayOption', '1') == 1) checked @endif
@@ -80,7 +80,7 @@
                   </label>
                   <label class="inline-flex items-start sm:items-center">
                     <input type="radio" 
-                           class="form-radio text-indigo-600 mt-1 sm:mt-0" 
+                           class="form-radio text-slate-600 mt-1 sm:mt-0" 
                            name="displayOption" 
                            value="0" 
                            @if (request('displayOption', '1') === '0') checked @endif
@@ -172,7 +172,7 @@
                              aria-describedby="category-{{$category->id}}-desc">
                     </span>
                     <span class="ml-1">
-                      {!! preg_replace('/\s*\(/', '&nbsp;(', $category->name_abbreviation, 1) !!}
+                      {!! str_replace(' (', '&nbsp;(', $category->name_abbreviation) !!}
                     </span>
                     <span id="category-{{$category->id}}-desc" class="sr-only">
                       Category: {{$category->name_abbreviation}}
