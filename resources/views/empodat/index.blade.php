@@ -200,7 +200,10 @@
           <div class="bg-white w-11/12 md:w-2/3 lg:w-1/2 xl:w-1/3 rounded shadow-lg relative" x-trap.inert="showModal">
             <!-- Modal Header -->
             <div class="flex justify-between items-center border-b px-4 py-2">
-              <h3 class="text-lg font-semibold">Record ID: <span x-text="recordId"></span></h3>
+              <div class="flex items-center space-x-4">
+                <h3 class="text-lg font-semibold">Record ID: <span x-text="recordId"></span></h3>
+                <h3 class="text-lg font-semibold text-gray-500">DCT Analysis ID: <span x-text="record?.dct_analysis_id || 'N/A'"></span></h3>
+              </div>
               <button @click="closeModal()" class="text-gray-500 hover:text-gray-700 text-xl">
                 &times;
               </button>
@@ -230,6 +233,26 @@
                   x-text="'NS' + record?.code"
                   ></a>
                 </div>
+              </div>
+              
+              <div class="font-semibold text-base border-b-2 border-lime-500 text-center">Concentration</div>
+              <div class="flex justify-between py-1 text-sm bg-slate-100">
+                <div class="px-1 font-semibold">Concentration</div>
+                <div class="px-1">
+                  <template x-if="record?.concentration_indicator_id == 0">
+                    <span x-text="record?.concentration_indicator_id || 'N/A'"></span>
+                  </template>
+                  <template x-if="record?.concentration_indicator_id > 1">
+                    <span x-text="record?.concentration_indicator?.name || 'N/A'"></span>
+                  </template>
+                  <template x-if="record?.concentration_indicator_id == 1">
+                    <span><span class="font-medium" x-text="record?.concentration_value || 'N/A'"></span>&nbsp;<span x-text="record?.matrix?.unit || ''"></span></span>
+                  </template>
+                </div>
+              </div>
+              <div class="flex justify-between py-1 text-sm bg-slate-200">
+                <div class="px-1 font-semibold">Sampling Year</div>
+                <div class="px-1" x-text="record?.sampling_date_year || 'N/A'"></div>
               </div>
               
               <div class="font-semibold text-base border-b-2 border-lime-500 text-center">Analytical Method</div>
