@@ -256,10 +256,21 @@
               </div>
               
               <div class="font-semibold text-base border-b-2 border-lime-500 text-center">Analytical Method</div>
+              <div class="flex justify-between py-1 text-sm bg-slate-100">
+                <div class="px-1 font-semibold">sample_preparation_method_other</div>
+                <div class="px-1">
+                  <template x-if="!record?.analytical_method?.sample_preparation_method_other || record?.analytical_method?.sample_preparation_method_other === null">
+                    <span>N/A</span>
+                  </template>
+                  <template x-if="record?.analytical_method?.sample_preparation_method_other && record?.analytical_method?.sample_preparation_method_other > 0">
+                    <span x-text="record?.analytical_method?.samplePreparationMethodOther?.name || 'N/A'"></span>
+                  </template>
+                </div>
+              </div>
               <!-- We'll loop over stationArray -->
               <template x-for="(pair, index) in analyticalMethodArray" :key="index">
                 <!-- index = 0,1,2,... so we can do odd/even backgrounds -->
-                <div :class="index % 2 === 0 ? 'py-1 bg-slate-100' : 'py-1 bg-slate-200'">
+                <div :class="index % 2 === 0 ? 'py-1 bg-slate-200' : 'py-1 bg-slate-100'">
                   <div class="flex justify-between py-1 text-sm">
                     <!-- pair[0] = key, pair[1] = value -->
                     <div class="px-1 font-semibold" x-text="pair[0]"></div>
