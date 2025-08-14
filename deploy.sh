@@ -10,96 +10,96 @@ fi
 # Get the commit message from the first argument
 COMMIT_MESSAGE="$1"
 
-echo "🚀 Starting deployment process..."
-echo "📝 Commit message: $COMMIT_MESSAGE"
+echo -e "\033[1;36mStarting deployment process...\033[0m"
+echo -e "\033[1;33mCommit message: $COMMIT_MESSAGE\033[0m"
 
 # Step 1: Commit and push current changes
-echo "📦 Committing and pushing changes..."
+echo -e "\033[1;34mCommitting and pushing changes...\033[0m"
 git add -A
 git commit -am "$COMMIT_MESSAGE"
 if [ $? -ne 0 ]; then
-    echo "❌ Git commit failed. Exiting."
+    echo -e "\033[1;31mGit commit failed. Exiting.\033[0m"
     exit 1
 fi
 
 git push
 if [ $? -ne 0 ]; then
-    echo "❌ Git push failed. Exiting."
+    echo -e "\033[1;31mGit push failed. Exiting.\033[0m"
     exit 1
 fi
 
 # Step 2: Merge to main and push
-echo "🔄 Switching to main branch..."
+echo -e "\033[1;35mSwitching to main branch...\033[0m"
 git checkout main
 if [ $? -ne 0 ]; then
-    echo "❌ Failed to checkout main branch. Exiting."
+    echo -e "\033[1;31mFailed to checkout main branch. Exiting.\033[0m"
     exit 1
 fi
 
-echo "⬇️ Pulling latest changes on main..."
+echo -e "\033[1;34mPulling latest changes on main...\033[0m"
 git pull --no-edit
 if [ $? -ne 0 ]; then
-    echo "❌ Failed to pull main branch. Exiting."
+    echo -e "\033[1;31mFailed to pull main branch. Exiting.\033[0m"
     exit 1
 fi
 
-echo "🔀 Merging development branch..."
+echo -e "\033[1;36mMerging development branch...\033[0m"
 git merge development --no-edit
 if [ $? -ne 0 ]; then
-    echo "❌ Failed to merge development branch. Exiting."
+    echo -e "\033[1;31mFailed to merge development branch. Exiting.\033[0m"
     exit 1
 fi
 
-echo "⬆️ Pushing main branch..."
+echo -e "\033[1;34mPushing main branch...\033[0m"
 git push
 if [ $? -ne 0 ]; then
-    echo "❌ Failed to push main branch. Exiting."
+    echo -e "\033[1;31mFailed to push main branch. Exiting.\033[0m"
     exit 1
 fi
 
 # Step 3: Switch back to development and sync
-echo "🔄 Switching back to development..."
+echo -e "\033[1;35mSwitching back to development...\033[0m"
 git checkout development
 if [ $? -ne 0 ]; then
-    echo "❌ Failed to checkout development branch. Exiting."
+    echo -e "\033[1;31mFailed to checkout development branch. Exiting.\033[0m"
     exit 1
 fi
 
-echo "⬇️ Pulling latest changes on development..."
+echo -e "\033[1;34mPulling latest changes on development...\033[0m"
 git pull --no-edit
 if [ $? -ne 0 ]; then
-    echo "❌ Failed to pull development branch. Exiting."
+    echo -e "\033[1;31mFailed to pull development branch. Exiting.\033[0m"
     exit 1
 fi
 
-echo "⬆️ Pushing development branch..."
+echo -e "\033[1;34mPushing development branch...\033[0m"
 git push
 if [ $? -ne 0 ]; then
-    echo "❌ Failed to push development branch. Exiting."
+    echo -e "\033[1;31mFailed to push development branch. Exiting.\033[0m"
     exit 1
 fi
 
 # Step 4: Deploy to server
-echo "🌐 Deploying to production server..."
+echo -e "\033[1;32mDeploying to production server...\033[0m"
 ssh deployer@145.223.117.219 << 'EOF'
-    echo "📁 Navigating to project directory..."
+    echo -e "\033[1;37mNavigating to project directory...\033[0m"
     cd /opt/projects/norman_database_system/
     
-    echo "⬇️ Pulling latest changes on server..."
+    echo -e "\033[1;34mPulling latest changes on server...\033[0m"
     git pull
     
-    echo "🏗️ Building assets..."
+    echo -e "\033[1;33mBuilding assets...\033[0m"
     docker exec -it nds-app npm run build
     
-    echo "🧹 Clearing Laravel views cache..."
+    echo -e "\033[1;36mClearing Laravel views cache...\033[0m"
     docker exec -it nds-app php artisan view:clear
     
-    echo "✅ Server deployment completed!"
+    echo -e "\033[1;32mServer deployment completed!\033[0m"
 EOF
 
 if [ $? -eq 0 ]; then
-    echo "🎉 Deployment completed successfully!"
+    echo -e "\033[1;32mDeployment completed successfully!\033[0m"
 else
-    echo "❌ Deployment failed on server."
+    echo -e "\033[1;31mDeployment failed on server.\033[0m"
     exit 1
 fi
