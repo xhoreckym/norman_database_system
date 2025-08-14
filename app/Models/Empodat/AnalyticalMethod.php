@@ -44,4 +44,8 @@ class AnalyticalMethod extends Model
     public function listAnalyticalMethod(){
         return $this->belongsTo(AnalyticalMethod::class, 'analytical_method_id', 'id');
     }
+    
+    public function samplePreparationMethodOther(){
+        return $this->belongsTo(\App\Models\List\SamplePreparationMethod::class, 'sample_preparation_method_other', 'id');
+    }
 }
