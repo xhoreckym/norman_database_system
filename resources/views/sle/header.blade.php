@@ -6,9 +6,15 @@
   Home
 </x-nav-link-header>
 
-<x-nav-link-header :href="route('sle.sources.index')" :active="request()->is('*sources*')">
-  Sources Management
+<x-nav-link-header :href="route('sle.sources.index')" :active="request()->is('*sources*') && !request()->is('*database*')">
+  Sources
 </x-nav-link-header>
+
+@role('admin|super_admin|sle')
+<x-nav-link-header :href="route('sle.sources.database')" :active="request()->is('*database*')">
+  Database Management
+</x-nav-link-header>
+@endrole
 
 {{-- <x-nav-link-header :href="route('codsearch.filter')" :active="request()->is('*codsearch*')">
   Search

@@ -226,7 +226,9 @@ Route::prefix('sle')->group(function () {
     Route::get('slehome/countAll', [SuspectListExchangeHomeController::class, 'countAll'])->middleware('auth')->name('slehome.countAll');
     
     // CRUD routes for SuspectListExchangeSource
-    Route::get('sources', [SuspectListExchangeController::class, 'index'])->name('sle.sources.index')->withoutMiddleware(['auth', 'role:admin|super_admin|sle']);
+    Route::get('sources', [SuspectListExchangeController::class, 'main'])->name('sle.sources.index')->withoutMiddleware(['auth', 'role:admin|super_admin|sle']);
+    Route::get('sources/database', [SuspectListExchangeController::class, 'index'])->name('sle.sources.database')->middleware('auth');
+    Route::get('sources/refresh', [SuspectListExchangeController::class, 'refresh'])->name('sle.sources.refresh')->middleware('auth');
     Route::resource('sources', SuspectListExchangeController::class)->middleware('auth')->except(['index'])->names([
         'create'  => 'sle.sources.create',
         'store'   => 'sle.sources.store',
