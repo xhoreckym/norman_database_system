@@ -12,7 +12,7 @@
           
           <!-- Title -->
           <h1 class="text-2xl font-bold text-gray-800 mb-4">
-            NORMAN Suspect List Exchange – NORMAN SLE
+            NORMAN Suspect List Exchange – Online Data View
           </h1>
           
           <!-- Online Content -->
@@ -32,9 +32,9 @@
             
             @if(count($filteredContent) > 0)
               @foreach($filteredContent as $content)
-                <p class="text-gray-700 leading-relaxed mb-4 online-content">
+                <div class="text-gray-700 leading-relaxed mb-4 online-content">
                   {!! $content !!}
-                </p>
+                </div>
               @endforeach
             @else
               <!-- No meaningful content available -->
@@ -43,61 +43,42 @@
           @else
             <!-- Fallback Description if online content is not available -->
             <p class="text-gray-700 leading-relaxed mb-4">
-              The NORMAN Suspect List Exchange (NORMAN-SLE) was established in 2015 as a central access point for NORMAN members (and others) to find suspect lists relevant for their environmental monitoring questions. The NORMAN-SLE documents all individual collections that form a part of the merged collection NORMAN SusDat. The original SLE lists should be consulted to verify SusDat information if necessary (see Source column in SusDat). NORMAN-SLE versions are tracked on Zenodo. 
-            </p>
-
-            <p class="text-gray-700 leading-relaxed mb-4">
-              NEW: Check out our NORMAN-SLE publication in ESEU @ DOI: 10.1186/s12302-022-00680-6 
-            </p>
-            
-            <p class="text-gray-700 leading-relaxed mb-4">
-              Comments and contributions are welcome - please email us at suspects@normandata.eu.
-            </p>
-
-            <p class="text-gray-700 leading-relaxed mb-4">
-              Please refer to our documentation pages for: citation instructions, credits, updates, license details, SDFs and other useful tips!
+              This page displays data directly from the online source without storing it in the database. 
+              The data is fetched in real-time from <a href="https://www.norman-network.com/nds/SLE/index_body.php" class="link-lime-text" target="_blank">https://www.norman-network.com/nds/SLE/index_body.php</a>
             </p>
           @endif
 
-          <!-- Data Source Info -->
-          <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+          <!-- Last Updated Info -->
+          <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
             <div class="flex">
               <div class="flex-shrink-0">
-                <i class="fa fa-info-circle text-blue-400"></i>
+                <i class="fa fa-clock text-green-400"></i>
               </div>
               <div class="ml-3">
-                <p class="text-sm text-blue-700">
-                  <strong>Live Data:</strong> This page displays data directly from the online source in real-time. 
-                  Data is fetched from <a href="https://www.norman-network.com/nds/SLE/index_body.php" class="link-lime-text" target="_blank">https://www.norman-network.com/nds/SLE/index_body.php</a> on each page load. <strong>Last Updated:</strong> {{ now()->format('Y-m-d H:i:s') }} (UTC)
+                <p class="text-sm text-green-700">
+                  <strong>Last Updated:</strong> {{ $lastUpdated->format('Y-m-d H:i:s') }} (UTC)
                 </p>
               </div>
             </div>
           </div>
 
-
-          {{-- <!-- Navigation -->
+          <!-- Navigation -->
           <div class="mb-4 flex justify-between items-center">
+            <a href="{{ route('sle.sources.index') }}" class="btn-submit">
+              <i class="fa fa-arrow-left mr-2"></i>
+              Back to Database View
+            </a>
+            
             @role('admin|super_admin|sle')
-            <div class="flex space-x-2">
-              <a href="{{ route('sle.sources.database') }}" class="btn-submit">
-                <i class="fa fa-database mr-2"></i>
-                Database View (Development)
-              </a>
-              <a href="{{ route('sle.sources.refresh') }}" class="btn-create" onclick="return confirm('Are you sure you want to refresh the database with this online data?')">
-                <i class="fa fa-download mr-2"></i>
-                Update Database
-              </a>
-            </div>
-            @else
-            <div class="text-sm text-gray-600">
-              <i class="fa fa-lock mr-1"></i>
-              Database management requires administrator access
-            </div>
+            <a href="{{ route('sle.sources.refresh') }}" class="btn-create" onclick="return confirm('Are you sure you want to refresh the database with this online data?')">
+              <i class="fa fa-download mr-2"></i>
+              Update Database with Online Data
+            </a>
             @endrole
-          </div> --}}
+          </div>
 
           <!-- Data Table -->
-          @if(isset($onlineData) && count($onlineData) > 0)
+          @if(count($onlineData) > 0)
             <table class="table-standard">
               <thead>
                 <tr class="bg-gray-600 text-white">
