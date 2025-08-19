@@ -7,9 +7,11 @@ use App\Models\Susdat\Substance;
 use App\Models\Empodat\AnalyticalMethod as EmpodatAnalyticalMethod;
 use App\Models\List\ConcentrationIndicator;
 use App\Models\List\Matrix;
+use App\Models\Empodat\EmpodatMinor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
 class EmpodatMain extends Model
 {
@@ -54,6 +56,13 @@ class EmpodatMain extends Model
         'concentration_value' => 'float',
         'method_id' => 'integer',
         'data_source_id' => 'integer',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     */
+    protected $appends = [
+        'formatted_sampling_date',
     ];
 
     /**
@@ -102,6 +111,14 @@ class EmpodatMain extends Model
     public function dataSource()
     {
         return $this->belongsTo(DataSources::class, 'data_source_id');
+    }
+
+    /**
+     * Get the minor details associated with this record.
+     */
+    public function minor()
+    {
+        return $this->hasOne(EmpodatMinor::class, 'id', 'id');
     }
 
     /**
@@ -305,7 +322,8 @@ class EmpodatMain extends Model
             'station.country',
             'analyticalMethod',
             'dataSource',
-            'files'
+            'files',
+            'minor'
         ]);
     }
 
@@ -322,5 +340,26 @@ class EmpodatMain extends Model
 
         $indicator = $this->concentrationIndicator ? $this->concentrationIndicator->symbol : '';
         return $indicator . number_format($this->concentration_value, 4);
+    }
+
+    /**
+     * Get the formatted sampling date.
+     * 
+     * @return string
+     */
+    public function getFormattedSamplingDateAttribute()
+    {
+        // First try to get the full date from minor relationship
+        if ($this->minor && $this->minor->sampling_date) {
+            return Carbon::parse($this->minor->sampling_date)->format('Y-m-d');
+        }
+        
+        // Fallback to the year if no minor date available
+        if ($this->sampling_date_year) {
+            return (string) $this->sampling_date_year;
+        }
+        
+        // Final fallback
+        return 'N/A';
     }
 }

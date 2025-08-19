@@ -42,6 +42,7 @@ use App\Models\SLE\SuspectListExchangeSource;
 use App\Models\List\QualityEmpodatAnalyticalMethods;
 use App\Models\List\AnalyticalMethod as AnalyticalMethodList;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class EmpodatController extends Controller
 {
@@ -84,16 +85,9 @@ class EmpodatController extends Controller
       ->with('matrix')
       ->with('analyticalMethod')
       ->with('dataSource') 
+      ->with('minor')
 
-      // Joins
-      ->leftJoin('susdat_substances', 'empodat_main.substance_id', '=', 'susdat_substances.id')
-      // ->leftJoin('list_matrices', 'empodat_main.matrix_id', '=', 'list_matrices.id')
-      // ->leftJoin('empodat_stations', 'empodat_main.station_id', '=', 'empodat_stations.id')
-      // ->leftJoin('list_countries', 'empodat_stations.country_id', '=', 'list_countries.id')
-      // ->join('empodat_data_sources', 'empodat_data_sources.id', '=', 'empodat_main.data_source_id')
-      // ->join('empodat_analytical_methods', 'empodat_analytical_methods.id', '=', 'empodat_main.method_id')
-      // ->join('susdat_category_substance', 'susdat_category_substance.substance_id', '=', 'empodat_main.substance_id')
-      // ->join('susdat_source_substance', 'susdat_source_substance.substance_id', '=', 'empodat_main.substance_id')
+      // Joins removed - using eager loading instead
 
       // Finally, constrain it to a single empodat_main.id
       ->where('empodat_main.id', $id)
@@ -131,13 +125,35 @@ class EmpodatController extends Controller
     // ==============================
 
     // ==============================
+    // REMAP RATING FIELD
+    // ==============================
+    
+    // Map rating value to descriptive text
+    $this->remapRatingField($empodat->analyticalMethod);
+    
+    // ==============================
+    // END REMAP RATING FIELD
+    // ==============================
+
+    // ==============================
     // REMAP SOURCES  FIELDS
     // ==============================
 
     $fieldsMap = $this->fieldMapEmpodatDataSources();
     $lookups = [];
     foreach ($fieldsMap as $field => $meta) {
-      $lookups[$field] = $meta['model']::query()->pluck('name', 'id');
+      // For laboratory fields, get the full name (name, city, country)
+      if (str_contains($field, 'laboratory')) {
+        $lookups[$field] = $meta['model']::query()
+          ->with('country')
+          ->get()
+          ->mapWithKeys(function ($item) {
+            return [$item->id => $item->full_name];
+          });
+      } else {
+        // For other fields, use the standard name approach
+        $lookups[$field] = $meta['model']::query()->pluck('name', 'id');
+      }
     }
 
     // 3) Loop through each field in $empodat->analyticalMethod
@@ -159,6 +175,7 @@ class EmpodatController extends Controller
     // ==============================
 
     // dd($empodat->dataSource);
+    dd($empodat);
     return response()->json($empodat);
   }
 
@@ -324,6 +341,9 @@ class EmpodatController extends Controller
         'dataSourceLaboratorySearch' => [],
         'dataSourceOrganisationSearch' => [],
         'fileSearch' => [], // Only file IDs
+        'id_from' => null,
+        'id_to' => null,
+        'id_type' => 'empodat_id',
     ];
     
     // Process all search inputs
@@ -348,6 +368,14 @@ class EmpodatController extends Controller
         ->byAnalyticalMethods($searchInputs['analyticalMethodSearch'])
         ->byFiles($searchInputs['fileSearch']); // Simple file search by IDs only
     
+    // Apply ID search if provided and user has admin privileges
+    if (auth()->check() && (auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('admin'))) {
+        $empodats = $this->applyIdSearch($empodats, $searchInputs);
+    }
+    
+    // Ensure relationships are loaded after all scopes are applied
+    $empodats = $empodats->withSearchRelations();
+    
     // Handle quality ratings separately as it needs the ratings collection
     if (!empty($searchInputs['qualityAnalyticalMethodsSearch'])) {
         $ratings = QualityEmpodatAnalyticalMethods::whereIn('id', $searchInputs['qualityAnalyticalMethodsSearch'])->get();
@@ -371,6 +399,9 @@ class EmpodatController extends Controller
     
     // Apply pagination
     $empodats = $this->applyPagination($empodats, $request);
+    
+    // Apply rating remapping to search results
+    $this->remapRatingFieldsForSearchResults($empodats);
     
     // Get total count
     $empodatsCount = $this->getDatabaseEntityCount('empodat');
@@ -475,6 +506,21 @@ private function buildSearchParameters(array $searchInputs, Request $request): a
         $searchParameters['year_to'] = $request->input('year_to');
     }
     
+    // ID search parameters (only for admin users)
+    if (Auth::check() && (Auth::user()->hasRole('super_admin') || Auth::user()->hasRole('admin'))) {
+        if (!is_null($searchInputs['id_from'])) {
+            $searchParameters['id_from'] = $searchInputs['id_from'];
+        }
+        
+        if (!is_null($searchInputs['id_to'])) {
+            $searchParameters['id_to'] = $searchInputs['id_to'];
+        }
+        
+        if (!is_null($searchInputs['id_type'])) {
+            $searchParameters['id_type'] = $searchInputs['id_type'];
+        }
+    }
+    
     // File parameters (by ID only)
     if (!empty($searchInputs['fileSearch'])) {
         // Ensure it's an array
@@ -495,12 +541,21 @@ private function buildSearchParameters(array $searchInputs, Request $request): a
  */
 private function prepareRequestData(Request $request, array $searchInputs): array
 {
-    return array_merge($searchInputs, [
+    $requestData = array_merge($searchInputs, [
         'year_from' => $request->input('year_from'),
         'year_to' => $request->input('year_to'),
         'displayOption' => $request->input('displayOption'),
         'substances' => $request->input('substances'),
     ]);
+    
+    // Add ID search fields if user has admin privileges
+    if (Auth::check() && (Auth::user()->hasRole('super_admin') || Auth::user()->hasRole('admin'))) {
+        $requestData['id_from'] = $request->input('id_from');
+        $requestData['id_to'] = $request->input('id_to');
+        $requestData['id_type'] = $request->input('id_type');
+    }
+    
+    return $requestData;
 }
 
 /**
@@ -716,8 +771,8 @@ private function getFileStatistics($empodatRecords): array
         'targetAttribute' => 'data_accessibility_name'
       ],
       'organisation_id'            => [
-        'model' => DataSourceLaboratory::class,
-        'targetAttribute' => 'laboratory_name'
+        'model' => DataSourceOrganisation::class,
+        'targetAttribute' => 'organisation_name'
       ],
       'laboratory1_id'            => [
         'model' => DataSourceLaboratory::class,
@@ -728,5 +783,92 @@ private function getFileStatistics($empodatRecords): array
         'targetAttribute' => 'laboratory_name_2'
       ],
     ];
+  }
+
+  /**
+   * Apply ID search filtering to the query
+   */
+  private function applyIdSearch($query, array $searchInputs)
+  {
+    $idFrom = $searchInputs['id_from'];
+    $idTo = $searchInputs['id_to'];
+    $idType = $searchInputs['id_type'];
+
+    // Only apply if at least one ID field is provided
+    if (empty($idFrom) && empty($idTo)) {
+      return $query;
+    }
+
+    // Determine which field to search based on radio button selection
+    $fieldName = ($idType === 'dct_analysis_id') ? 'dct_analysis_id' : 'id';
+
+    // Apply range filtering
+    if (!empty($idFrom) && !empty($idTo)) {
+      // Both from and to values provided - range search
+      $query->whereBetween($fieldName, [$idFrom, $idTo]);
+    } elseif (!empty($idFrom)) {
+      // Only from value provided - search from this ID onwards
+      $query->where($fieldName, '>=', $idFrom);
+    } elseif (!empty($idTo)) {
+      // Only to value provided - search up to this ID
+      $query->where($fieldName, '<=', $idTo);
+    }
+
+    return $query;
+  }
+
+  /**
+   * Remap rating field value to descriptive text based on quality ranges
+   */
+  private function remapRatingField($analyticalMethod)
+  {
+    if (!$analyticalMethod || !isset($analyticalMethod->rating)) {
+      return;
+    }
+
+    $rating = $analyticalMethod->rating;
+    
+    // Define the rating ranges and their descriptions
+    $ratingRanges = [
+      ['min' => 68, 'max' => 100, 'description' => 'Adequately supported by quality-related information'],
+      ['min' => 52, 'max' => 68, 'description' => 'Supported by limited quality-related information'],
+      ['min' => 22, 'max' => 52, 'description' => 'Minimal quality-related information'],
+      ['min' => 0, 'max' => 22, 'description' => 'Not supported by quality-related information'],
+    ];
+
+    // Find the matching range and replace the rating with composite information
+    foreach ($ratingRanges as $range) {
+      if ($rating >= $range['min'] && $rating < $range['max']) {
+        // Replace the rating value with the composite information
+        $analyticalMethod->rating = $rating . ' - ' . $range['description'];
+        break;
+      }
+    }
+
+    // If no range matches (edge case), set a default description
+    if (is_numeric($analyticalMethod->rating)) {
+      $analyticalMethod->rating = $rating . ' - Rating value out of range';
+    }
+  }
+
+  /**
+   * Remap rating fields for search results (multiple records)
+   */
+  private function remapRatingFieldsForSearchResults($empodats)
+  {
+    if (!$empodats) {
+      return;
+    }
+
+    // Handle both single record and collection
+    if ($empodats instanceof \Illuminate\Database\Eloquent\Collection) {
+      foreach ($empodats as $empodat) {
+        if (isset($empodat->analyticalMethod)) {
+          $this->remapRatingField($empodat->analyticalMethod);
+        }
+      }
+    } elseif (is_object($empodats) && isset($empodats->analyticalMethod)) {
+      $this->remapRatingField($empodats->analyticalMethod);
+    }
   }
 }

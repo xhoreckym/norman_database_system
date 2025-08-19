@@ -63,6 +63,67 @@
           
           <div class="p-4 text-gray-900 grid grid-cols-1 gap-4">
             
+
+            @if (auth()->check() && (auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('admin')))
+            <div id="searchId">
+              <div class="bg-zinc-200 p-2">
+                <div class="font-bold mb-2">
+                  ID Search:
+                </div>
+                <div class="mb-3">
+                  <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <label class="inline-flex items-center">
+                      <input type="radio" 
+                             class="form-radio text-slate-600" 
+                             name="id_type" 
+                             value="empodat_id" 
+                             @if (request('id_type', 'empodat_id') == 'empodat_id') checked @endif
+                             aria-describedby="empodat-id-desc">
+                      <span class="ml-2">Empodat ID</span>
+                    </label>
+                    <label class="inline-flex items-start sm:items-center">
+                      <input type="radio" 
+                             class="form-radio text-slate-600 mt-1 sm:mt-0" 
+                             name="id_type" 
+                             value="dct_analysis_id" 
+                             @if (request('id_type') == 'dct_analysis_id') checked @endif
+                             aria-describedby="dct-analysis-id-desc">
+                      <span class="ml-2">DCT Analysis ID</span>
+                    </label>
+                  </div>
+                  <div class="sr-only">
+                    <div id="empodat-id-desc">Search by Empodat main ID</div>
+                    <div id="dct-analysis-id-desc">Search by DCT Analysis ID</div>
+                  </div>
+                </div>
+                <div class="w-full" aria-describedby="id-help">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                    <input type="number" 
+                           name="id_from" 
+                           value="{{ isset($request->id_from) ? $request->id_from : null }}" 
+                           class="form-text" 
+                           placeholder="ID from"
+                           aria-label="Starting ID"
+                           aria-describedby="id-from-desc">
+                    <input type="number" 
+                           name="id_to" 
+                           value="{{ isset($request->id_to) ? $request->id_to : null }}" 
+                           class="form-text" 
+                           placeholder="ID to"
+                           aria-label="Ending ID"
+                           aria-describedby="id-to-desc">
+                  </div>
+                  <div class="sr-only">
+                    <div id="id-from-desc">Enter the starting ID for the range filter</div>
+                    <div id="id-to-desc">Enter the ending ID for the range filter</div>
+                  </div>
+                </div>
+                <div id="id-help" class="sr-only">Filter results by ID range</div>
+              </div>
+            </div>
+            @endif
+            
+
             <div id="displayOptions">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
