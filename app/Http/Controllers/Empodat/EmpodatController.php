@@ -175,7 +175,7 @@ class EmpodatController extends Controller
     // ==============================
 
     // dd($empodat->dataSource);
-    dd($empodat);
+    // dd($empodat);
     return response()->json($empodat);
   }
 
