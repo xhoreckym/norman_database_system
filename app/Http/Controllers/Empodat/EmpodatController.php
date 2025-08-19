@@ -42,6 +42,7 @@ use App\Models\SLE\SuspectListExchangeSource;
 use App\Models\List\QualityEmpodatAnalyticalMethods;
 use App\Models\List\AnalyticalMethod as AnalyticalMethodList;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class EmpodatController extends Controller
 {
@@ -324,6 +325,9 @@ class EmpodatController extends Controller
         'dataSourceLaboratorySearch' => [],
         'dataSourceOrganisationSearch' => [],
         'fileSearch' => [], // Only file IDs
+        'id_from' => null,
+        'id_to' => null,
+        'id_type' => 'empodat_id',
     ];
     
     // Process all search inputs
@@ -347,6 +351,11 @@ class EmpodatController extends Controller
         )
         ->byAnalyticalMethods($searchInputs['analyticalMethodSearch'])
         ->byFiles($searchInputs['fileSearch']); // Simple file search by IDs only
+    
+    // Apply ID search if provided and user has admin privileges
+    if (auth()->check() && (auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('admin'))) {
+        $empodats = $this->applyIdSearch($empodats, $searchInputs);
+    }
     
     // Handle quality ratings separately as it needs the ratings collection
     if (!empty($searchInputs['qualityAnalyticalMethodsSearch'])) {
@@ -475,6 +484,21 @@ private function buildSearchParameters(array $searchInputs, Request $request): a
         $searchParameters['year_to'] = $request->input('year_to');
     }
     
+    // ID search parameters (only for admin users)
+    if (Auth::check() && (Auth::user()->hasRole('super_admin') || Auth::user()->hasRole('admin'))) {
+        if (!is_null($searchInputs['id_from'])) {
+            $searchParameters['id_from'] = $searchInputs['id_from'];
+        }
+        
+        if (!is_null($searchInputs['id_to'])) {
+            $searchParameters['id_to'] = $searchInputs['id_to'];
+        }
+        
+        if (!is_null($searchInputs['id_type'])) {
+            $searchParameters['id_type'] = $searchInputs['id_type'];
+        }
+    }
+    
     // File parameters (by ID only)
     if (!empty($searchInputs['fileSearch'])) {
         // Ensure it's an array
@@ -495,12 +519,21 @@ private function buildSearchParameters(array $searchInputs, Request $request): a
  */
 private function prepareRequestData(Request $request, array $searchInputs): array
 {
-    return array_merge($searchInputs, [
+    $requestData = array_merge($searchInputs, [
         'year_from' => $request->input('year_from'),
         'year_to' => $request->input('year_to'),
         'displayOption' => $request->input('displayOption'),
         'substances' => $request->input('substances'),
     ]);
+    
+    // Add ID search fields if user has admin privileges
+    if (Auth::check() && (Auth::user()->hasRole('super_admin') || Auth::user()->hasRole('admin'))) {
+        $requestData['id_from'] = $request->input('id_from');
+        $requestData['id_to'] = $request->input('id_to');
+        $requestData['id_type'] = $request->input('id_type');
+    }
+    
+    return $requestData;
 }
 
 /**
@@ -728,5 +761,37 @@ private function getFileStatistics($empodatRecords): array
         'targetAttribute' => 'laboratory_name_2'
       ],
     ];
+  }
+
+  /**
+   * Apply ID search filtering to the query
+   */
+  private function applyIdSearch($query, array $searchInputs)
+  {
+    $idFrom = $searchInputs['id_from'];
+    $idTo = $searchInputs['id_to'];
+    $idType = $searchInputs['id_type'];
+
+    // Only apply if at least one ID field is provided
+    if (empty($idFrom) && empty($idTo)) {
+      return $query;
+    }
+
+    // Determine which field to search based on radio button selection
+    $fieldName = ($idType === 'dct_analysis_id') ? 'dct_analysis_id' : 'id';
+
+    // Apply range filtering
+    if (!empty($idFrom) && !empty($idTo)) {
+      // Both from and to values provided - range search
+      $query->whereBetween($fieldName, [$idFrom, $idTo]);
+    } elseif (!empty($idFrom)) {
+      // Only from value provided - search from this ID onwards
+      $query->where($fieldName, '>=', $idFrom);
+    } elseif (!empty($idTo)) {
+      // Only to value provided - search up to this ID
+      $query->where($fieldName, '<=', $idTo);
+    }
+
+    return $query;
   }
 }
