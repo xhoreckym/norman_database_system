@@ -217,12 +217,12 @@
               
               <div class="">
                 <div class="font-semibold text-base border-b-2 border-lime-500 text-center">Substance</div>
-                <div class="flex justify-between py-1 text-sm">
+                <div class="flex justify-between py-1 text-sm  bg-slate-100">
                   <!-- pair[0] = key, pair[1] = value -->
                   <div class="px-1 font-semibold">Substance</div>
-                  <div class="px-1" x-text="record?.name"></div>
+                  <div class="px-1" x-text="record?.substance?.name || 'N/A'"></div>
                 </div>
-                <div class="flex justify-between py-1 text-sm">
+                <div class="flex justify-between py-1 text-sm bg-slate-200">
                   <!-- pair[0] = key, pair[1] = value -->
                   <div class="px-1 font-semibold">Code</div>
                   <!-- Dynamic link -->
@@ -230,8 +230,18 @@
                   :href="'{{ route('substances.show', ':id') }}'.replace(':id', record?.substance_id)"
                   target="_blank"
                   class="link-lime-text px-1"
-                  x-text="'NS' + record?.code"
+                  x-text="record?.substance?.prefixed_code || 'N/A'"
                   ></a>
+                </div>
+                <div class="flex justify-between py-1 text-sm bg-slate-100">
+                  <!-- pair[0] = key, pair[1] = value -->
+                  <div class="px-1 font-semibold">StdInChIKey</div>
+                  <div class="px-1" x-text="record?.substance?.stdinchikey || 'N/A'"></div>
+                </div>
+                <div class="flex justify-between py-1 text-sm bg-slate-200">
+                  <!-- pair[0] = key, pair[1] = value -->
+                  <div class="px-1 font-semibold">CAS Number</div>
+                  <div class="px-1" x-text="record?.substance?.cas_number || 'N/A'"></div>
                 </div>
               </div>
               
@@ -251,8 +261,8 @@
                 </div>
               </div>
               <div class="flex justify-between py-1 text-sm bg-slate-200">
-                <div class="px-1 font-semibold">Sampling Year</div>
-                <div class="px-1" x-text="record?.sampling_date_year || 'N/A'"></div>
+                <div class="px-1 font-semibold">Sampling Date</div>
+                <div class="px-1" x-text="record?.formatted_sampling_date || 'N/A'"></div>
               </div>
               
               <div class="font-semibold text-base border-b-2 border-lime-500 text-center">Analytical Method</div>

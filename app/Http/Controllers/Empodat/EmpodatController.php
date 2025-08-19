@@ -85,16 +85,9 @@ class EmpodatController extends Controller
       ->with('matrix')
       ->with('analyticalMethod')
       ->with('dataSource') 
+      ->with('minor')
 
-      // Joins
-      ->leftJoin('susdat_substances', 'empodat_main.substance_id', '=', 'susdat_substances.id')
-      // ->leftJoin('list_matrices', 'empodat_main.matrix_id', '=', 'list_matrices.id')
-      // ->leftJoin('empodat_stations', 'empodat_main.station_id', '=', 'empodat_stations.id')
-      // ->leftJoin('list_countries', 'empodat_stations.country_id', '=', 'list_countries.id')
-      // ->join('empodat_data_sources', 'empodat_data_sources.id', '=', 'empodat_main.data_source_id')
-      // ->join('empodat_analytical_methods', 'empodat_analytical_methods.id', '=', 'empodat_main.method_id')
-      // ->join('susdat_category_substance', 'susdat_category_substance.substance_id', '=', 'empodat_main.substance_id')
-      // ->join('susdat_source_substance', 'susdat_source_substance.substance_id', '=', 'empodat_main.substance_id')
+      // Joins removed - using eager loading instead
 
       // Finally, constrain it to a single empodat_main.id
       ->where('empodat_main.id', $id)
@@ -132,13 +125,35 @@ class EmpodatController extends Controller
     // ==============================
 
     // ==============================
+    // REMAP RATING FIELD
+    // ==============================
+    
+    // Map rating value to descriptive text
+    $this->remapRatingField($empodat->analyticalMethod);
+    
+    // ==============================
+    // END REMAP RATING FIELD
+    // ==============================
+
+    // ==============================
     // REMAP SOURCES  FIELDS
     // ==============================
 
     $fieldsMap = $this->fieldMapEmpodatDataSources();
     $lookups = [];
     foreach ($fieldsMap as $field => $meta) {
-      $lookups[$field] = $meta['model']::query()->pluck('name', 'id');
+      // For laboratory fields, get the full name (name, city, country)
+      if (str_contains($field, 'laboratory')) {
+        $lookups[$field] = $meta['model']::query()
+          ->with('country')
+          ->get()
+          ->mapWithKeys(function ($item) {
+            return [$item->id => $item->full_name];
+          });
+      } else {
+        // For other fields, use the standard name approach
+        $lookups[$field] = $meta['model']::query()->pluck('name', 'id');
+      }
     }
 
     // 3) Loop through each field in $empodat->analyticalMethod
@@ -160,6 +175,7 @@ class EmpodatController extends Controller
     // ==============================
 
     // dd($empodat->dataSource);
+    dd($empodat);
     return response()->json($empodat);
   }
 
@@ -357,6 +373,9 @@ class EmpodatController extends Controller
         $empodats = $this->applyIdSearch($empodats, $searchInputs);
     }
     
+    // Ensure relationships are loaded after all scopes are applied
+    $empodats = $empodats->withSearchRelations();
+    
     // Handle quality ratings separately as it needs the ratings collection
     if (!empty($searchInputs['qualityAnalyticalMethodsSearch'])) {
         $ratings = QualityEmpodatAnalyticalMethods::whereIn('id', $searchInputs['qualityAnalyticalMethodsSearch'])->get();
@@ -380,6 +399,9 @@ class EmpodatController extends Controller
     
     // Apply pagination
     $empodats = $this->applyPagination($empodats, $request);
+    
+    // Apply rating remapping to search results
+    $this->remapRatingFieldsForSearchResults($empodats);
     
     // Get total count
     $empodatsCount = $this->getDatabaseEntityCount('empodat');
@@ -749,8 +771,8 @@ private function getFileStatistics($empodatRecords): array
         'targetAttribute' => 'data_accessibility_name'
       ],
       'organisation_id'            => [
-        'model' => DataSourceLaboratory::class,
-        'targetAttribute' => 'laboratory_name'
+        'model' => DataSourceOrganisation::class,
+        'targetAttribute' => 'organisation_name'
       ],
       'laboratory1_id'            => [
         'model' => DataSourceLaboratory::class,
@@ -793,5 +815,60 @@ private function getFileStatistics($empodatRecords): array
     }
 
     return $query;
+  }
+
+  /**
+   * Remap rating field value to descriptive text based on quality ranges
+   */
+  private function remapRatingField($analyticalMethod)
+  {
+    if (!$analyticalMethod || !isset($analyticalMethod->rating)) {
+      return;
+    }
+
+    $rating = $analyticalMethod->rating;
+    
+    // Define the rating ranges and their descriptions
+    $ratingRanges = [
+      ['min' => 68, 'max' => 100, 'description' => 'Adequately supported by quality-related information'],
+      ['min' => 52, 'max' => 68, 'description' => 'Supported by limited quality-related information'],
+      ['min' => 22, 'max' => 52, 'description' => 'Minimal quality-related information'],
+      ['min' => 0, 'max' => 22, 'description' => 'Not supported by quality-related information'],
+    ];
+
+    // Find the matching range and replace the rating with composite information
+    foreach ($ratingRanges as $range) {
+      if ($rating >= $range['min'] && $rating < $range['max']) {
+        // Replace the rating value with the composite information
+        $analyticalMethod->rating = $rating . ' - ' . $range['description'];
+        break;
+      }
+    }
+
+    // If no range matches (edge case), set a default description
+    if (is_numeric($analyticalMethod->rating)) {
+      $analyticalMethod->rating = $rating . ' - Rating value out of range';
+    }
+  }
+
+  /**
+   * Remap rating fields for search results (multiple records)
+   */
+  private function remapRatingFieldsForSearchResults($empodats)
+  {
+    if (!$empodats) {
+      return;
+    }
+
+    // Handle both single record and collection
+    if ($empodats instanceof \Illuminate\Database\Eloquent\Collection) {
+      foreach ($empodats as $empodat) {
+        if (isset($empodat->analyticalMethod)) {
+          $this->remapRatingField($empodat->analyticalMethod);
+        }
+      }
+    } elseif (is_object($empodats) && isset($empodats->analyticalMethod)) {
+      $this->remapRatingField($empodats->analyticalMethod);
+    }
   }
 }
