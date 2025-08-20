@@ -331,33 +331,10 @@
                   </div>
                 </template>
 
-                <!-- Debug section - remove this after testing -->
-                <div class="font-semibold text-base border-b-2 border-red-500 text-center">Debug Info</div>
-                <div class="py-1 bg-red-50 text-xs p-2">
-                  <div>Has matrix_data: <span x-text="record?.matrix_data ? 'Yes' : 'No'"></span></div>
-                  <div>Has meta_data: <span x-text="record?.matrix_data?.meta_data ? 'Yes' : 'No'"></span></div>
-                  <div>Meta data keys: <span
-                      x-text="record?.matrix_data?.meta_data ? Object.keys(record.matrix_data.meta_data).length : '0'"></span>
-                  </div>
-                  <div>Meta data preview: <span
-                      x-text="record?.matrix_data?.meta_data ? JSON.stringify(record.matrix_data.meta_data).substring(0, 100) + '...' : 'None'"></span>
-                  </div>
-                  <div>metaDataArray length: <span x-text="metaDataArray ? metaDataArray.length : '0'"></span></div>
-                  <div>metaDataArray preview: <span
-                      x-text="metaDataArray && metaDataArray.length > 0 ? JSON.stringify(metaDataArray.slice(0, 3)) : 'Empty'"></span>
-                  </div>
-                </div>
+                
 
                 <div class="font-semibold text-base border-b-2 border-lime-500 text-center">Matrix Data</div>
-                <!-- Debug: Show what's in the record object -->
-                <div class="py-1 bg-red-50 text-xs p-2 mb-2">
-                  <div class="font-bold">DEBUG - Record Object:</div>
-                  <div>Has record: <span x-text="record ? 'Yes' : 'No'"></span></div>
-                  <div>Record keys: <span x-text="record ? Object.keys(record) : 'No record'"></span></div>
-                  <div>Has matrix_data: <span x-text="record?.matrix_data ? 'Yes' : 'No'"></span></div>
-                  <div>matrix_data type: <span x-text="record?.matrix_data ? typeof record.matrix_data : 'N/A'"></span></div>
-                  <div>matrix_data value: <span x-text="record?.matrix_data ? JSON.stringify(record.matrix_data) : 'N/A'"></span></div>
-                </div>
+
 
                 <template x-if="record?.matrix_data">
                   <div class="py-1 bg-slate-100">
@@ -401,20 +378,7 @@
                     </div>
                   </div>
                 </template>
-                <!-- Always show matrix data section for debugging -->
-                <div class="py-1 bg-slate-100">
-                  <div class="flex justify-between py-1 text-sm">
-                    <div class="px-1 font-semibold">Matrix Data (Always Visible)</div>
-                    <div class="px-1">
-                      <template x-if="record?.matrix_data">
-                        <span class="text-green-600">✓ Has matrix_data</span>
-                      </template>
-                      <template x-if="!record?.matrix_data">
-                        <span class="text-red-600">✗ No matrix_data</span>
-                      </template>
-                    </div>
-                  </div>
-                </div>
+
 
                 <!-- Matrix Data Table -->
                 <div class="py-1 bg-slate-100">
@@ -520,9 +484,8 @@
                       }).addTo(this.mapInstance);
                     },
 
-                    async openModal(recordId) {
-                      console.log('Opening modal for record ID:', recordId);
-                      this.recordId = recordId; // Store the record ID
+                                      async openModal(recordId) {
+                    this.recordId = recordId; // Store the record ID
 
                       // Fetch record data from our /records/:id/json route
                       const response = await fetch(
@@ -535,11 +498,7 @@
                         return;
                       }
 
-                      this.record = await response.json();
-                      console.log('Fetched record data:', this.record);
-                      console.log('recordId from parameter:', this.recordId);
-                      console.log('record.id from API response:', this.record?.id);
-                      console.log('Are they the same?', this.recordId === this.record?.id);
+                                              this.record = await response.json();
 
 
 
@@ -556,9 +515,8 @@
                         this.stationArray = [];
                       }
 
-                      // Build an array of analyticalMethod entries, skipping unwanted keys and empty/null values
-                      // console.log(this.record);
-                      if (this.record.analytical_method) {
+                                              // Build an array of analyticalMethod entries, skipping unwanted keys and empty/null values
+                        if (this.record.analytical_method) {
                         const excludedKeys = ['id', 'created_at', 'updated_at'];
                         this.analyticalMethodArray = Object.entries(this.record.analytical_method)
                           .filter(([key, val]) =>
@@ -583,34 +541,19 @@
                         this.dataSourceArray = [];
                       }
 
-                                             // Build an array of meta_data entries, skipping unwanted keys and empty/null values
-                       console.log('=== META DATA PROCESSING DEBUG ===');
-                       console.log('this.record:', this.record);
-                       console.log('this.record.matrix_data:', this.record.matrix_data);
-                       console.log('this.record.matrix_data?.meta_data:', this.record.matrix_data?.meta_data);
-                       
-                       if (this.record.matrix_data && this.record.matrix_data.meta_data) {
-                         const excludedKeys = ['id', 'created_at', 'updated_at'];
-                         console.log('Processing meta_data, excludedKeys:', excludedKeys);
-                         
-                         this.metaDataArray = Object.entries(this.record.matrix_data.meta_data)
-                           .filter(([key, val]) =>
-                             !excludedKeys.includes(key) &&
-                             val !== null &&
-                             val !== ''
-                           );
-                         
-                         console.log('Created metaDataArray:', this.metaDataArray);
-                         console.log('metaDataArray length:', this.metaDataArray.length);
-                         console.log('metaDataArray type:', typeof this.metaDataArray);
-                         console.log('metaDataArray isArray:', Array.isArray(this.metaDataArray));
-                       } else {
-                         this.metaDataArray = [];
-                         console.log('No meta_data found, metaDataArray set to empty');
-                         console.log('matrix_data exists:', !!this.record.matrix_data);
-                         console.log('meta_data exists:', !!this.record.matrix_data?.meta_data);
-                       }
-                       console.log('=== END META DATA PROCESSING DEBUG ===');
+                                                                    // Build an array of meta_data entries, skipping unwanted keys and empty/null values
+                        if (this.record.matrix_data && this.record.matrix_data.meta_data) {
+                          const excludedKeys = ['id', 'created_at', 'updated_at'];
+                          
+                          this.metaDataArray = Object.entries(this.record.matrix_data.meta_data)
+                            .filter(([key, val]) =>
+                              !excludedKeys.includes(key) &&
+                              val !== null &&
+                              val !== ''
+                            );
+                        } else {
+                          this.metaDataArray = [];
+                        }
 
                       // Show the modal
                       this.showModal = true;
