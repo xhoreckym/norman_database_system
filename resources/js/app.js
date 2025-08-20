@@ -13,8 +13,5 @@ import './bootstrap';
 //   });
 // });
 
-import Alpine from 'alpinejs';
-
-// Make Alpine available globally for any custom components
-// Livewire 3 automatically starts Alpine.js, so we don't need to call Alpine.start()
-window.Alpine = Alpine;
+// Alpine.js is automatically handled by Livewire 3
+// No need to import or initialize it manually

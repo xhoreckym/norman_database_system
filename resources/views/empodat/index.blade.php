@@ -318,6 +318,70 @@
                 </div>
               </template>
               
+              <!-- Debug section - remove this after testing -->
+              <div class="font-semibold text-base border-b-2 border-red-500 text-center">Debug Info</div>
+              <div class="py-1 bg-red-50 text-xs p-2">
+                <div>Has matrix_data: <span x-text="record?.matrix_data ? 'Yes' : 'No'"></span></div>
+                <div>Has meta_data: <span x-text="record?.matrix_data?.meta_data ? 'Yes' : 'No'"></span></div>
+                <div>Meta data keys: <span x-text="record?.matrix_data?.meta_data ? Object.keys(record.matrix_data.meta_data).length : '0'"></span></div>
+                <div>Meta data preview: <span x-text="record?.matrix_data?.meta_data ? JSON.stringify(record.matrix_data.meta_data).substring(0, 100) + '...' : 'None'"></span></div>
+                <div>metaDataArray length: <span x-text="metaDataArray ? metaDataArray.length : '0'"></span></div>
+                <div>metaDataArray preview: <span x-text="metaDataArray && metaDataArray.length > 0 ? JSON.stringify(metaDataArray.slice(0, 3)) : 'Empty'"></span></div>
+              </div>
+              
+              <div class="font-semibold text-base border-b-2 border-lime-500 text-center">Matrix Data</div>
+              <template x-if="record?.matrix_data">
+                <div class="py-1 bg-slate-100">
+                  <div class="flex justify-between py-1 text-sm">
+                    <div class="px-1 font-semibold">Matrix Type</div>
+                    <div class="px-1" x-text="record.matrix_data.type || 'N/A'"></div>
+                  </div>
+                </div>
+                <div class="py-1 bg-slate-200">
+                  <div class="flex justify-between py-1 text-sm">
+                    <div class="px-1 font-semibold">Matrix Code</div>
+                    <div class="px-1" x-text="record.matrix_data.code || 'N/A'"></div>
+                  </div>
+                </div>
+                <div class="py-1 bg-slate-100">
+                  <div class="flex justify-between py-1 text-sm">
+                                          <div class="px-1 font-semibold">Meta Data</div>
+                      <div class="px-1">
+                        <template x-if="metaDataArray && metaDataArray.length > 0">
+                          <div class="text-xs bg-gray-100 p-2 rounded overflow-x-auto max-h-32 overflow-y-auto">
+                            <template x-for="(pair, index) in metaDataArray" :key="index">
+                              <div class="mb-1 border-b border-gray-200 pb-1">
+                                <span class="font-medium text-gray-700" x-text="pair[0]"></span>
+                                <span class="ml-2 text-gray-600" x-text="pair[1] || 'N/A'"></span>
+                              </div>
+                            </template>
+                          </div>
+                        </template>
+                        <template x-if="!metaDataArray || metaDataArray.length === 0">
+                          <span class="text-gray-500">No meta data available</span>
+                        </template>
+                      </div>
+                  </div>
+                </div>
+              </template>
+              <template x-if="!record?.matrix_data">
+                <div class="py-1 bg-slate-100">
+                  <div class="flex justify-between py-1 text-sm">
+                    <div class="px-1 font-semibold">Matrix Data</div>
+                    <div class="px-1 text-gray-500">No matrix data available</div>
+                  </div>
+                </div>
+              </template>
+              
+
+
+
+
+
+
+
+
+              
               
             </div>
             
@@ -340,8 +404,9 @@
               recordId: null,
               mapInstance: null,
               stationArray: [],
-              analyticalMethodArray: [],
-              dataSourceArray: [],
+                              analyticalMethodArray: [],
+                dataSourceArray: [],
+                metaDataArray: [],
               
               initLeaflet() {
                 // We'll initialize Leaflet once when component loads
@@ -381,6 +446,8 @@
                   console.log('record.id from API response:', this.record?.id);
                   console.log('Are they the same?', this.recordId === this.record?.id);
                   
+
+                  
                   // Build an array of station entries, skipping unwanted keys and empty/null values
                   if (this.record.station) {
                     const excludedKeys = ['id', 'created_at', 'updated_at'];
@@ -419,6 +486,22 @@
                     );
                   } else {
                     this.dataSourceArray = [];
+                  }
+                  
+                  // Build an array of meta_data entries, skipping unwanted keys and empty/null values
+                  if (this.record.matrix_data && this.record.matrix_data.meta_data) {
+                    const excludedKeys = ['id', 'created_at', 'updated_at'];
+                    this.metaDataArray = Object.entries(this.record.matrix_data.meta_data)
+                    .filter(([key, val]) => 
+                    !excludedKeys.includes(key) && 
+                    val !== null && 
+                    val !== ''
+                    );
+                    console.log('Created metaDataArray:', this.metaDataArray);
+                    console.log('metaDataArray length:', this.metaDataArray.length);
+                  } else {
+                    this.metaDataArray = [];
+                    console.log('No meta_data found, metaDataArray set to empty');
                   }
                   
                   // Show the modal

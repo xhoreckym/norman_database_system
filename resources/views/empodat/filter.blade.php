@@ -509,9 +509,40 @@
           this.startTimer();
           
           const form = event.target;
-          const formData = new FormData(form);
-          const queryString = new URLSearchParams(formData).toString();
-          const url = form.action + '?' + queryString;
+          
+          // For GET requests, we need to handle the form data differently
+          // Convert form data to URL parameters for GET request
+          const formElements = form.elements;
+          const params = new URLSearchParams();
+          
+          for (let i = 0; i < formElements.length; i++) {
+            const element = formElements[i];
+            if (element.name && element.type !== 'submit' && element.type !== 'button') {
+              if (element.type === 'checkbox' || element.type === 'radio') {
+                if (element.checked) {
+                  if (element.name.endsWith('[]')) {
+                    // Handle array inputs
+                    params.append(element.name, element.value);
+                  } else {
+                    params.append(element.name, element.value);
+                  }
+                }
+              } else if (element.type === 'select-multiple') {
+                // Handle multi-select
+                for (let j = 0; j < element.selectedOptions.length; j++) {
+                  params.append(element.name, element.selectedOptions[j].value);
+                }
+              } else {
+                // Handle text, number, hidden inputs
+                if (element.value) {
+                  params.append(element.name, element.value);
+                }
+              }
+            }
+          }
+          
+          const queryString = params.toString();
+          const url = form.action + (queryString ? '?' + queryString : '');
           
           fetch(url, {
             method: 'GET',

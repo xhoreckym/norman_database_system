@@ -43,6 +43,7 @@ use App\Models\List\QualityEmpodatAnalyticalMethods;
 use App\Models\List\AnalyticalMethod as AnalyticalMethodList;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EmpodatController extends Controller
 {
@@ -86,6 +87,13 @@ class EmpodatController extends Controller
       ->with('analyticalMethod')
       ->with('dataSource') 
       ->with('minor')
+      ->with('matrixAir')
+      ->with('matrixBiota')
+      ->with('matrixSediments')
+      ->with('matrixSewageSludge')
+      ->with('matrixSoil')
+      ->with('matrixSuspendedMatter')
+      ->with('matrixWater')
 
       // Joins removed - using eager loading instead
 
@@ -172,6 +180,19 @@ class EmpodatController extends Controller
 
     // ==============================
     // END SOURCES FIELDS
+    // ==============================
+
+    // ==============================
+    // CONSOLIDATE MATRIX DATA
+    // ==============================
+    
+    // Consolidate matrix data into a single field
+    $empodat->matrix_data = $this->consolidateMatrixData($empodat);
+    
+
+    
+    // ==============================
+    // END CONSOLIDATE MATRIX DATA
     // ==============================
 
     // dd($empodat->dataSource);
@@ -328,90 +349,109 @@ class EmpodatController extends Controller
 
  public function search(Request $request)
 {
-    // Define search fields with their default values
-    $searchFields = [
-        'countrySearch' => [],
-        'matrixSearch' => [],
-        'sourceSearch' => [],
-        'analyticalMethodSearch' => [],
-        'categoriesSearch' => [],
-        'typeDataSourcesSearch' => [],
-        'concentrationIndicatorSearch' => [],
-        'qualityAnalyticalMethodsSearch' => [],
-        'dataSourceLaboratorySearch' => [],
-        'dataSourceOrganisationSearch' => [],
-        'fileSearch' => [], // Only file IDs
-        'id_from' => null,
-        'id_to' => null,
-        'id_type' => 'empodat_id',
-    ];
-    
-    // Process all search inputs
-    $searchInputs = $this->processSearchInput($request, $searchFields);
-    // dd($searchInputs);
-    
-    // Build query using model scopes
-    $empodats = EmpodatMain::withSearchRelations()
-        // ->normanRelevant() // Temporarily commented out for debugging
-        ->byCountries($searchInputs['countrySearch'])
-        ->byMatrices($searchInputs['matrixSearch'])
-        ->bySubstances($request->input('substances', []))
-        ->byConcentrationIndicators($searchInputs['concentrationIndicatorSearch'])
-        ->byYearRange($request->input('year_from'), $request->input('year_to'))
-        ->byCategories($searchInputs['categoriesSearch'])
-        ->bySources($searchInputs['sourceSearch'])
-        ->byDataSourceFilters(
-            $searchInputs['typeDataSourcesSearch'],
-            $searchInputs['dataSourceLaboratorySearch'],
-            $searchInputs['dataSourceOrganisationSearch']
-        )
-        ->byAnalyticalMethods($searchInputs['analyticalMethodSearch'])
-        ->byFiles($searchInputs['fileSearch']); // Simple file search by IDs only
-    
-    // Apply ID search if provided and user has admin privileges
-    if (auth()->check() && (auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('admin'))) {
-        $empodats = $this->applyIdSearch($empodats, $searchInputs);
+    try {
+        // Set database timeout to prevent connection resets
+        try {
+            DB::statement('SET statement_timeout = 300000'); // 5 minutes timeout
+        } catch (\Exception $timeoutError) {
+            // If statement_timeout is not supported, log it but continue
+            Log::warning('Database timeout setting not supported: ' . $timeoutError->getMessage());
+        }
+        
+        // Define search fields with their default values
+        $searchFields = [
+            'countrySearch' => [],
+            'matrixSearch' => [],
+            'sourceSearch' => [],
+            'analyticalMethodSearch' => [],
+            'categoriesSearch' => [],
+            'typeDataSourcesSearch' => [],
+            'concentrationIndicatorSearch' => [],
+            'qualityAnalyticalMethodsSearch' => [],
+            'dataSourceLaboratorySearch' => [],
+            'dataSourceOrganisationSearch' => [],
+            'fileSearch' => [], // Only file IDs
+            'id_from' => null,
+            'id_to' => null,
+            'id_type' => 'empodat_id',
+        ];
+        
+        // Process all search inputs
+        $searchInputs = $this->processSearchInput($request, $searchFields);
+        
+        // Build query using model scopes
+        $empodats = EmpodatMain::withSearchRelations()
+            // ->normanRelevant() // Temporarily commented out for debugging
+            ->byCountries($searchInputs['countrySearch'])
+            ->byMatrices($searchInputs['matrixSearch'])
+            ->bySubstances($request->input('substances', []))
+            ->byConcentrationIndicators($searchInputs['concentrationIndicatorSearch'])
+            ->byYearRange($request->input('year_from'), $request->input('year_to'))
+            ->byCategories($searchInputs['categoriesSearch'])
+            ->bySources($searchInputs['sourceSearch'])
+            ->byDataSourceFilters(
+                $searchInputs['typeDataSourcesSearch'],
+                $searchInputs['dataSourceLaboratorySearch'],
+                $searchInputs['dataSourceOrganisationSearch']
+            )
+            ->byAnalyticalMethods($searchInputs['analyticalMethodSearch'])
+            ->byFiles($searchInputs['fileSearch']); // Simple file search by IDs only
+        
+        // Apply ID search if provided and user has admin privileges
+        if (Auth::check() && (Auth::user()->hasRole('super_admin') || Auth::user()->hasRole('admin'))) {
+            $empodats = $this->applyIdSearch($empodats, $searchInputs);
+        }
+        
+        // Ensure relationships are loaded after all scopes are applied
+        $empodats = $empodats->withSearchRelations();
+        
+        // Handle quality ratings separately as it needs the ratings collection
+        if (!empty($searchInputs['qualityAnalyticalMethodsSearch'])) {
+            $ratings = QualityEmpodatAnalyticalMethods::whereIn('id', $searchInputs['qualityAnalyticalMethodsSearch'])->get();
+            $empodats = $empodats->byQualityRatings($ratings);
+        }
+        
+        // Build search parameters for display
+        $searchParameters = $this->buildSearchParameters($searchInputs, $request);
+        
+        // Prepare request data for logging
+        $mainRequest = $this->prepareRequestData($request, $searchInputs);
+        
+        // Log query if not paginated request
+        $queryLogId = $this->logQuery($empodats, $mainRequest, $request);
+        
+        // Debug: Log the SQL query
+        if (config('app.debug')) {
+            Log::info('Empodat query SQL: ' . $empodats->toSql());
+            Log::info('Empodat query bindings: ' . json_encode($empodats->getBindings()));
+        }
+        
+        // Apply pagination
+        $empodats = $this->applyPagination($empodats, $request);
+        
+        // Apply rating remapping to search results
+        $this->remapRatingFieldsForSearchResults($empodats);
+        
+        // Get total count
+        $empodatsCount = $this->getDatabaseEntityCount('empodat');
+        
+        return view('empodat.index', [
+            'empodats' => $empodats,
+            'empodatsCount' => $empodatsCount,
+            'query_log_id' => $queryLogId,
+            'searchParameters' => $searchParameters,
+        ], $mainRequest);
+        
+    } catch (\Exception $e) {
+        Log::error('Empodat search failed: ' . $e->getMessage(), [
+            'request' => $request->all(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        // Return to filter page with error message
+        return redirect()->route('codsearch.filter')
+            ->with('error', 'Search failed due to a database error. Please try again with fewer filters or contact support if the problem persists.');
     }
-    
-    // Ensure relationships are loaded after all scopes are applied
-    $empodats = $empodats->withSearchRelations();
-    
-    // Handle quality ratings separately as it needs the ratings collection
-    if (!empty($searchInputs['qualityAnalyticalMethodsSearch'])) {
-        $ratings = QualityEmpodatAnalyticalMethods::whereIn('id', $searchInputs['qualityAnalyticalMethodsSearch'])->get();
-        $empodats = $empodats->byQualityRatings($ratings);
-    }
-    
-    // Build search parameters for display
-    $searchParameters = $this->buildSearchParameters($searchInputs, $request);
-    
-    // Prepare request data for logging
-    $mainRequest = $this->prepareRequestData($request, $searchInputs);
-    
-    // Log query if not paginated request
-    $queryLogId = $this->logQuery($empodats, $mainRequest, $request);
-    
-    // Debug: Log the SQL query
-    if (config('app.debug')) {
-        Log::info('Empodat query SQL: ' . $empodats->toSql());
-        Log::info('Empodat query bindings: ' . json_encode($empodats->getBindings()));
-    }
-    
-    // Apply pagination
-    $empodats = $this->applyPagination($empodats, $request);
-    
-    // Apply rating remapping to search results
-    $this->remapRatingFieldsForSearchResults($empodats);
-    
-    // Get total count
-    $empodatsCount = $this->getDatabaseEntityCount('empodat');
-    
-    return view('empodat.index', [
-        'empodats' => $empodats,
-        'empodatsCount' => $empodatsCount,
-        'query_log_id' => $queryLogId,
-        'searchParameters' => $searchParameters,
-    ], $mainRequest);
 }
 
 /**
@@ -583,7 +623,7 @@ private function logQuery($query, array $mainRequest, Request $request): ?int
         QueryLog::insert([
             'content' => json_encode(['request' => $mainRequest, 'bindings' => $bindings]),
             'query' => $sql,
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'total_count' => $empodatsCount,
             'actual_count' => $actualCount,
             'database_key' => $databaseKey,
@@ -595,9 +635,9 @@ private function logQuery($query, array $mainRequest, Request $request): ?int
         return QueryLog::orderBy('id', 'desc')->first()->id;
         
     } catch (\Exception $e) {
-        \Log::error('Query logging failed: ' . $e->getMessage(), [
+        Log::error('Query logging failed: ' . $e->getMessage(), [
             'query_hash' => $queryHash,
-            'user_id' => auth()->id()
+            'user_id' => Auth::id()
         ]);
         
         session()->flash('error', 'An error occurred while processing your request.');
@@ -870,5 +910,72 @@ private function getFileStatistics($empodatRecords): array
     } elseif (is_object($empodats) && isset($empodats->analyticalMethod)) {
       $this->remapRatingField($empodats->analyticalMethod);
     }
+  }
+
+  /**
+   * Consolidate matrix data from all matrix tables into a single field
+   */
+  private function consolidateMatrixData($empodat)
+  {
+    $matrixData = null;
+    
+    // Check each matrix relationship and return the first one that has data
+    // Since typically only one matrix table will have data for a given dct_analysis_id
+    if ($empodat->matrixAir && $empodat->matrixAir->code) {
+      $matrixData = [
+        'type' => 'air',
+        'code' => $empodat->matrixAir->code,
+        'meta_data' => $empodat->matrixAir->meta_data
+      ];
+    } elseif ($empodat->matrixBiota && $empodat->matrixBiota->code) {
+      $matrixData = [
+        'type' => 'biota',
+        'code' => $empodat->matrixBiota->code,
+        'meta_data' => $empodat->matrixBiota->meta_data
+      ];
+    } elseif ($empodat->matrixSediments && $empodat->matrixSediments->code) {
+      $matrixData = [
+        'type' => 'sediments',
+        'code' => $empodat->matrixSediments->code,
+        'meta_data' => $empodat->matrixSediments->meta_data
+      ];
+    } elseif ($empodat->matrixSewageSludge && $empodat->matrixSewageSludge->code) {
+      $matrixData = [
+        'type' => 'sewage_sludge',
+        'code' => $empodat->matrixSewageSludge->code,
+        'meta_data' => $empodat->matrixSewageSludge->meta_data
+      ];
+    } elseif ($empodat->matrixSoil && $empodat->matrixSoil->code) {
+      $matrixData = [
+        'type' => 'soil',
+        'code' => $empodat->matrixSoil->code,
+        'meta_data' => $empodat->matrixSoil->meta_data
+      ];
+    } elseif ($empodat->matrixSuspendedMatter && $empodat->matrixSuspendedMatter->code) {
+      $matrixData = [
+        'type' => 'suspended_matter',
+        'code' => $empodat->matrixSuspendedMatter->code,
+        'meta_data' => $empodat->matrixSuspendedMatter->meta_data
+      ];
+    } elseif ($empodat->matrixWater && $empodat->matrixWater->code) {
+      $matrixData = [
+        'type' => 'water',
+        'code' => $empodat->matrixWater->code,
+        'meta_data' => $empodat->matrixWater->meta_data
+      ];
+    }
+    
+    // Ensure meta_data is properly formatted as an array
+    if ($matrixData && isset($matrixData['meta_data'])) {
+      if (is_string($matrixData['meta_data'])) {
+        $matrixData['meta_data'] = json_decode($matrixData['meta_data'], true);
+      }
+      // If it's still not an array, set it to null
+      if (!is_array($matrixData['meta_data'])) {
+        $matrixData['meta_data'] = null;
+      }
+    }
+    
+    return $matrixData;
   }
 }

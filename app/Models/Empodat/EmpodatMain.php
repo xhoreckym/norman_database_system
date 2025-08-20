@@ -8,6 +8,13 @@ use App\Models\Empodat\AnalyticalMethod as EmpodatAnalyticalMethod;
 use App\Models\List\ConcentrationIndicator;
 use App\Models\List\Matrix;
 use App\Models\Empodat\EmpodatMinor;
+use App\Models\Empodat\EmpodatMatrixAir;
+use App\Models\Empodat\EmpodatMatrixBiota;
+use App\Models\Empodat\EmpodatMatrixSediments;
+use App\Models\Empodat\EmpodatMatrixSewageSludge;
+use App\Models\Empodat\EmpodatMatrixSoil;
+use App\Models\Empodat\EmpodatMatrixSuspendedMatter;
+use App\Models\Empodat\EmpodatMatrixWater;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -119,6 +126,62 @@ class EmpodatMain extends Model
     public function minor()
     {
         return $this->hasOne(EmpodatMinor::class, 'id', 'id');
+    }
+
+    /**
+     * Get the air matrix data associated with this record.
+     */
+    public function matrixAir()
+    {
+        return $this->hasOne(EmpodatMatrixAir::class, 'dct_analysis_id', 'dct_analysis_id');
+    }
+
+    /**
+     * Get the biota matrix data associated with this record.
+     */
+    public function matrixBiota()
+    {
+        return $this->hasOne(EmpodatMatrixBiota::class, 'dct_analysis_id', 'dct_analysis_id');
+    }
+
+    /**
+     * Get the sediments matrix data associated with this record.
+     */
+    public function matrixSediments()
+    {
+        return $this->hasOne(EmpodatMatrixSediments::class, 'dct_analysis_id', 'dct_analysis_id');
+    }
+
+    /**
+     * Get the sewage sludge matrix data associated with this record.
+     */
+    public function matrixSewageSludge()
+    {
+        return $this->hasOne(EmpodatMatrixSewageSludge::class, 'dct_analysis_id', 'dct_analysis_id');
+    }
+
+    /**
+     * Get the soil matrix data associated with this record.
+     */
+    public function matrixSoil()
+    {
+        return $this->hasOne(EmpodatMatrixSoil::class, 'dct_analysis_id', 'dct_analysis_id');
+    }
+
+    /**
+     * Get the suspended matter matrix data associated with this record.
+     */
+    public function matrixSuspendedMatter()
+    {
+        return $this->hasOne(EmpodatMatrixSuspendedMatter::class, 'dct_analysis_id', 'dct_analysis_id');
+    }
+
+    /**
+     * Get the water matrix data associated with this record.
+     */
+    public function matrixWater()
+    {
+        return $this->hasOne(EmpodatMatrixWater::class, 'dct_analysis_id', 'dct_analysis_id');
     }
 
     /**
@@ -323,7 +386,14 @@ class EmpodatMain extends Model
             'analyticalMethod',
             'dataSource',
             'files',
-            'minor'
+            'minor',
+            'matrixAir',
+            'matrixBiota',
+            'matrixSediments',
+            'matrixSewageSludge',
+            'matrixSoil',
+            'matrixSuspendedMatter',
+            'matrixWater'
         ]);
     }
 
