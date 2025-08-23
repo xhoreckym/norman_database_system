@@ -111,61 +111,48 @@
               <table class="table-standard">
                 <thead>
                   <tr class="bg-gray-600 text-white">
-                    <th>ID</th>
-                    <th>Substance</th>
-                    <th>Matrix</th>
-                    <th>Type</th>
-                    <th>Taxonomic Group</th>
-                    <th>Scientific Name</th>
+                    <th>Biotest ID</th>
+                    <th>Taxonomic group</th>
+                    <th>Scientific name</th>
                     <th>Endpoint</th>
-                    <th>Concentration</th>
                     <th>Duration</th>
+                    <th>Effect measurement</th>
+                    <th>Test type</th>
+                    <th>Standard test</th>
+                    <th>Effect based on</th>
+                    <th>pH</th>
+                    <th>Exposure regime</th>
+                    <th>Purity [%]</th>
+                    <th></th>
+                    <th>Effect value [µg/L]</th>
+                    <th>Measured or nominal</th>
+                    <th>Reference</th>
                   </tr>
                 </thead>
                 <tbody>
                   @foreach ($resultsObjects as $e)
                     <tr class="@if($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
-                      <td class="p-1 text-center">{{ $e->ecotox_id }}</td>
+                      <td class="p-1 text-center">{{ $e->ecotox_id ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->taxonomic_group ?? 'N/A' }}</td>
                       <td class="p-1">
-                        @if($e->substance)
-                          <div>{{ $e->substance->name }}</div>
-                          <div class="text-xs text-gray-500">CAS: {{ $e->cas_number }}</div>
-                        @else
-                          <span class="text-gray-400">{{ $e->substance_name ?? 'N/A' }}</span>
-                        @endif
-                      </td>
-                      <td class="p-1 text-center">
-                        @if($e->matrix_habitat == 'freshwater')
-                          <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">Freshwater</span>
-                        @elseif($e->matrix_habitat == 'marine water')
-                          <span class="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs">Marine</span>
-                        @else
-                          {{ $e->matrix_habitat }}
-                        @endif
-                      </td>
-                      <td class="p-1 text-center">
-                        @if($e->acute_or_chronic == 'acute')
-                          <span class="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs">Acute</span>
-                        @elseif($e->acute_or_chronic == 'chronic')
-                          <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Chronic</span>
-                        @else
-                          {{ $e->acute_or_chronic }}
-                        @endif
-                      </td>
-                      <td class="p-1 text-center">{{ $e->taxonomic_group }}</td>
-                      <td class="p-1">
-                        <div class="italic">{{ $e->scientific_name }}</div>
+                        <div class="italic">{{ $e->scientific_name ?? 'N/A' }}</div>
                         @if($e->common_name)
                           <div class="text-xs text-gray-500">{{ $e->common_name }}</div>
                         @endif
                       </td>
-                      <td class="p-1 text-center">
-                        <div>{{ $e->endpoint }}</div>
-                        <div class="text-xs text-gray-500">{{ $e->effect_measurement }}</div>
-                      </td>
+                      <td class="p-1 text-center">{{ $e->endpoint ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->duration ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->effect_measurement ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->test_type ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->standard_test ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->effect ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->ph ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->exposure_regime ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->purity ?? 'N/A' }}</td>
+                      <td class="p-1 text-center"></td>
                       <td class="p-1 text-center">
                         @if($e->concentration_value)
-                          <div>{{ $e->concentration_qualifier }} {{ number_format($e->concentration_value, 4) }}</div>
+                          <div>{{ $e->concentration_qualifier ?? '' }} {{ number_format($e->concentration_value, 4) }}</div>
                           @if($e->unit_concentration)
                             <div class="text-xs text-gray-500">{{ $e->unit_concentration }}</div>
                           @endif
@@ -173,7 +160,17 @@
                           <span class="text-gray-400">N/A</span>
                         @endif
                       </td>
-                      <td class="p-1 text-center">{{ $e->duration }}</td>
+                      <td class="p-1 text-center">{{ $e->measured_or_nominal ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">
+                        @if($e->bibliographic_source)
+                          <div>{{ $e->bibliographic_source }}</div>
+                          @if($e->year_publication)
+                            <div class="text-xs text-gray-500">{{ $e->year_publication }}</div>
+                          @endif
+                        @else
+                          <span class="text-gray-400">N/A</span>
+                        @endif
+                      </td>
                     </tr>
                   @endforeach
                 </tbody>
@@ -185,41 +182,48 @@
               <table class="table-standard">
                 <thead>
                   <tr class="bg-gray-600 text-white">
-                    <th>ID</th>
-                    <th>Substance</th>
-                    <th>Taxonomic Group</th>
-                    <th>Scientific Name</th>
+                    <th>Biotest ID</th>
+                    <th>Taxonomic group</th>
+                    <th>Scientific name</th>
                     <th>Endpoint</th>
-                    <th>Concentration</th>
                     <th>Duration</th>
+                    <th>Effect measurement</th>
+                    <th>Test type</th>
+                    <th>Standard test</th>
+                    <th>Effect based on</th>
+                    <th>pH</th>
+                    <th>Exposure regime</th>
+                    <th>Purity [%]</th>
+                    <th></th>
+                    <th>Effect value [µg/L]</th>
+                    <th>Measured or nominal</th>
+                    <th>Reference</th>
                   </tr>
                 </thead>
                 <tbody>
                   @foreach ($resultsObjects->filter(function($item) { return $item->matrix_habitat === 'freshwater' && $item->acute_or_chronic === 'acute'; }) as $e)
                     <tr class="@if($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
-                      <td class="p-1 text-center">{{ $e->ecotox_id }}</td>
+                      <td class="p-1 text-center">{{ $e->ecotox_id  ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->taxonomic_group ?? 'N/A' }}</td>
                       <td class="p-1">
-                        @if($e->substance)
-                          <div>{{ $e->substance->name }}</div>
-                          <div class="text-xs text-gray-500">{{ $e->cas_number }}</div>
-                        @else
-                          <span class="text-gray-400">{{ $e->substance_name ?? 'N/A' }}</span>
-                        @endif
-                      </td>
-                      <td class="p-1 text-center">{{ $e->taxonomic_group }}</td>
-                      <td class="p-1">
-                        <div class="italic">{{ $e->scientific_name }}</div>
+                        <div class="italic">{{ $e->scientific_name ?? 'N/A' }}</div>
                         @if($e->common_name)
                           <div class="text-xs text-gray-500">{{ $e->common_name }}</div>
                         @endif
                       </td>
-                      <td class="p-1 text-center">
-                        <div>{{ $e->endpoint }}</div>
-                        <div class="text-xs text-gray-500">{{ $e->effect_measurement }}</div>
-                      </td>
+                      <td class="p-1 text-center">{{ $e->endpoint ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->duration ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->effect_measurement ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->test_type ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->standard_test ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->effect ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->ph ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->exposure_regime ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->purity ?? 'N/A' }}</td>
+                      <td class="p-1 text-center"></td>
                       <td class="p-1 text-center">
                         @if($e->concentration_value)
-                          <div>{{ $e->concentration_qualifier }} {{ number_format($e->concentration_value, 4) }}</div>
+                          <div>{{ $e->concentration_qualifier ?? '' }} {{ number_format($e->concentration_value, 4) }}</div>
                           @if($e->unit_concentration)
                             <div class="text-xs text-gray-500">{{ $e->unit_concentration }}</div>
                           @endif
@@ -227,7 +231,17 @@
                           <span class="text-gray-400">N/A</span>
                         @endif
                       </td>
-                      <td class="p-1 text-center">{{ $e->duration }}</td>
+                      <td class="p-1 text-center">{{ $e->measured_or_nominal ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">
+                        @if($e->bibliographic_source)
+                          <div>{{ $e->bibliographic_source }}</div>
+                          @if($e->year_publication)
+                            <div class="text-xs text-gray-500">{{ $e->year_publication }}</div>
+                          @endif
+                        @else
+                          <span class="text-gray-400">N/A</span>
+                        @endif
+                      </td>
                     </tr>
                   @endforeach
                 </tbody>
@@ -239,41 +253,48 @@
               <table class="table-standard">
                 <thead>
                   <tr class="bg-gray-600 text-white">
-                    <th>ID</th>
-                    <th>Substance</th>
-                    <th>Taxonomic Group</th>
-                    <th>Scientific Name</th>
+                    <th>Biotest ID</th>
+                    <th>Taxonomic group</th>
+                    <th>Scientific name</th>
                     <th>Endpoint</th>
-                    <th>Concentration</th>
                     <th>Duration</th>
+                    <th>Effect measurement</th>
+                    <th>Test type</th>
+                    <th>Standard test</th>
+                    <th>Effect based on</th>
+                    <th>pH</th>
+                    <th>Exposure regime</th>
+                    <th>Purity [%]</th>
+                    <th></th>
+                    <th>Effect value [µg/L]</th>
+                    <th>Measured or nominal</th>
+                    <th>Reference</th>
                   </tr>
                 </thead>
                 <tbody>
                   @foreach ($resultsObjects->filter(function($item) { return $item->matrix_habitat === 'freshwater' && $item->acute_or_chronic === 'chronic'; }) as $e)
                     <tr class="@if($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
-                      <td class="p-1 text-center">{{ $e->ecotox_id }}</td>
+                      <td class="p-1 text-center">{{ $e->ecotox_id ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->taxonomic_group ?? 'N/A' }}</td>
                       <td class="p-1">
-                        @if($e->substance)
-                          <div>{{ $e->substance->name }}</div>
-                          <div class="text-xs text-gray-500">{{ $e->cas_number }}</div>
-                        @else
-                          <span class="text-gray-400">{{ $e->substance_name ?? 'N/A' }}</span>
-                        @endif
-                      </td>
-                      <td class="p-1 text-center">{{ $e->taxonomic_group }}</td>
-                      <td class="p-1">
-                        <div class="italic">{{ $e->scientific_name }}</div>
+                        <div class="italic">{{ $e->scientific_name ?? 'N/A' }}</div>
                         @if($e->common_name)
                           <div class="text-xs text-gray-500">{{ $e->common_name }}</div>
                         @endif
                       </td>
-                      <td class="p-1 text-center">
-                        <div>{{ $e->endpoint }}</div>
-                        <div class="text-xs text-gray-500">{{ $e->effect_measurement }}</div>
-                      </td>
+                      <td class="p-1 text-center">{{ $e->endpoint ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->duration ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->effect_measurement ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->test_type ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->standard_test ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->effect ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->ph ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->exposure_regime ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->purity ?? 'N/A' }}</td>
+                      <td class="p-1 text-center"></td>
                       <td class="p-1 text-center">
                         @if($e->concentration_value)
-                          <div>{{ $e->concentration_qualifier }} {{ number_format($e->concentration_value, 4) }}</div>
+                          <div>{{ $e->concentration_qualifier ?? '' }} {{ number_format($e->concentration_value, 4) }}</div>
                           @if($e->unit_concentration)
                             <div class="text-xs text-gray-500">{{ $e->unit_concentration }}</div>
                           @endif
@@ -281,7 +302,17 @@
                           <span class="text-gray-400">N/A</span>
                         @endif
                       </td>
-                      <td class="p-1 text-center">{{ $e->duration }}</td>
+                      <td class="p-1 text-center">{{ $e->measured_or_nominal ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">
+                        @if($e->bibliographic_source)
+                          <div>{{ $e->bibliographic_source }}</div>
+                          @if($e->year_publication)
+                            <div class="text-xs text-gray-500">{{ $e->year_publication }}</div>
+                          @endif
+                        @else
+                          <span class="text-gray-400">N/A</span>
+                        @endif
+                      </td>
                     </tr>
                   @endforeach
                 </tbody>
@@ -293,41 +324,48 @@
               <table class="table-standard">
                 <thead>
                   <tr class="bg-gray-600 text-white">
-                    <th>ID</th>
-                    <th>Substance</th>
-                    <th>Taxonomic Group</th>
-                    <th>Scientific Name</th>
+                    <th>Biotest ID</th>
+                    <th>Taxonomic group</th>
+                    <th>Scientific name</th>
                     <th>Endpoint</th>
-                    <th>Concentration</th>
                     <th>Duration</th>
+                    <th>Effect measurement</th>
+                    <th>Test type</th>
+                    <th>Standard test</th>
+                    <th>Effect based on</th>
+                    <th>pH</th>
+                    <th>Exposure regime</th>
+                    <th>Purity [%]</th>
+                    <th></th>
+                    <th>Effect value [µg/L]</th>
+                    <th>Measured or nominal</th>
+                    <th>Reference</th>
                   </tr>
                 </thead>
                 <tbody>
                   @foreach ($resultsObjects->filter(function($item) { return $item->matrix_habitat === 'marine water' && $item->acute_or_chronic === 'acute'; }) as $e)
                     <tr class="@if($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
-                      <td class="p-1 text-center">{{ $e->ecotox_id }}</td>
+                      <td class="p-1 text-center">{{ $e->ecotox_id ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->taxonomic_group ?? 'N/A' }}</td>
                       <td class="p-1">
-                        @if($e->substance)
-                          <div>{{ $e->substance->name }}</div>
-                          <div class="text-xs text-gray-500">{{ $e->cas_number }}</div>
-                        @else
-                          <span class="text-gray-400">{{ $e->substance_name ?? 'N/A' }}</span>
-                        @endif
-                      </td>
-                      <td class="p-1 text-center">{{ $e->taxonomic_group }}</td>
-                      <td class="p-1">
-                        <div class="italic">{{ $e->scientific_name }}</div>
+                        <div class="italic">{{ $e->scientific_name ?? 'N/A' }}</div>
                         @if($e->common_name)
                           <div class="text-xs text-gray-500">{{ $e->common_name }}</div>
                         @endif
                       </td>
-                      <td class="p-1 text-center">
-                        <div>{{ $e->endpoint }}</div>
-                        <div class="text-xs text-gray-500">{{ $e->effect_measurement }}</div>
-                      </td>
+                      <td class="p-1 text-center">{{ $e->endpoint ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->duration ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->effect_measurement ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->test_type ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->standard_test ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->effect ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->ph ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->exposure_regime ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->purity ?? 'N/A' }}</td>
+                      <td class="p-1 text-center"></td>
                       <td class="p-1 text-center">
                         @if($e->concentration_value)
-                          <div>{{ $e->concentration_qualifier }} {{ number_format($e->concentration_value, 4) }}</div>
+                          <div>{{ $e->concentration_qualifier ?? '' }} {{ number_format($e->concentration_value, 4) }}</div>
                           @if($e->unit_concentration)
                             <div class="text-xs text-gray-500">{{ $e->unit_concentration }}</div>
                           @endif
@@ -335,7 +373,17 @@
                           <span class="text-gray-400">N/A</span>
                         @endif
                       </td>
-                      <td class="p-1 text-center">{{ $e->duration }}</td>
+                      <td class="p-1 text-center">{{ $e->measured_or_nominal ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">
+                        @if($e->bibliographic_source)
+                          <div>{{ $e->bibliographic_source }}</div>
+                          @if($e->year_publication)
+                            <div class="text-xs text-gray-500">{{ $e->year_publication }}</div>
+                          @endif
+                        @else
+                          <span class="text-gray-400">N/A</span>
+                        @endif
+                      </td>
                     </tr>
                   @endforeach
                 </tbody>
@@ -347,41 +395,48 @@
               <table class="table-standard">
                 <thead>
                   <tr class="bg-gray-600 text-white">
-                    <th>ID</th>
-                    <th>Substance</th>
-                    <th>Taxonomic Group</th>
-                    <th>Scientific Name</th>
+                    <th>Biotest ID</th>
+                    <th>Taxonomic group</th>
+                    <th>Scientific name</th>
                     <th>Endpoint</th>
-                    <th>Concentration</th>
                     <th>Duration</th>
+                    <th>Effect measurement</th>
+                    <th>Test type</th>
+                    <th>Standard test</th>
+                    <th>Effect based on</th>
+                    <th>pH</th>
+                    <th>Exposure regime</th>
+                    <th>Purity [%]</th>
+                    <th></th>
+                    <th>Effect value [µg/L]</th>
+                    <th>Measured or nominal</th>
+                    <th>Reference</th>
                   </tr>
                 </thead>
                 <tbody>
                   @foreach ($resultsObjects->filter(function($item) { return $item->matrix_habitat === 'marine water' && $item->acute_or_chronic === 'chronic'; }) as $e)
                     <tr class="@if($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
-                      <td class="p-1 text-center">{{ $e->ecotox_id }}</td>
+                      <td class="p-1 text-center">{{ $e->ecotox_id ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->taxonomic_group ?? 'N/A' }}</td>
                       <td class="p-1">
-                        @if($e->substance)
-                          <div>{{ $e->substance->name }}</div>
-                          <div class="text-xs text-gray-500">{{ $e->cas_number }}</div>
-                        @else
-                          <span class="text-gray-400">{{ $e->substance_name ?? 'N/A' }}</span>
-                        @endif
-                      </td>
-                      <td class="p-1 text-center">{{ $e->taxonomic_group }}</td>
-                      <td class="p-1">
-                        <div class="italic">{{ $e->scientific_name }}</div>
+                        <div class="italic">{{ $e->scientific_name ?? 'N/A' }}</div>
                         @if($e->common_name)
                           <div class="text-xs text-gray-500">{{ $e->common_name }}</div>
                         @endif
                       </td>
-                      <td class="p-1 text-center">
-                        <div>{{ $e->endpoint }}</div>
-                        <div class="text-xs text-gray-500">{{ $e->effect_measurement }}</div>
-                      </td>
+                      <td class="p-1 text-center">{{ $e->endpoint ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->duration ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->effect_measurement ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->test_type ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->standard_test ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->effect ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->ph ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->exposure_regime ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->purity ?? 'N/A' }}</td>
+                      <td class="p-1 text-center"></td>
                       <td class="p-1 text-center">
                         @if($e->concentration_value)
-                          <div>{{ $e->concentration_qualifier }} {{ number_format($e->concentration_value, 4) }}</div>
+                          <div>{{ $e->concentration_qualifier ?? '' }} {{ number_format($e->concentration_value, 4) }}</div>
                           @if($e->unit_concentration)
                             <div class="text-xs text-gray-500">{{ $e->unit_concentration }}</div>
                           @endif
@@ -389,7 +444,17 @@
                           <span class="text-gray-400">N/A</span>
                         @endif
                       </td>
-                      <td class="p-1 text-center">{{ $e->duration }}</td>
+                      <td class="p-1 text-center">{{ $e->measured_or_nominal ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">
+                        @if($e->bibliographic_source)
+                          <div>{{ $e->bibliographic_source }}</div>
+                          @if($e->year_publication)
+                            <div class="text-xs text-gray-500">{{ $e->year_publication }}</div>
+                          @endif
+                        @else
+                          <span class="text-gray-400">N/A</span>
+                        @endif
+                      </td>
                     </tr>
                   @endforeach
                 </tbody>
