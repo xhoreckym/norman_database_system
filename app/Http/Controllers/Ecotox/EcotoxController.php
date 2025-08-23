@@ -7,7 +7,9 @@ use App\Models\DatabaseEntity;
 use App\Models\Backend\QueryLog;
 use App\Models\Susdat\Substance;
 use App\Http\Controllers\Controller;
-use App\Models\Ecotox\EcotoxPrimary;
+use App\Models\Ecotox\EcotoxFinal;
+use App\Models\Ecotox\EcotoxOriginal;
+use App\Models\Ecotox\EcotoxHarmonised;
 use Illuminate\Support\Facades\Auth;
 
 class EcotoxController extends Controller
@@ -37,12 +39,205 @@ class EcotoxController extends Controller
         //
     }
     
-    /**
-    * Display the specified resource.
-    */
+        /**
+     * Display the specified resource.
+     */
     public function show(string $id)
     {
-        //
+        // Fetch data from all three Ecotox models for the given ecotox_id
+        $ecotoxFinal = EcotoxFinal::with(['substance'])
+            ->where('ecotox_id', $id)
+            ->first();
+            
+        $ecotoxOriginal = EcotoxOriginal::with(['substance'])
+            ->where('ecotox_id', $id)
+            ->first();
+            
+        $ecotoxHarmonised = EcotoxHarmonised::with(['substance'])
+            ->where('ecotox_id', $id)
+            ->first();
+
+        if (!$ecotoxFinal && !$ecotoxOriginal && !$ecotoxHarmonised) {
+            return response()->json(['error' => 'Record not found'], 404);
+        }
+
+        // Prepare data structure for the table display
+        $tableData = [
+            // Source section
+            'Source' => [
+                'Ecotox DS ID' => [
+                    'original' => $ecotoxOriginal?->data_source_id ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->data_source_id ?? 'N/A',
+                    'final' => $ecotoxFinal?->data_source_id ?? 'N/A'
+                ],
+                'Biotest ID' => [
+                    'original' => $ecotoxOriginal?->ecotox_id ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->ecotox_id ?? 'N/A',
+                    'final' => $ecotoxFinal?->ecotox_id ?? 'N/A'
+                ],
+                'Data source' => [
+                    'original' => $ecotoxOriginal?->data_source ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->data_source ?? 'N/A',
+                    'final' => $ecotoxFinal?->data_source ?? 'N/A'
+                ],
+                'Data source ID' => [
+                    'original' => $ecotoxOriginal?->data_source_id ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->data_source_id ?? 'N/A',
+                    'final' => $ecotoxFinal?->data_source_id ?? 'N/A'
+                ],
+                'Data source reference ID' => [
+                    'original' => $ecotoxOriginal?->data_source_ref ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->data_source_ref ?? 'N/A',
+                    'final' => $ecotoxFinal?->data_source_ref ?? 'N/A'
+                ],
+                'Data protection' => [
+                    'original' => $ecotoxOriginal?->data_protection ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->data_protection ?? 'N/A',
+                    'final' => $ecotoxFinal?->data_protection ?? 'N/A'
+                ],
+                'Data source link' => [
+                    'original' => $ecotoxOriginal?->data_source_link ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->data_source_link ?? 'N/A',
+                    'final' => $ecotoxFinal?->data_source_link ?? 'N/A'
+                ],
+                'Editor' => [
+                    'original' => $ecotoxOriginal?->edit_editor ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->edit_editor ?? 'N/A',
+                    'final' => $ecotoxFinal?->edit_editor ?? 'N/A'
+                ],
+                'Use of study' => [
+                    'original' => $ecotoxOriginal?->use_study ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->use_study ?? 'N/A',
+                    'final' => $ecotoxFinal?->use_study ?? 'N/A'
+                ],
+                'Date' => [
+                    'original' => $ecotoxOriginal?->edit_date ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->edit_date ?? 'N/A',
+                    'final' => $ecotoxFinal?->edit_date ?? 'N/A'
+                ]
+            ],
+            // Reference section
+            'Reference' => [
+                'Study title' => [
+                    'original' => $ecotoxOriginal?->study_title ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->study_title ?? 'N/A',
+                    'final' => $ecotoxFinal?->study_title ?? 'N/A'
+                ],
+                'Authors' => [
+                    'original' => $ecotoxOriginal?->authors ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->authors ?? 'N/A',
+                    'final' => $ecotoxFinal?->authors ?? 'N/A'
+                ],
+                'Year publication' => [
+                    'original' => $ecotoxOriginal?->year_publication ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->year_publication ?? 'N/A',
+                    'final' => $ecotoxFinal?->year_publication ?? 'N/A'
+                ],
+                'Bibliographic source' => [
+                    'original' => $ecotoxOriginal?->bibliographic_source ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->bibliographic_source ?? 'N/A',
+                    'final' => $ecotoxFinal?->bibliographic_source ?? 'N/A'
+                ]
+            ],
+            // Test section
+            'Test' => [
+                'Test type' => [
+                    'original' => $ecotoxOriginal?->test_type ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->test_type ?? 'N/A',
+                    'final' => $ecotoxFinal?->test_type ?? 'N/A'
+                ],
+                'Acute or chronic' => [
+                    'original' => $ecotoxOriginal?->acute_or_chronic ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->acute_or_chronic ?? 'N/A',
+                    'final' => $ecotoxFinal?->acute_or_chronic ?? 'N/A'
+                ],
+                'Endpoint' => [
+                    'original' => $ecotoxOriginal?->endpoint ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->endpoint ?? 'N/A',
+                    'final' => $ecotoxFinal?->endpoint ?? 'N/A'
+                ],
+                'Duration' => [
+                    'original' => $ecotoxOriginal?->duration ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->duration ?? 'N/A',
+                    'final' => $ecotoxFinal?->duration ?? 'N/A'
+                ],
+                'Effect measurement' => [
+                    'original' => $ecotoxOriginal?->effect_measurement ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->effect_measurement ?? 'N/A',
+                    'final' => $ecotoxFinal?->effect_measurement ?? 'N/A'
+                ],
+                'Effect' => [
+                    'original' => $ecotoxOriginal?->effect ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->effect ?? 'N/A',
+                    'final' => $ecotoxFinal?->effect ?? 'N/A'
+                ]
+            ],
+            // Organism section
+            'Organism' => [
+                'Scientific name' => [
+                    'original' => $ecotoxOriginal?->scientific_name ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->scientific_name ?? 'N/A',
+                    'final' => $ecotoxFinal?->scientific_name ?? 'N/A'
+                ],
+                'Common name' => [
+                    'original' => $ecotoxOriginal?->common_name ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->common_name ?? 'N/A',
+                    'final' => $ecotoxFinal?->common_name ?? 'N/A'
+                ],
+                'Taxonomic group' => [
+                    'original' => $ecotoxOriginal?->taxonomic_group ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->taxonomic_group ?? 'N/A',
+                    'final' => $ecotoxFinal?->taxonomic_group ?? 'N/A'
+                ]
+            ],
+            // Concentration section
+            'Concentration' => [
+                'Concentration value' => [
+                    'original' => $ecotoxOriginal?->concentration_value ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->concentration_value ?? 'N/A',
+                    'final' => $ecotoxFinal?->concentration_value ?? 'N/A'
+                ],
+                'Concentration qualifier' => [
+                    'original' => $ecotoxOriginal?->concentration_qualifier ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->concentration_qualifier ?? 'N/A',
+                    'final' => $ecotoxFinal?->concentration_qualifier ?? 'N/A'
+                ],
+                'Unit concentration' => [
+                    'original' => $ecotoxOriginal?->unit_concentration ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->unit_concentration ?? 'N/A',
+                    'final' => $ecotoxFinal?->unit_concentration ?? 'N/A'
+                ]
+            ],
+            // Additional fields section
+            'Additional' => [
+                'Matrix habitat' => [
+                    'original' => $ecotoxOriginal?->matrix_habitat ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->matrix_habitat ?? 'N/A',
+                    'final' => $ecotoxFinal?->matrix_habitat ?? 'N/A'
+                ],
+                'Testing laboratory' => [
+                    'original' => $ecotoxOriginal?->testing_laboratory ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->testing_laboratory ?? 'N/A',
+                    'final' => $ecotoxFinal?->testing_laboratory ?? 'N/A'
+                ],
+                'GLP certificate' => [
+                    'original' => $ecotoxOriginal?->glp_certificate ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->glp_certificate ?? 'N/A',
+                    'final' => $ecotoxFinal?->glp_certificate ?? 'N/A'
+                ],
+                'Reliability study' => [
+                    'original' => $ecotoxOriginal?->reliability_study ?? 'N/A',
+                    'harmonised' => $ecotoxHarmonised?->reliability_study ?? 'N/A',
+                    'final' => $ecotoxFinal?->reliability_study ?? 'N/A'
+                ]
+            ]
+        ];
+
+        return response()->json([
+            'ecotox_id' => $id,
+            'substance' => $ecotoxFinal?->substance ?? $ecotoxOriginal?->substance ?? $ecotoxHarmonised?->substance,
+            'table_data' => $tableData
+        ]);
     }
     
     /**
@@ -82,7 +277,7 @@ class EcotoxController extends Controller
         $searchParameters = [];
         
         // Start with a base query with necessary relationships
-        $resultsObjects = EcotoxPrimary::with([
+        $resultsObjects = EcotoxFinal::with([
             'substance',
         ]);
         
@@ -168,8 +363,8 @@ class EcotoxController extends Controller
     
     public function countAll(){
         DatabaseEntity::where('code', 'ecotox.ecotox')->update([
-            'last_update' => EcotoxPrimary::max('updated_at'),
-            'number_of_records' => EcotoxPrimary::count()
+            'last_update' => EcotoxFinal::max('updated_at'),
+            'number_of_records' => EcotoxFinal::count()
         ]);
         session()->flash('success', 'Database counts updated successfully');
         return redirect()->back();

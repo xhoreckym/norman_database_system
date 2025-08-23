@@ -54,7 +54,7 @@ class EcotoxSubstanceDistinct extends Model
      */
     public function ecotoxRecords()
     {
-        return $this->hasMany(EcotoxPrimary::class, 'substance_id', 'substance_id');
+        return $this->hasMany(EcotoxFinal::class, 'substance_id', 'substance_id');
     }
 
     /**
@@ -63,7 +63,7 @@ class EcotoxSubstanceDistinct extends Model
     public static function refreshRecordCounts()
     {
         // Get counts from the main table
-        $counts = EcotoxPrimary::selectRaw('substance_id, COUNT(*) as count')
+        $counts = EcotoxFinal::selectRaw('substance_id, COUNT(*) as count')
             ->whereNotNull('substance_id')
             ->groupBy('substance_id')
             ->pluck('count', 'substance_id');
@@ -83,7 +83,7 @@ class EcotoxSubstanceDistinct extends Model
     public static function syncNewSubstances()
     {
         // Find substance_ids in main table not in distinct table
-        $substanceIds = EcotoxPrimary::selectRaw('
+        $substanceIds = EcotoxFinal::selectRaw('
                 substance_id, 
                 sus_id,
                 COUNT(*) as record_count

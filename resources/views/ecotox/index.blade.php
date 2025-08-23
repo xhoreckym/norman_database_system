@@ -6,7 +6,7 @@
   <div class="py-4">
     <div class="w-full mx-auto sm:px-6 lg:px-8">
       <div class="bg-white shadow-lg sm:rounded-lg">
-        <div class="p-6 text-gray-900">
+        <div class="p-6 text-gray-900" x-data="ecotoxTable()">
           {{-- main div --}}
           
           <a href="{{ route('ecotox.search.filter', [
@@ -29,7 +29,7 @@
               <div class="flex flex-wrap items-center bg-gray-50 p-3 rounded-lg shadow-sm border border-gray-200">
                 <div class="flex items-center mr-4">
                   <span class="text-gray-700">Number of matched records:</span>
-                  <span class="font-bold text-lg ml-2 text-indigo-700">
+                  <span class="font-bold text-lg ml-2 text-sky-700">
                     {{ number_format($resultsObjects->total(), 0, ".", " ") }}
                   </span>
                 </div>
@@ -41,13 +41,13 @@
                   </span>
                   
                   @if(is_numeric($resultsObjects->total()) && $resultsObjectsCount > 0)
-                    <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                      @if($resultsObjects->total()/$resultsObjectsCount*100 < 0.01)
-                        &le; 0.01% of total
-                      @else
-                        {{ number_format($resultsObjects->total()/$resultsObjectsCount*100, 2, ".", " ") }}% of total
-                      @endif
-                    </span>
+                                      <span class="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                    @if($resultsObjects->total()/$resultsObjectsCount*100 < 0.01)
+                      &le; 0.01% of total
+                    @else
+                      {{ number_format($resultsObjects->total()/$resultsObjectsCount*100, 2, ".", " ") }}% of total
+                    @endif
+                  </span>
                   @endif
                 </div>
               </div>
@@ -81,12 +81,12 @@
           <div class="mt-4">
             <div class="border-b border-gray-200">
               <nav class="-mb-px flex space-x-8">
-                <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-indigo-500 text-indigo-600" 
+                <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-sky-500 text-sky-600" 
                         data-tab="all" 
                         data-filter-matrix="" 
                         data-filter-acute="">
                   All Results 
-                  <span class="ml-2 py-0.5 px-2.5 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">
+                  <span class="ml-2 py-0.5 px-2.5 text-xs font-medium bg-sky-100 text-sky-800 rounded-full">
                     {{ $resultsObjects->total() }}
                   </span>
                 </button>
@@ -96,7 +96,7 @@
                         data-filter-matrix="freshwater" 
                         data-filter-acute="acute">
                   Freshwater - Acute 
-                  <span class="ml-2 py-0.5 px-2.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                  <span class="ml-2 py-0.5 px-2.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                     {{ $resultsObjects->where('matrix_habitat', 'freshwater')->where('acute_or_chronic', 'acute')->count() }}
                   </span>
                 </button>
@@ -106,7 +106,7 @@
                         data-filter-matrix="freshwater" 
                         data-filter-acute="chronic">
                   Freshwater - Chronic 
-                  <span class="ml-2 py-0.5 px-2.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                  <span class="ml-2 py-0.5 px-2.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                     {{ $resultsObjects->where('matrix_habitat', 'freshwater')->where('acute_or_chronic', 'chronic')->count() }}
                   </span>
                 </button>
@@ -116,7 +116,7 @@
                         data-filter-matrix="marine water" 
                         data-filter-acute="acute">
                   Marine Water - Acute 
-                  <span class="ml-2 py-0.5 px-2.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                  <span class="ml-2 py-0.5 px-2.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                     {{ $resultsObjects->where('matrix_habitat', 'marine water')->where('acute_or_chronic', 'acute')->count() }}
                   </span>
                 </button>
@@ -126,7 +126,7 @@
                         data-filter-matrix="marine water" 
                         data-filter-acute="chronic">
                   Marine Water - Chronic 
-                  <span class="ml-2 py-0.5 px-2.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                  <span class="ml-2 py-2.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                     {{ $resultsObjects->where('matrix_habitat', 'marine water')->where('acute_or_chronic', 'chronic')->count() }}
                   </span>
                 </button>
@@ -155,6 +155,11 @@
                   <th>Effect value [µg/L]</th>
                   <th>Measured or nominal</th>
                   <th>Reference</th>
+                  @if(auth()->check() && (auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('admin') || auth()->user()->hasRole('ecotox')))
+                    <th>Reliability score</th>
+                    <th>Use of study</th>
+                    <th>Editor</th>
+                  @endif
                 </tr>
               </thead>
               <tbody id="ecotox-table-body">
@@ -162,7 +167,15 @@
                   <tr class="ecotox-row @if($loop->odd) bg-slate-100 @else bg-slate-200 @endif" 
                       data-matrix="{{ $e->matrix_habitat }}" 
                       data-acute="{{ $e->acute_or_chronic }}">
-                    <td class="p-1 text-center">{{ $e->ecotox_id ?? 'N/A' }}</td>
+                    <td class="p-1 text-center">
+                      @if(auth()->check() && (auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('admin') || auth()->user()->hasRole('ecotox')))
+                        <a href="#" class="link-lime-text" title="Click to view details" x-on:click.prevent="openModal('{{ $e->ecotox_id }}')">
+                          {{ $e->ecotox_id ?? 'N/A' }}
+                        </a>
+                      @else
+                        {{ $e->ecotox_id ?? 'N/A' }}
+                      @endif
+                    </td>
                     <td class="p-1 text-center">{{ $e->taxonomic_group ?? 'N/A' }}</td>
                     <td class="p-1">
                       <div class="italic">{{ $e->scientific_name ?? 'N/A' }}</div>
@@ -201,6 +214,17 @@
                         <span class="text-gray-400">N/A</span>
                       @endif
                     </td>
+                    @if(auth()->check() && (auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('admin') || auth()->user()->hasRole('ecotox')))
+                      <td class="p-1 text-center">{{ $e->reliability_study ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $e->use_study ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">
+                        @if($e->editorUser)
+                          {{ $e->editorUser->name ?? 'N/A' }}
+                        @else
+                          N/A
+                        @endif
+                      </td>
+                    @endif
                   </tr>
                 @endforeach
               </tbody>
@@ -240,6 +264,127 @@
             {{$resultsObjects->links('pagination::tailwind')}}
           @endif
           
+          <!-- The Modal (hidden by default) -->
+          <div class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50"
+            x-show="showModal" x-transition>
+            <div class="bg-white w-11/12 md:w-2/3 lg:w-1/2 xl:w-1/3 rounded shadow-lg relative">
+              <!-- Modal Header -->
+              <div class="flex justify-between items-center border-b px-4 py-2">
+                <div class="flex items-center space-x-4">
+                  <h3 class="text-lg font-semibold">Search Ecotox data – metadata</h3>
+                </div>
+                <button @click="closeModal()" class="text-gray-500 hover:text-gray-700 text-xl">
+                  &times;
+                </button>
+              </div>
+
+              <!-- Substance Sub-header -->
+              <div class="px-4 py-2 bg-gray-50 border-b">
+                <h4 class="text-md font-medium text-gray-700">Substance: <span x-text="record?.substance?.name || 'N/A'"></span></h4>
+              </div>
+
+              <!-- Search Bar -->
+              <div class="px-4 py-2 border-b">
+                <div class="flex justify-end">
+                  <input type="text" placeholder="Search..." class="px-3 py-1 border border-gray-300 rounded text-sm">
+                </div>
+              </div>
+
+              <!-- Modal Content -->
+              <div class="p-4 max-h-[60vh] overflow-y-auto">
+                <!-- Loading State -->
+                <div x-show="!record" class="text-center py-8">
+                  <div class="text-gray-500">Loading data...</div>
+                </div>
+
+                <!-- Raw Data Debug Dump -->
+                <div x-show="record" class="mb-6 p-4 bg-gray-100 rounded">
+                  <h4 class="font-semibold mb-2">Raw Data Debug (Controller Response):</h4>
+                  <div class="text-xs bg-white p-2 rounded border overflow-auto max-h-32">
+                    <pre x-text="JSON.stringify(record, null, 2)"></pre>
+                  </div>
+                </div>
+
+                <!-- Error State -->
+                <div x-show="record && !record.table_data" class="text-center py-8">
+                  <div class="text-red-500">No data available for this record.</div>
+                </div>
+
+                <!-- Table Structure -->
+                <div x-show="record && record.table_data">
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="bg-gray-100 border-b">
+                        <th class="text-left p-2 font-semibold">Parameter</th>
+                        <th class="text-left p-2 font-semibold">Original database entry</th>
+                        <th class="text-left p-2 font-semibold">Harmonized data entry</th>
+                        <th class="text-left p-2 font-semibold">Final database entry</th>
+                        <th class="text-left p-2 font-semibold">Editor</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- Debug info -->
+                      <tr x-show="record && record.table_data">
+                        <td colspan="5" class="p-2 text-xs text-gray-500">
+                          Debug: Found <span x-text="Object.keys(record?.table_data || {}).length"></span> sections
+                        </td>
+                      </tr>
+                      <tr x-show="record && record.table_data">
+                        <td colspan="5" class="p-2 text-xs text-gray-500">
+                          Table data keys: <span x-text="Object.keys(record?.table_data || {}).join(', ')"></span>
+                        </td>
+                      </tr>
+                      <tr x-show="record && record.table_data">
+                        <td colspan="5" class="p-2 text-xs text-gray-500">
+                          First section (Source) keys: <span x-text="Object.keys(record?.table_data?.Source || {}).join(', ')"></span>
+                        </td>
+                      </tr>
+                      
+                      <!-- Manual Test Row - Show if data exists -->
+                      <tr x-show="record?.table_data?.Source" class="border-b bg-yellow-50">
+                        <td class="p-2 font-medium text-gray-700">Manual Test - Biotest ID</td>
+                        <td class="p-2" x-text="record?.table_data?.Source?.['Biotest ID']?.original || 'N/A'"></td>
+                        <td class="p-2" x-text="record?.table_data?.Source?.['Biotest ID']?.harmonised || 'N/A'"></td>
+                        <td class="p-2" x-text="record?.table_data?.Source?.['Biotest ID']?.final || 'N/A'"></td>
+                        <td class="p-2">
+                          <span class="text-gray-400">-</span>
+                        </td>
+                      </tr>
+
+                      <!-- This will be populated by Alpine.js -->
+                      <template x-for="(section, sectionName) in record?.table_data" :key="sectionName">
+                        <!-- Section Header Row -->
+                        <tr class="bg-gray-200">
+                          <td colspan="5" class="p-2 font-semibold text-gray-700" x-text="sectionName"></td>
+                        </tr>
+                        <!-- Section Data Rows -->
+                        <template x-for="(parameter, paramName) in section" :key="paramName">
+                          <tr class="border-b hover:bg-gray-50">
+                            <td class="p-2 font-medium text-gray-700" x-text="paramName"></td>
+                            <td class="p-2" x-text="parameter.original"></td>
+                            <td class="p-2" x-text="parameter.harmonised"></td>
+                            <td class="p-2" x-text="parameter.final"></td>
+                            <td class="p-2">
+                              <!-- Placeholder for editor functionality -->
+                              <span class="text-gray-400">-</span>
+                            </td>
+                          </tr>
+                        </template>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Modal Footer -->
+              <div class="flex justify-end border-t px-4 py-2">
+                <button @click="closeModal()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+
           {{-- end of main div --}}
         </div>
       </div>
@@ -248,6 +393,50 @@
   
   @push('scripts')
   <script>
+    // Alpine.js function for ecotox table functionality
+    function ecotoxTable() {
+      return {
+        showModal: false,
+        record: null,
+        recordId: null,
+
+        async openModal(recordId) {
+          this.recordId = recordId;
+          console.log('Opening modal for record:', recordId);
+          
+          // Show the modal first
+          this.showModal = true;
+          
+          try {
+            // Fetch record data from the ecotox show route
+            const response = await fetch(
+              "{{ route('ecotox.show', ':id') }}"
+              .replace(':id', recordId)
+            );
+
+            if (!response.ok) {
+              console.error('Failed to fetch record data:', response.status, response.statusText);
+              return;
+            }
+
+            this.record = await response.json();
+            console.log('Received data:', this.record);
+            console.log('Table data keys:', Object.keys(this.record.table_data || {}));
+            console.log('First section data:', this.record.table_data?.Source);
+            
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+        },
+
+        closeModal() {
+          this.showModal = false;
+          this.record = null;
+          this.recordId = null;
+        }
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
       const tabButtons = document.querySelectorAll('.tab-button');
       const tableRows = document.querySelectorAll('.ecotox-row');
@@ -293,12 +482,12 @@
         
         // Update button styles
         tabButtons.forEach(btn => {
-          btn.classList.remove('border-indigo-500', 'text-indigo-600');
+          btn.classList.remove('border-sky-500', 'text-sky-600');
           btn.classList.add('border-transparent', 'text-gray-500');
         });
         
         button.classList.remove('border-transparent', 'text-gray-500');
-        button.classList.add('border-indigo-500', 'text-indigo-600');
+        button.classList.add('border-sky-500', 'text-sky-600');
         
         // Filter table rows
         filterTable(matrixFilter, acuteFilter);
