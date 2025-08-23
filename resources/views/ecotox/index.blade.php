@@ -10,6 +10,7 @@
           showModal: false, 
           record: null,
           recordId: null,
+
           async openModal(recordId) {
             try {
               console.log('Opening modal for recordId:', recordId);
@@ -308,7 +309,6 @@
           class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
             
             <div class="bg-white w-11/12 md:w-3/4 lg:w-3/4 xl:w-2/3 rounded shadow-lg relative" 
-                 @click.outside="closeModal()"
                  x-transition>
               
               <!-- Modal Header -->
@@ -330,216 +330,217 @@
                 </div>
                 
                 <div x-show="record" x-transition>
-                  <!-- Substance Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Substance Information</div>
-                    <div class="flex justify-between py-1 text-sm bg-slate-100">
-                      <div class="px-1 font-semibold">Substance</div>
-                      <div class="px-1" x-text="record?.substance?.name || 'N/A'"></div>
+
+
+                  <!-- Table View -->
+                  <div>
+                    <div class="overflow-x-auto">
+                      <table class="w-full border border-gray-300 text-sm">
+                        <thead>
+                          <tr class="bg-gray-100">
+                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Parameter Name</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Original</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Harmonised</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Final</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <!-- Substance Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Substance Information</td>
+                          </tr>
+                          <tr>
+                            <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">Substance Name</td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.name || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.name || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.name || 'N/A'"></td>
+                          </tr>
+                          <tr class="bg-gray-50">
+                            <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">CAS Number</td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.cas_number || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.cas_number || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.cas_number || 'N/A'"></td>
+                          </tr>
+                          <tr>
+                            <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">Substance Code</td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.prefixed_code || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.prefixed_code || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.prefixed_code || 'N/A'"></td>
+                          </tr>
+
+                          <!-- Source Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Source Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.Source || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Reference Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Reference Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.Reference || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Categorisation Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Categorisation Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.Categorisation || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Test Substance Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Test Substance Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.['Test substance'] || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Biotest Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Biotest Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.Biotest || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Test Organism Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Test Organism Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.['Test Organism'] || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Dosing System Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Dosing System Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.['Dosing system'] || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Controls and Study Design Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Controls and Study Design Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.['Controls and Study design'] || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Test Conditions Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Test Conditions Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.['Test conditions'] || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Statistical Design Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Statistical Design Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.['Statistical design'] || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Biological Effect Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Biological Effect Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.['Biological effect'] || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Evaluation Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Evaluation Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.Evaluation || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
                     </div>
-                    <div class="flex justify-between py-1 text-sm bg-slate-200">
-                      <div class="px-1 font-semibold">CAS Number</div>
-                      <div class="px-1" x-text="record?.substance?.cas_number || 'N/A'"></div>
-                    </div>
-                    <div class="flex justify-between py-1 text-sm bg-slate-100">
-                      <div class="px-1 font-semibold">Code</div>
-                      <div class="px-1">
-                        <template x-if="record?.substance?.prefixed_code">
-                          <a :href="'{{ route('substances.show', ':id') }}'.replace(':id', record?.substance?.id)" 
-                             target="_blank" class="link-lime-text" x-text="record?.substance?.prefixed_code"></a>
-                        </template>
-                        <template x-if="!record?.substance?.prefixed_code">
-                          <span>N/A</span>
-                        </template>
-                      </div>
-                    </div>
                   </div>
 
-                  <!-- Source Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Source Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Source || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.harmonised || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
 
-                  <!-- Reference Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Reference Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Reference || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.harmonised || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
 
-                  <!-- Test Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Test Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Test || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
 
-                  <!-- Organism Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Organism Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Organism || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.harmonised || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
 
-                  <!-- Concentration Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Concentration Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Concentration || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-100'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.harmonised || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
 
-                  <!-- Additional Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Additional Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Additional || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.harmonised || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
+
+
+
+
+
+
+
+
                 </div>
               </div>
 

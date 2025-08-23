@@ -61,176 +61,162 @@ class EcotoxController extends Controller
             return response()->json(['error' => 'Record not found'], 404);
         }
 
-        // Prepare data structure for the table display
+        // Helper function to get value from models
+        $getValue = function($field) use ($ecotoxOriginal, $ecotoxHarmonised, $ecotoxFinal) {
+            return [
+                'original' => $ecotoxOriginal?->$field ?? 'N/A',
+                'harmonised' => $ecotoxHarmonised?->$field ?? 'N/A',
+                'final' => $ecotoxFinal?->$field ?? 'N/A'
+            ];
+        };
+
+        // Prepare data structure for the table display based on the column mapping
         $tableData = [
-            // Source section
             'Source' => [
-                'Ecotox DS ID' => [
-                    'original' => $ecotoxOriginal?->data_source_id ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->data_source_id ?? 'N/A',
-                    'final' => $ecotoxFinal?->data_source_id ?? 'N/A'
-                ],
-                'Biotest ID' => [
-                    'original' => $ecotoxOriginal?->ecotox_id ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->ecotox_id ?? 'N/A',
-                    'final' => $ecotoxFinal?->ecotox_id ?? 'N/A'
-                ],
-                'Data source' => [
-                    'original' => $ecotoxOriginal?->data_source ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->data_source ?? 'N/A',
-                    'final' => $ecotoxFinal?->data_source ?? 'N/A'
-                ],
-                'Data source ID' => [
-                    'original' => $ecotoxOriginal?->data_source_id ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->data_source_id ?? 'N/A',
-                    'final' => $ecotoxFinal?->data_source_id ?? 'N/A'
-                ],
-                'Data source reference ID' => [
-                    'original' => $ecotoxOriginal?->data_source_ref ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->data_source_ref ?? 'N/A',
-                    'final' => $ecotoxFinal?->data_source_ref ?? 'N/A'
-                ],
-                'Data protection' => [
-                    'original' => $ecotoxOriginal?->data_protection ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->data_protection ?? 'N/A',
-                    'final' => $ecotoxFinal?->data_protection ?? 'N/A'
-                ],
-                'Data source link' => [
-                    'original' => $ecotoxOriginal?->data_source_link ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->data_source_link ?? 'N/A',
-                    'final' => $ecotoxFinal?->data_source_link ?? 'N/A'
-                ],
-                'Editor' => [
-                    'original' => $ecotoxOriginal?->edit_editor ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->edit_editor ?? 'N/A',
-                    'final' => $ecotoxFinal?->edit_editor ?? 'N/A'
-                ],
-                'Use of study' => [
-                    'original' => $ecotoxOriginal?->use_study ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->use_study ?? 'N/A',
-                    'final' => $ecotoxFinal?->use_study ?? 'N/A'
-                ],
-                'Date' => [
-                    'original' => $ecotoxOriginal?->edit_date ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->edit_date ?? 'N/A',
-                    'final' => $ecotoxFinal?->edit_date ?? 'N/A'
-                ]
+                'Ecotox DS ID' => $getValue('ecotox_id'),
+                'Biotest ID' => $getValue('biotest_id'),
+                'Data source' => $getValue('data_source'),
+                'Data source ID' => $getValue('data_source_id'),
+                'Data source reference ID' => $getValue('data_source_ref'),
+                'Data protection' => $getValue('data_protection'),
+                'Data source link' => $getValue('data_source_link'),
+                'Editor' => $getValue('edit_editor'),
+                'Use of study' => $getValue('use_study'),
+                'Date' => $getValue('edit_date'),
             ],
-            // Reference section
             'Reference' => [
-                'Study title' => [
-                    'original' => $ecotoxOriginal?->study_title ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->study_title ?? 'N/A',
-                    'final' => $ecotoxFinal?->study_title ?? 'N/A'
-                ],
-                'Authors' => [
-                    'original' => $ecotoxOriginal?->authors ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->authors ?? 'N/A',
-                    'final' => $ecotoxFinal?->authors ?? 'N/A'
-                ],
-                'Year publication' => [
-                    'original' => $ecotoxOriginal?->year_publication ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->year_publication ?? 'N/A',
-                    'final' => $ecotoxFinal?->year_publication ?? 'N/A'
-                ],
-                'Bibliographic source' => [
-                    'original' => $ecotoxOriginal?->bibliographic_source ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->bibliographic_source ?? 'N/A',
-                    'final' => $ecotoxFinal?->bibliographic_source ?? 'N/A'
-                ]
+                'Reference type' => $getValue('reference_type'),
+                'Reference ID' => $getValue('reference_id'),
+                'Title' => $getValue('study_title'),
+                'Author(s)' => $getValue('authors'),
+                'Year' => $getValue('year_publication'),
+                'Bibliographic source' => $getValue('bibliographic_source'),
             ],
-            // Test section
-            'Test' => [
-                'Test type' => [
-                    'original' => $ecotoxOriginal?->test_type ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->test_type ?? 'N/A',
-                    'final' => $ecotoxFinal?->test_type ?? 'N/A'
-                ],
-                'Acute or chronic' => [
-                    'original' => $ecotoxOriginal?->acute_or_chronic ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->acute_or_chronic ?? 'N/A',
-                    'final' => $ecotoxFinal?->acute_or_chronic ?? 'N/A'
-                ],
-                'Endpoint' => [
-                    'original' => $ecotoxOriginal?->endpoint ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->endpoint ?? 'N/A',
-                    'final' => $ecotoxFinal?->endpoint ?? 'N/A'
-                ],
-                'Duration' => [
-                    'original' => $ecotoxOriginal?->duration ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->duration ?? 'N/A',
-                    'final' => $ecotoxFinal?->duration ?? 'N/A'
-                ],
-                'Effect measurement' => [
-                    'original' => $ecotoxOriginal?->effect_measurement ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->effect_measurement ?? 'N/A',
-                    'final' => $ecotoxFinal?->effect_measurement ?? 'N/A'
-                ],
-                'Effect' => [
-                    'original' => $ecotoxOriginal?->effect ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->effect ?? 'N/A',
-                    'final' => $ecotoxFinal?->effect ?? 'N/A'
-                ]
+            'Categorisation' => [
+                'Compartment' => $getValue('matrix_habitat'),
+                'Test type' => $getValue('test_type'),
+                'Acute/Chronic' => $getValue('acute_or_chronic'),
+                'Standard test' => $getValue('standard_test'),
             ],
-            // Organism section
-            'Organism' => [
-                'Scientific name' => [
-                    'original' => $ecotoxOriginal?->scientific_name ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->scientific_name ?? 'N/A',
-                    'final' => $ecotoxFinal?->scientific_name ?? 'N/A'
-                ],
-                'Common name' => [
-                    'original' => $ecotoxOriginal?->common_name ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->common_name ?? 'N/A',
-                    'final' => $ecotoxFinal?->common_name ?? 'N/A'
-                ],
-                'Taxonomic group' => [
-                    'original' => $ecotoxOriginal?->taxonomic_group ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->taxonomic_group ?? 'N/A',
-                    'final' => $ecotoxFinal?->taxonomic_group ?? 'N/A'
-                ]
+            'Test substance' => [
+                'Substance name' => $getValue('substance_name'),
+                'CAS Number' => $getValue('cas_number'),
+                'EC Number' => $getValue('ec_number'),
+                'Purity [%] of test item' => $getValue('purity'),
+                'Supplier of test item' => $getValue('supplier'),
+                'Vehicle substance' => $getValue('vehicle_substance'),
+                'Concentrations of vehicle or impurities' => $getValue('known_concentrations'),
+                'Radio labeled substance' => $getValue('radio_substance'),
+                'Preparation of stock solutions' => $getValue('preparation_solutions'),
             ],
-            // Concentration section
-            'Concentration' => [
-                'Concentration value' => [
-                    'original' => $ecotoxOriginal?->concentration_value ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->concentration_value ?? 'N/A',
-                    'final' => $ecotoxFinal?->concentration_value ?? 'N/A'
-                ],
-                'Concentration qualifier' => [
-                    'original' => $ecotoxOriginal?->concentration_qualifier ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->concentration_qualifier ?? 'N/A',
-                    'final' => $ecotoxFinal?->concentration_qualifier ?? 'N/A'
-                ],
-                'Unit concentration' => [
-                    'original' => $ecotoxOriginal?->unit_concentration ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->unit_concentration ?? 'N/A',
-                    'final' => $ecotoxFinal?->unit_concentration ?? 'N/A'
-                ]
+            'Biotest' => [
+                'Standard qualifier' => $getValue('standard_qualifier'),
+                'Standard used' => $getValue('standard_used'),
+                'Principles of method if other than guideline' => $getValue('principles'),
+                'GLP Certificate' => $getValue('glp_certificate'),
+                'Effect' => $getValue('effect'),
+                'Effect measurement' => $getValue('effect_measurement'),
+                'Endpoint' => $getValue('endpoint'),
+                'Response site' => $getValue('response_site'),
+                'Test duration' => $getValue('duration'),
+                'Recovery considered?' => $getValue('recovery_considered'),
             ],
-            // Additional fields section
-            'Additional' => [
-                'Matrix habitat' => [
-                    'original' => $ecotoxOriginal?->matrix_habitat ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->matrix_habitat ?? 'N/A',
-                    'final' => $ecotoxFinal?->matrix_habitat ?? 'N/A'
-                ],
-                'Testing laboratory' => [
-                    'original' => $ecotoxOriginal?->testing_laboratory ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->testing_laboratory ?? 'N/A',
-                    'final' => $ecotoxFinal?->testing_laboratory ?? 'N/A'
-                ],
-                'GLP certificate' => [
-                    'original' => $ecotoxOriginal?->glp_certificate ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->glp_certificate ?? 'N/A',
-                    'final' => $ecotoxFinal?->glp_certificate ?? 'N/A'
-                ],
-                'Reliability study' => [
-                    'original' => $ecotoxOriginal?->reliability_study ?? 'N/A',
-                    'harmonised' => $ecotoxHarmonised?->reliability_study ?? 'N/A',
-                    'final' => $ecotoxFinal?->reliability_study ?? 'N/A'
-                ]
-            ]
+            'Test Organism' => [
+                'Scientific name' => $getValue('scientific_name'),
+                'Common name' => $getValue('common_name'),
+                'Taxonomic group' => $getValue('taxonomic_group'),
+                'Final body length of control' => $getValue('final_body_length_of_control'),
+                'Final body weight of control' => $getValue('final_body_weight_of_control'),
+                'Initial cell density' => $getValue('initial_cell_density'),
+                'Final cell density' => $getValue('final_cell_density'),
+                'Deformed or abnormal cells / organism' => $getValue('deformed_or_abnormal_cells'),
+                'Reproductive condition of the control' => $getValue('reproductive_condition'),
+                'Lipid %' => $getValue('lipid'),
+                'Age' => $getValue('age'),
+                'Life stage' => $getValue('life_stage'),
+                'Gender' => $getValue('gender'),
+                'Strain, clone' => $getValue('strain_clone'),
+                'Source (laboratory, culture collection)' => $getValue('organism_source'),
+                'Culture handling' => $getValue('culture_handling'),
+                'Acclimation' => $getValue('acclimation'),
+            ],
+            'Dosing system' => [
+                'Nominal concentrations' => $getValue('nominal_concentrations'),
+                'Concentration Unit' => $getValue('unit_concentration'),
+                'Measured or nominal concentrations' => $getValue('measured_or_nominal'),
+                'Limit test' => $getValue('limit_test'),
+                'Range finding study' => $getValue('range_finding_study'),
+                'Analytical matrix' => $getValue('analytical_matrix'),
+                'Analytical schedule' => $getValue('analytical_schedule'),
+                'Analytical method' => $getValue('analytical_method'),
+                'Analytical recovery' => $getValue('analytical_recovery'),
+                'Limit of quantification' => $getValue('limit_of_quantification'),
+                'Exposure regime' => $getValue('exposure_regime'),
+                'Exposure route' => $getValue('exposure_route'),
+                'Exposure duration' => $getValue('exposure_duration'),
+                'Total test duration' => $getValue('total_test_duration'),
+                'Application frequency' => $getValue('application_freq'),
+            ],
+            'Controls and Study design' => [
+                'Negative control used?' => $getValue('negative_control_used'),
+                'Positive control used?' => $getValue('positive_control_used'),
+                'Positive control substance' => $getValue('positive_control_substance'),
+                'Other effects' => $getValue('other_effects'),
+                'Effects in positive control' => $getValue('effects_control'),
+                'Vehicle control used?' => $getValue('vehicle_control'),
+                'Effects in vehicle control' => $getValue('effects_vehicle'),
+            ],
+            'Test conditions' => [
+                'Intervals of water quality measurements' => $getValue('intervals_water'),
+                'pH' => $getValue('ph'),
+                'Adjustment of pH' => $getValue('adjustment_ph'),
+                'Temperature' => $getValue('temperature'),
+                'Conductivity' => $getValue('conductivity'),
+                'Light intensity' => $getValue('light_intensity'),
+                'Light quality (source and homogeneity)' => $getValue('light_quality'),
+                'Photo period' => $getValue('photo_period'),
+                'Hardness' => $getValue('hardness'),
+                'Chlorine' => $getValue('chlorine'),
+                'Alkalinity' => $getValue('alkalinity'),
+                'Salinity' => $getValue('salinity'),
+                'Total Organic Carbon' => $getValue('organic_carbon'),
+                'Dissolved oxygen' => $getValue('dissolved_oxygen'),
+                'Material of test vessel' => $getValue('material_vessel'),
+                'Volume of test vessel' => $getValue('volume_vessel'),
+                'Open or closed system' => $getValue('open_closed'),
+                'Aeration' => $getValue('aeration'),
+                'Description of test medium' => $getValue('description_medium'),
+                'Culture medium different from test medium?' => $getValue('culture_medium'),
+                'Feeding protocols' => $getValue('feeding_protocols'),
+                'Type and amount of food' => $getValue('type_amount_food'),
+            ],
+            'Statistical design' => [
+                'Number of organisms per replicate' => $getValue('number_organisms'),
+                'Number of replicates per concentration' => $getValue('number_replicates'),
+                'Statistical method used' => $getValue('statistical_method'),
+                'Trend' => $getValue('trend'),
+                'Significance of result' => $getValue('significance_result'),
+                'Significance level' => $getValue('significance_level'),
+            ],
+            'Biological effect' => [
+                'Effect concentration qualifier' => $getValue('concentration_qualifier'),
+                'Effect concentration' => $getValue('concentration_value'),
+                'Effect concentration unit' => $getValue('unit_concentration'),
+                'Estimate of variability for LC and EC data' => $getValue('estimate_variability'),
+                'Test item' => $getValue('test_item'),
+                'Result comment' => $getValue('result_comment'),
+            ],
+            'Evaluation' => [
+                'Dose-response reported in figure/text/table' => $getValue('dose_response'),
+                'Availability of raw data' => $getValue('availability_raw_data'),
+                'Study available' => $getValue('study_available'),
+                'General Comment' => $getValue('general_comment'),
+                'Existing reliability score' => $getValue('reliability_study'),
+                'Reliability score system used' => $getValue('reliability_score'),
+                'Existing rational reliability' => $getValue('existing_rational_reliability'),
+                'Regulatory context' => $getValue('regulatory_purpose'),
+                'Used for regulatory purpose' => $getValue('used_for_regulaltory_purpose'),
+            ],
         ];
 
         return response()->json([

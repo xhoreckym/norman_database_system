@@ -1,0 +1,171 @@
+# Ecotox Column Mapping
+
+| Category | Table Header | Database Column Name |
+|----------|--------------|---------------------|
+| **Source** | Ecotox DS ID | ecotox_id |
+| **Source** | Biotest ID | biotest_id |
+| **Source** | Data source | data_source |
+| **Source** | Data source ID | data_source_id |
+| **Source** | Data source reference ID | data_source_ref |
+| **Source** | Data protection | data_protection |
+| **Source** | Data source link | data_source_link |
+| **Source** | Editor | edit_editor |
+| **Source** | Use of study | use_study |
+| **Source** | Date | edit_date |
+| **Reference** | Reference type | reference_type |
+| **Reference** | Reference ID | reference_id |
+| **Reference** | Title | study_title |
+| **Reference** | Author(s) | authors |
+| **Reference** | Year | year_publication |
+| **Reference** | Bibliographic source | bibliographic_source |
+| **Categorisation** | Compartment | matrix_habitat |
+| **Categorisation** | Test type | test_type |
+| **Categorisation** | Acute/Chronic | acute_or_chronic |
+| **Categorisation** | Standard test | standard_test |
+| **Test substance** | INCHI KEY | *not mapped* |
+| **Test substance** | Substance name | substance_name |
+| **Test substance** | CAS Number | cas_number |
+| **Test substance** | EC Number | ec_number |
+| **Test substance** | Purity qualifier | *not mapped* |
+| **Test substance** | Purity [%] of test item | purity |
+| **Test substance** | Supplier of test item | supplier |
+| **Test substance** | Vehicle substance | vehicle_substance |
+| **Test substance** | Concentrations of vehicle or impurities | known_concentrations |
+| **Test substance** | Radio labeled substance | radio_substance |
+| **Test substance** | Preparation of stock solutions | preparation_solutions |
+| **Biotest** | Standard qualifier | standard_qualifier |
+| **Biotest** | Standard used | standard_used |
+| **Biotest** | Principles of method if other than guideline | principles |
+| **Biotest** | GLP Certificate | glp_certificate |
+| **Biotest** | Effect | effect |
+| **Biotest** | Effect measurement | effect_measurement |
+| **Biotest** | Endpoint | endpoint |
+| **Biotest** | Response site | response_site |
+| **Biotest** | Test duration | duration |
+| **Biotest** | Test duration Unit | *not mapped* |
+| **Biotest** | Recovery considered? | recovery_considered |
+| **Test Organism** | Scientific name | scientific_name |
+| **Test Organism** | Common name | common_name |
+| **Test Organism** | Taxonomic group | taxonomic_group |
+| **Test Organism** | Initial body length of control | *not mapped* |
+| **Test Organism** | Final body length of control | final_body_length_of_control |
+| **Test Organism** | Body length Unit | *not mapped* |
+| **Test Organism** | Initial body weight of control | *not mapped* |
+| **Test Organism** | Final body weight of control | final_body_weight_of_control |
+| **Test Organism** | Body weight Unit | *not mapped* |
+| **Test Organism** | Initial cell density | initial_cell_density |
+| **Test Organism** | Final cell density | final_cell_density |
+| **Test Organism** | Deformed or abnormal cells / organism | deformed_or_abnormal_cells |
+| **Test Organism** | Reproductive condition of the control | reproductive_condition |
+| **Test Organism** | Lipid % | lipid |
+| **Test Organism** | Age | age |
+| **Test Organism** | Age unit | *not mapped* |
+| **Test Organism** | Life stage | life_stage |
+| **Test Organism** | Gender | gender |
+| **Test Organism** | Strain, clone | strain_clone |
+| **Test Organism** | Source (laboratory, culture collection) | organism_source |
+| **Test Organism** | Culture handling | culture_handling |
+| **Test Organism** | Acclimation | acclimation |
+| **Dosing system** | Nominal concentrations | nominal_concentrations |
+| **Dosing system** | Concentration Unit | unit_concentration |
+| **Dosing system** | Measured or nominal concentrations | measured_or_nominal |
+| **Dosing system** | Limit test | limit_test |
+| **Dosing system** | Range finding study | range_finding_study |
+| **Dosing system** | Analytical matrix | analytical_matrix |
+| **Dosing system** | Analytical schedule | analytical_schedule |
+| **Dosing system** | Analytical method | analytical_method |
+| **Dosing system** | Analytical recovery | analytical_recovery |
+| **Dosing system** | Limit of quantification | limit_of_quantification |
+| **Dosing system** | Exposure regime | exposure_regime |
+| **Dosing system** | Exposure route | exposure_route |
+| **Dosing system** | Exposure duration | exposure_duration |
+| **Dosing system** | Exposure duration Unit | *not mapped* |
+| **Dosing system** | Total test duration | total_test_duration |
+| **Dosing system** | Application frequency | application_freq |
+| **Dosing system** | Application frequency unit | *not mapped* |
+| **Controls and Study design** | Negative control used? | negative_control_used |
+| **Controls and Study design** | Positive control used? | positive_control_used |
+| **Controls and Study design** | Positive control substance | positive_control_substance |
+| **Controls and Study design** | Other effects | other_effects |
+| **Controls and Study design** | Effects in positive control | effects_control |
+| **Controls and Study design** | Vehicle control used? | vehicle_control |
+| **Controls and Study design** | Effects in vehicle control | effects_vehicle |
+| **Test conditions** | Intervals of water quality measurements | intervals_water |
+| **Test conditions** | Intervals of water quality measurements Unit | *not mapped* |
+| **Test conditions** | pH | ph |
+| **Test conditions** | Adjustment of pH | adjustment_ph |
+| **Test conditions** | Temperature | temperature |
+| **Test conditions** | Temperature Unit | *not mapped* |
+| **Test conditions** | Conductivity | conductivity |
+| **Test conditions** | Conductivity Unit | *not mapped* |
+| **Test conditions** | Light intensity | light_intensity |
+| **Test conditions** | Light intensity Unit | *not mapped* |
+| **Test conditions** | Light quality (source and homogeneity) | light_quality |
+| **Test conditions** | Photo period | photo_period |
+| **Test conditions** | Hardness | hardness |
+| **Test conditions** | Hardness Unit | *not mapped* |
+| **Test conditions** | Chlorine | chlorine |
+| **Test conditions** | Chlorine Unit | *not mapped* |
+| **Test conditions** | Alkalinity | alkalinity |
+| **Test conditions** | Alkalinity Unit | *not mapped* |
+| **Test conditions** | Salinity | salinity |
+| **Test conditions** | Salinity Unit | *not mapped* |
+| **Test conditions** | Total Organic Carbon | organic_carbon |
+| **Test conditions** | Total Organic Carbon Unit | *not mapped* |
+| **Test conditions** | Dissolved oxygen | dissolved_oxygen |
+| **Test conditions** | Dissolved oxygen Unit | *not mapped* |
+| **Test conditions** | Material of test vessel | material_vessel |
+| **Test conditions** | Volume of test vessel | volume_vessel |
+| **Test conditions** | Open or closed system | open_closed |
+| **Test conditions** | Aeration | aeration |
+| **Test conditions** | Description of test medium | description_medium |
+| **Test conditions** | Culture medium different from test medium? | culture_medium |
+| **Test conditions** | Feeding protocols | feeding_protocols |
+| **Test conditions** | Type and amount of food | type_amount_food |
+| **Statistical design** | Number of organisms per replicate | number_organisms |
+| **Statistical design** | Number of replicates per concentration | number_replicates |
+| **Statistical design** | Statistical method used | statistical_method |
+| **Statistical design** | Trend | trend |
+| **Statistical design** | Significance of result | significance_result |
+| **Statistical design** | Significance level | significance_level |
+| **Biological effect** | Effect concentration qualifier | concentration_qualifier |
+| **Biological effect** | Effect concentration | concentration_value |
+| **Biological effect** | Effect concentration unit | unit_concentration |
+| **Biological effect** | Estimate of variability for LC and EC data | estimate_variability |
+| **Biological effect** | Test item | test_item |
+| **Biological effect** | Result comment | result_comment |
+| **Evaluation** | Dose-response reported in figure/text/table | dose_response |
+| **Evaluation** | Availability of raw data | availability_raw_data |
+| **Evaluation** | Study available | study_available |
+| **Evaluation** | General Comment | general_comment |
+| **Evaluation** | Existing reliability score | reliability_study |
+| **Evaluation** | Reliability score system used | reliability_score |
+| **Evaluation** | Authority issuing the reliability score | *not mapped* |
+| **Evaluation** | Existing rational reliability | existing_rational_reliability |
+| **Evaluation** | Regulatory context | regulatory_purpose |
+| **Evaluation** | Used for regulatory purpose | used_for_regulaltory_purpose |
+
+## Additional Database Columns Not in Category Structure
+
+| Database Column | Notes |
+|----------------|--------|
+| id | Primary key |
+| sus_id | Legacy substance ID |
+| substance_id | Current substance foreign key |
+| testing_laboratory | Testing laboratory information |
+| body_length | Body length measurement |
+| body_weight | Body weight measurement |
+| deviations_from_standard | Deviations from standard protocol |
+| institution_study | Institution conducting study |
+| editor | Editor user ID |
+| color_tx | Color transaction field |
+| cred | CRED evaluation score |
+| created_at | Record creation timestamp |
+| updated_at | Record update timestamp |
+
+## Notes
+
+- Some table headers don't have direct database column matches (marked as "*not mapped*")
+- Unit fields are often combined with their measurement fields in the database
+- The database contains some additional fields not present in the category structure
+- Some fields may store combined information (e.g., duration might include unit information)
