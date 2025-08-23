@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Susdat\Substance;
 use App\Models\User;
 
-class EcotoxPrimary extends Model
+class EcotoxHarmonised extends Model
 {
     use HasFactory;
 

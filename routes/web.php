@@ -212,6 +212,7 @@ Route::prefix('ecotox')->group(function () {
     
     Route::get('search/filter/', [EcotoxController::class, 'filter'])->name('ecotox.search.filter');
     Route::get('search/search/', [EcotoxController::class, 'search'])->name('ecotox.search.search');
+    Route::get('show/{id}', [EcotoxController::class, 'show'])->name('ecotox.show');
     Route::get('e/countAll', [EcotoxController::class, 'countAll'])->middleware('auth')->name('ecotox.ecotox.countAll');
     Route::get('ee/countAll', [EcotoxHomeController::class, 'countAll'])->middleware('auth')->name('ecotox.countAll');
     
