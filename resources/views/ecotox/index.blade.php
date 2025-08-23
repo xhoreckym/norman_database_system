@@ -10,6 +10,7 @@
           showModal: false, 
           record: null,
           recordId: null,
+          viewMode: 'table',
           async openModal(recordId) {
             try {
               console.log('Opening modal for recordId:', recordId);
@@ -330,6 +331,140 @@
                 </div>
                 
                 <div x-show="record" x-transition>
+                  <!-- View Toggle Buttons -->
+                  <div class="mb-4 flex space-x-2">
+                    <button @click="viewMode = 'table'" 
+                            :class="viewMode === 'table' ? 'bg-sky-600 text-white' : 'bg-gray-200 text-gray-700'"
+                            class="px-3 py-2 rounded text-sm font-medium transition-colors">
+                      Table View
+                    </button>
+                    <button @click="viewMode = 'detailed'" 
+                            :class="viewMode === 'detailed' ? 'bg-sky-600 text-white' : 'bg-gray-200 text-gray-700'"
+                            class="px-3 py-2 rounded text-sm font-medium transition-colors">
+                      Detailed View
+                    </button>
+                  </div>
+
+                  <!-- Table View -->
+                  <div x-show="viewMode === 'table'">
+                    <div class="overflow-x-auto">
+                      <table class="w-full border border-gray-300 text-sm">
+                        <thead>
+                          <tr class="bg-gray-100">
+                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Parameter Name</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Original</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Harmonised</th>
+                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Final</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <!-- Substance Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Substance Information</td>
+                          </tr>
+                          <tr>
+                            <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">Substance Name</td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.name || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.name || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.name || 'N/A'"></td>
+                          </tr>
+                          <tr class="bg-gray-50">
+                            <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">CAS Number</td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.cas_number || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.cas_number || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.cas_number || 'N/A'"></td>
+                          </tr>
+                          <tr>
+                            <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">Substance Code</td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.prefixed_code || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.prefixed_code || 'N/A'"></td>
+                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.prefixed_code || 'N/A'"></td>
+                          </tr>
+
+                          <!-- Source Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Source Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.Source || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Reference Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Reference Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.Reference || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Test Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Test Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.Test || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Organism Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Organism Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.Organism || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Concentration Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Concentration Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.Concentration || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+
+                          <!-- Additional Information -->
+                          <tr class="bg-gray-50">
+                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Additional Information</td>
+                          </tr>
+                          <template x-for="(value, key) in record?.table_data?.Additional || {}" :key="key">
+                            <tr>
+                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700" x-text="key"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.original || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.harmonised || 'N/A'"></td>
+                              <td class="border border-gray-300 px-3 py-2" x-text="value?.final || 'N/A'"></td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <!-- Detailed View (Current Content) -->
+                  <div x-show="viewMode === 'detailed'">
                   <!-- Substance Information -->
                   <div class="mb-4">
                     <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Substance Information</div>
@@ -539,6 +674,7 @@
                         </div>
                       </div>
                     </template>
+                  </div>
                   </div>
                 </div>
               </div>
