@@ -331,22 +331,10 @@
                 </div>
                 
                 <div x-show="record" x-transition>
-                  <!-- View Toggle Buttons -->
-                  <div class="mb-4 flex space-x-2">
-                    <button @click="viewMode = 'table'" 
-                            :class="viewMode === 'table' ? 'bg-sky-600 text-white' : 'bg-gray-200 text-gray-700'"
-                            class="px-3 py-2 rounded text-sm font-medium transition-colors">
-                      Table View
-                    </button>
-                    <button @click="viewMode = 'detailed'" 
-                            :class="viewMode === 'detailed' ? 'bg-sky-600 text-white' : 'bg-gray-200 text-gray-700'"
-                            class="px-3 py-2 rounded text-sm font-medium transition-colors">
-                      Detailed View
-                    </button>
-                  </div>
+
 
                   <!-- Table View -->
-                  <div x-show="viewMode === 'table'">
+                  <div>
                     <div class="overflow-x-auto">
                       <table class="w-full border border-gray-300 text-sm">
                         <thead>
