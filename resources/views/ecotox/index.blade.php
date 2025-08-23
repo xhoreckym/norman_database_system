@@ -10,7 +10,7 @@
           showModal: false, 
           record: null,
           recordId: null,
-          viewMode: 'table',
+
           async openModal(recordId) {
             try {
               console.log('Opening modal for recordId:', recordId);
@@ -451,219 +451,19 @@
                     </div>
                   </div>
 
-                  <!-- Detailed View (Current Content) -->
-                  <div x-show="viewMode === 'detailed'">
-                  <!-- Substance Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Substance Information</div>
-                    <div class="flex justify-between py-1 text-sm bg-slate-100">
-                      <div class="px-1 font-semibold">Substance</div>
-                      <div class="px-1" x-text="record?.substance?.name || 'N/A'"></div>
-                    </div>
-                    <div class="flex justify-between py-1 text-sm bg-slate-200">
-                      <div class="px-1 font-semibold">CAS Number</div>
-                      <div class="px-1" x-text="record?.substance?.cas_number || 'N/A'"></div>
-                    </div>
-                    <div class="flex justify-between py-1 text-sm bg-slate-100">
-                      <div class="px-1 font-semibold">Code</div>
-                      <div class="px-1">
-                        <template x-if="record?.substance?.prefixed_code">
-                          <a :href="'{{ route('substances.show', ':id') }}'.replace(':id', record?.substance?.id)" 
-                             target="_blank" class="link-lime-text" x-text="record?.substance?.prefixed_code"></a>
-                        </template>
-                        <template x-if="!record?.substance?.prefixed_code">
-                          <span>N/A</span>
-                        </template>
-                      </div>
-                    </div>
-                  </div>
 
-                  <!-- Source Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Source Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Source || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.harmonised || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
 
-                  <!-- Reference Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Reference Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Reference || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.harmonised || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
 
-                  <!-- Test Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Test Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Test || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
 
-                  <!-- Organism Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Organism Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Organism || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.harmonised || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
 
-                  <!-- Concentration Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Concentration Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Concentration || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-200' : 'bg-slate-100'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.harmonised || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
 
-                  <!-- Additional Information -->
-                  <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Additional Information</div>
-                    <template x-for="(value, key, index) in record?.table_data?.Additional || {}" :key="key">
-                      <div class="flex justify-between py-1 text-sm" :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'">
-                        <div class="px-1 font-semibold" x-text="key"></div>
-                        <div class="px-1">
-                          <template x-if="typeof value === 'object'">
-                            <div class="text-xs">
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Original:</span> 
-                                <span x-text="value.original || 'N/A'"></span>
-                              </div>
-                              <div class="mb-1">
-                                <span class="font-medium text-green-600">Harmonised:</span> 
-                                <span x-text="value.harmonised || 'N/A'"></span>
-                              </div>
-                              <div>
-                                <span class="font-medium text-purple-600">Final:</span> 
-                                <span x-text="value.final || 'N/A'"></span>
-                              </div>
-                            </div>
-                          </template>
-                          <template x-if="typeof value !== 'object'">
-                            <span x-text="value || 'N/A'"></span>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-                  </div>
-                  </div>
+
+
+
+
+
+
+
                 </div>
               </div>
 
