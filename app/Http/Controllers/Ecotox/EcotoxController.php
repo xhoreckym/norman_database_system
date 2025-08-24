@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Ecotox\EcotoxFinal;
 use App\Models\Ecotox\EcotoxOriginal;
 use App\Models\Ecotox\EcotoxHarmonised;
+use App\Models\Ecotox\EcotoxComparativeTableConfig;
 use Illuminate\Support\Facades\Auth;
 
 class EcotoxController extends Controller
@@ -70,154 +71,29 @@ class EcotoxController extends Controller
             ];
         };
 
-        // Prepare data structure for the table display based on the column mapping
-        $tableData = [
-            'Source' => [
-                'Ecotox DS ID' => $getValue('ecotox_id'),
-                'Biotest ID' => $getValue('biotest_id'),
-                'Data source' => $getValue('data_source'),
-                'Data source ID' => $getValue('data_source_id'),
-                'Data source reference ID' => $getValue('data_source_ref'),
-                'Data protection' => $getValue('data_protection'),
-                'Data source link' => $getValue('data_source_link'),
-                'Editor' => $getValue('edit_editor'),
-                'Use of study' => $getValue('use_study'),
-                'Date' => $getValue('edit_date'),
-            ],
-            'Reference' => [
-                'Reference type' => $getValue('reference_type'),
-                'Reference ID' => $getValue('reference_id'),
-                'Title' => $getValue('study_title'),
-                'Author(s)' => $getValue('authors'),
-                'Year' => $getValue('year_publication'),
-                'Bibliographic source' => $getValue('bibliographic_source'),
-            ],
-            'Categorisation' => [
-                'Compartment' => $getValue('matrix_habitat'),
-                'Test type' => $getValue('test_type'),
-                'Acute/Chronic' => $getValue('acute_or_chronic'),
-                'Standard test' => $getValue('standard_test'),
-            ],
-            'Test substance' => [
-                'Substance name' => $getValue('substance_name'),
-                'CAS Number' => $getValue('cas_number'),
-                'EC Number' => $getValue('ec_number'),
-                'Purity [%] of test item' => $getValue('purity'),
-                'Supplier of test item' => $getValue('supplier'),
-                'Vehicle substance' => $getValue('vehicle_substance'),
-                'Concentrations of vehicle or impurities' => $getValue('known_concentrations'),
-                'Radio labeled substance' => $getValue('radio_substance'),
-                'Preparation of stock solutions' => $getValue('preparation_solutions'),
-            ],
-            'Biotest' => [
-                'Standard qualifier' => $getValue('standard_qualifier'),
-                'Standard used' => $getValue('standard_used'),
-                'Principles of method if other than guideline' => $getValue('principles'),
-                'GLP Certificate' => $getValue('glp_certificate'),
-                'Effect' => $getValue('effect'),
-                'Effect measurement' => $getValue('effect_measurement'),
-                'Endpoint' => $getValue('endpoint'),
-                'Response site' => $getValue('response_site'),
-                'Test duration' => $getValue('duration'),
-                'Recovery considered?' => $getValue('recovery_considered'),
-            ],
-            'Test Organism' => [
-                'Scientific name' => $getValue('scientific_name'),
-                'Common name' => $getValue('common_name'),
-                'Taxonomic group' => $getValue('taxonomic_group'),
-                'Final body length of control' => $getValue('final_body_length_of_control'),
-                'Final body weight of control' => $getValue('final_body_weight_of_control'),
-                'Initial cell density' => $getValue('initial_cell_density'),
-                'Final cell density' => $getValue('final_cell_density'),
-                'Deformed or abnormal cells / organism' => $getValue('deformed_or_abnormal_cells'),
-                'Reproductive condition of the control' => $getValue('reproductive_condition'),
-                'Lipid %' => $getValue('lipid'),
-                'Age' => $getValue('age'),
-                'Life stage' => $getValue('life_stage'),
-                'Gender' => $getValue('gender'),
-                'Strain, clone' => $getValue('strain_clone'),
-                'Source (laboratory, culture collection)' => $getValue('organism_source'),
-                'Culture handling' => $getValue('culture_handling'),
-                'Acclimation' => $getValue('acclimation'),
-            ],
-            'Dosing system' => [
-                'Nominal concentrations' => $getValue('nominal_concentrations'),
-                'Concentration Unit' => $getValue('unit_concentration'),
-                'Measured or nominal concentrations' => $getValue('measured_or_nominal'),
-                'Limit test' => $getValue('limit_test'),
-                'Range finding study' => $getValue('range_finding_study'),
-                'Analytical matrix' => $getValue('analytical_matrix'),
-                'Analytical schedule' => $getValue('analytical_schedule'),
-                'Analytical method' => $getValue('analytical_method'),
-                'Analytical recovery' => $getValue('analytical_recovery'),
-                'Limit of quantification' => $getValue('limit_of_quantification'),
-                'Exposure regime' => $getValue('exposure_regime'),
-                'Exposure route' => $getValue('exposure_route'),
-                'Exposure duration' => $getValue('exposure_duration'),
-                'Total test duration' => $getValue('total_test_duration'),
-                'Application frequency' => $getValue('application_freq'),
-            ],
-            'Controls and Study design' => [
-                'Negative control used?' => $getValue('negative_control_used'),
-                'Positive control used?' => $getValue('positive_control_used'),
-                'Positive control substance' => $getValue('positive_control_substance'),
-                'Other effects' => $getValue('other_effects'),
-                'Effects in positive control' => $getValue('effects_control'),
-                'Vehicle control used?' => $getValue('vehicle_control'),
-                'Effects in vehicle control' => $getValue('effects_vehicle'),
-            ],
-            'Test conditions' => [
-                'Intervals of water quality measurements' => $getValue('intervals_water'),
-                'pH' => $getValue('ph'),
-                'Adjustment of pH' => $getValue('adjustment_ph'),
-                'Temperature' => $getValue('temperature'),
-                'Conductivity' => $getValue('conductivity'),
-                'Light intensity' => $getValue('light_intensity'),
-                'Light quality (source and homogeneity)' => $getValue('light_quality'),
-                'Photo period' => $getValue('photo_period'),
-                'Hardness' => $getValue('hardness'),
-                'Chlorine' => $getValue('chlorine'),
-                'Alkalinity' => $getValue('alkalinity'),
-                'Salinity' => $getValue('salinity'),
-                'Total Organic Carbon' => $getValue('organic_carbon'),
-                'Dissolved oxygen' => $getValue('dissolved_oxygen'),
-                'Material of test vessel' => $getValue('material_vessel'),
-                'Volume of test vessel' => $getValue('volume_vessel'),
-                'Open or closed system' => $getValue('open_closed'),
-                'Aeration' => $getValue('aeration'),
-                'Description of test medium' => $getValue('description_medium'),
-                'Culture medium different from test medium?' => $getValue('culture_medium'),
-                'Feeding protocols' => $getValue('feeding_protocols'),
-                'Type and amount of food' => $getValue('type_amount_food'),
-            ],
-            'Statistical design' => [
-                'Number of organisms per replicate' => $getValue('number_organisms'),
-                'Number of replicates per concentration' => $getValue('number_replicates'),
-                'Statistical method used' => $getValue('statistical_method'),
-                'Trend' => $getValue('trend'),
-                'Significance of result' => $getValue('significance_result'),
-                'Significance level' => $getValue('significance_level'),
-            ],
-            'Biological effect' => [
-                'Effect concentration qualifier' => $getValue('concentration_qualifier'),
-                'Effect concentration' => $getValue('concentration_value'),
-                'Effect concentration unit' => $getValue('unit_concentration'),
-                'Estimate of variability for LC and EC data' => $getValue('estimate_variability'),
-                'Test item' => $getValue('test_item'),
-                'Result comment' => $getValue('result_comment'),
-            ],
-            'Evaluation' => [
-                'Dose-response reported in figure/text/table' => $getValue('dose_response'),
-                'Availability of raw data' => $getValue('availability_raw_data'),
-                'Study available' => $getValue('study_available'),
-                'General Comment' => $getValue('general_comment'),
-                'Existing reliability score' => $getValue('reliability_study'),
-                'Reliability score system used' => $getValue('reliability_score'),
-                'Existing rational reliability' => $getValue('existing_rational_reliability'),
-                'Regulatory context' => $getValue('regulatory_purpose'),
-                'Used for regulatory purpose' => $getValue('used_for_regulaltory_purpose'),
-            ],
-        ];
+        // Generate table data dynamically from EcotoxComparativeTableConfig
+        $tableConfigs = EcotoxComparativeTableConfig::orderBy('order')->get();
+        $tableData = [];
+        
+        foreach ($tableConfigs as $config) {
+            $group = $config->group;
+            $header = $config->header;
+            $columnName = $config->column_name;
+            $columnId = $config->column_id;
+            
+            // Initialize group if it doesn't exist
+            if (!isset($tableData[$group])) {
+                $tableData[$group] = [];
+            }
+            
+            // Add the field to the group using header as parameter name, column_name for data retrieval, and column_id for admin display
+            $tableData[$group][$header] = [
+                'data' => $getValue($columnName),
+                'column_id' => $columnId,
+                'is_editable' => $config->is_editable ?? false,
+                'input_type' => $config->input_type ?? 'text'
+            ];
+        }
 
         return response()->json([
             'ecotox_id' => $id,
@@ -266,7 +142,7 @@ class EcotoxController extends Controller
         // Start with a base query with necessary relationships
         $resultsObjects = EcotoxFinal::with([
             'substance',
-        ]);
+        ])->orderBy('ecotox_id', 'asc');
         
         // Apply substance filter (this is the primary filter)
         if (!empty($request->input('substances'))) {
