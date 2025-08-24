@@ -167,7 +167,7 @@
         </button> --}}
         
         <button type="submit" 
-        class="btn-submit-sky flex items-center" 
+        class="btn-submit flex items-center" 
         :class="{ 'opacity-50 cursor-not-allowed': loading }" 
         :disabled="loading">
         <!-- Spinner that shows only when loading -->

@@ -16,7 +16,7 @@ class EcotoxOriginal extends Model
      *
      * @var string
      */
-    protected $table = 'ecotox_main_3';
+    protected $table = 'ecotox_main_original';
 
     /**
      * The attributes that are mass assignable.
@@ -47,6 +47,7 @@ class EcotoxOriginal extends Model
         'substance_name',
         'cas_number',
         'ec_number',
+        'purity_qualifier',
         'purity',
         'supplier',
         'vehicle_substance',
@@ -55,25 +56,28 @@ class EcotoxOriginal extends Model
         'preparation_solutions',
         'standard_qualifier',
         'standard_used',
-        'deviations_from_standard',
         'principles',
         'glp_certificate',
         'effect',
         'effect_measurement',
         'endpoint',
         'duration',
+        'duration_unit',
         'total_test_duration',
         'recovery_considered',
         'scientific_name',
         'common_name',
         'taxonomic_group',
         'body_length',
+        'length_unit',
         'body_weight',
+        'weight_unit',
         'initial_cell_density',
         'reproductive_condition',
         'other_effects',
         'lipid',
         'age',
+        'age_unit',
         'life_stage',
         'gender',
         'strain_clone',
@@ -91,7 +95,9 @@ class EcotoxOriginal extends Model
         'limit_of_quantification',
         'exposure_regime',
         'exposure_duration',
+        'exposure_duration_unit',
         'application_freq',
+        'application_freq_unit',
         'exposure_route',
         'positive_control_used',
         'positive_control_substance',
@@ -99,19 +105,29 @@ class EcotoxOriginal extends Model
         'vehicle_control',
         'effects_vehicle',
         'intervals_water',
+        'intervals_water_unit',
         'ph',
         'adjustment_ph',
         'temperature',
+        'temperature_unit',
         'conductivity',
+        'conductivity_unit',
         'light_intensity',
+        'light_intensity_unit',
         'light_quality',
         'photo_period',
         'hardness',
+        'hardness_unit',
         'chlorine',
+        'chlorine_unit',
         'alkalinity',
+        'alkalinity_unit',
         'salinity',
+        'salinity_unit',
         'organic_carbon',
+        'organic_carbon_unit',
         'dissolved_oxygen',
+        'dissolved_oxygen_unit',
         'material_vessel',
         'volume_vessel',
         'open_closed',
@@ -128,6 +144,7 @@ class EcotoxOriginal extends Model
         'significance_level',
         'concentration_qualifier',
         'concentration_value',
+        'concentration_unit',
         'estimate_variability',
         'test_item',
         'result_comment',
@@ -151,9 +168,7 @@ class EcotoxOriginal extends Model
         'standard_test',
         'final_body_weight_of_control',
         'use_study',
-        'editor',
-        'color_tx',
-        'cred'
+        'added_by'
     ];
 
     /**
@@ -164,12 +179,10 @@ class EcotoxOriginal extends Model
     protected $casts = [
         'sus_id' => 'integer',
         'substance_id' => 'integer',
-        'year_publication' => 'integer',
-        'concentration_value' => 'double',
-        'reliability_study' => 'integer',
-        'editor' => 'integer',
-        'color_tx' => 'integer',
-        'cred' => 'double',
+        'year_publication' => 'string',
+        'concentration_value' => 'string',
+        'reliability_study' => 'string',
+        'added_by' => 'integer',
         'edit_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
@@ -194,36 +207,12 @@ class EcotoxOriginal extends Model
     }
 
     /**
-     * Get the editor/user who last edited this record.
+     * Get the user who added this record.
      */
-    public function editorUser()
+    public function addedByUser()
     {
-        return $this->belongsTo(User::class, 'editor', 'id');
+        return $this->belongsTo(User::class, 'added_by', 'id');
     }
-
-    /**
-     * Get the CRED evaluations for this ecotox record.
-     */
-    public function credEvaluations()
-    {
-        return $this->hasMany(CredEvaluationMain::class, 'ecotox_id', 'ecotox_id');
-    }
-
-    /**
-     * Get the CRED sub-evaluations for this ecotox record.
-     */
-    public function credSubEvaluations()
-    {
-        return $this->hasMany(CredEvaluationSub::class, 'ecotox_id', 'ecotox_id');
-    }
-
-    /**
-     * Get the CRED final evaluations for this ecotox record.
-     */
-    // public function credFinalEvaluations()
-    // {
-    //     return $this->hasMany(CredEvaluationFinal::class, 'ecotox_id', 'ecotox_id');
-    // }
 
     /**
      * Get the derivations associated with this ecotox record.
@@ -253,7 +242,7 @@ class EcotoxOriginal extends Model
         }
         
         $qualifier = $this->concentration_qualifier ? $this->concentration_qualifier . ' ' : '';
-        $unit = $this->unit_concentration ? ' ' . $this->unit_concentration : '';
+        $unit = $this->concentration_unit ? ' ' . $this->concentration_unit : '';
         
         return $qualifier . $this->concentration_value . $unit;
     }
@@ -269,7 +258,38 @@ class EcotoxOriginal extends Model
             return null;
         }
         
-        return $this->duration;
+        $unit = $this->duration_unit ? ' ' . $this->duration_unit : '';
+        return $this->duration . $unit;
+    }
+
+    /**
+     * Get a formatted body length with unit.
+     * 
+     * @return string|null
+     */
+    public function getFormattedBodyLengthAttribute()
+    {
+        if (empty($this->body_length)) {
+            return null;
+        }
+        
+        $unit = $this->length_unit ? ' ' . $this->length_unit : '';
+        return $this->body_length . $unit;
+    }
+
+    /**
+     * Get a formatted body weight with unit.
+     * 
+     * @return string|null
+     */
+    public function getFormattedBodyWeightAttribute()
+    {
+        if (empty($this->body_weight)) {
+            return null;
+        }
+        
+        $unit = $this->weight_unit ? ' ' . $this->weight_unit : '';
+        return $this->body_weight . $unit;
     }
 
     /**
@@ -332,7 +352,7 @@ class EcotoxOriginal extends Model
      */
     public function scopeWithReliabilityStudy($query, $reliabilityStudy)
     {
-        if (is_numeric($reliabilityStudy) && $reliabilityStudy > 0) {
+        if (!empty($reliabilityStudy)) {
             return $query->where('reliability_study', $reliabilityStudy);
         }
         return $query;

@@ -22,7 +22,8 @@ return new class extends Migration
         ];
 
         foreach ($tables as $table) {
-            Schema::create($table, function (Blueprint $table) {
+            if (!Schema::hasTable($table)) {
+                Schema::create($table, function (Blueprint $table) {
                 $table->id();
                 $table->bigInteger('dct_analysis_id')->nullable(false);
                 $table->string('code', 255)->nullable(false);
@@ -32,6 +33,7 @@ return new class extends Migration
                 // Add index on dct_analysis_id
                 $table->index('dct_analysis_id');
             });
+            }
         }
     }
 

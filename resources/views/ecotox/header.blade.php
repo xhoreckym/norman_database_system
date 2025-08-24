@@ -7,7 +7,7 @@
 </x-nav-link-header>
 
 <x-nav-link-header :href="route('ecotox.search.filter')" :active="request()->is('*search*')">
-  Search
+  Search Data
 </x-nav-link-header>
 
 <x-nav-link-header :href="route('templates.specific.index', ['code' => 'ecotox'])" :active="request()->is('backend/templates/entity/ecotox*')">
