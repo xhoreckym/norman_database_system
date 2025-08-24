@@ -4,16 +4,16 @@
         <h3 class="text-sm font-medium text-gray-700 mb-2">Selected substance:</h3>
         <div class="flex flex-wrap gap-2">
             @foreach ($selectedSubstances as $substance)
-                <div class="flex items-center px-4 py-2 rounded-lg bg-sky-50 border border-sky-200 shadow-sm group hover:bg-sky-100 transition duration-150 ease-in-out">
+                <div class="flex items-center px-4 py-2 rounded-lg bg-lime-50 border border-lime-200 shadow-sm group hover:bg-lime-100 transition duration-150 ease-in-out">
                     <input type="hidden" name="substances[]" value="{{$substance['id']}}">
                     
                     <div class="flex flex-col">
-                        <span class="font-medium text-sky-800">{{ $substance['name'] }}</span>
-                        <span class="text-xs text-sky-600">CAS: {{ $substance['cas_number'] }}</span>
+                        <span class="font-medium text-lime-800">{{ $substance['name'] }}</span>
+                        <span class="text-xs text-lime-600">CAS: {{ $substance['cas_number'] }}</span>
                     </div>
                     
                     @if(isset($substance['ecotox_record_count']))
-                        <div class="ml-3 flex items-center gap-1 px-2 py-1 rounded-full bg-sky-200 text-sky-800">
+                        <div class="ml-3 flex items-center gap-1 px-2 py-1 rounded-full bg-lime-200 text-lime-800">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                             </svg>
@@ -21,7 +21,7 @@
                         </div>
                     @endif
                     
-                    <button type="button" wire:click="removeSubstance({{$substance['id']}})" class="ml-3 text-sky-800 hover:text-red-600 focus:outline-none group-hover:text-red-600 transition duration-150 ease-in-out">
+                    <button type="button" wire:click="removeSubstance({{$substance['id']}})" class="ml-3 text-lime-800 hover:text-red-600 focus:outline-none group-hover:text-red-600 transition duration-150 ease-in-out">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                         </svg>
@@ -36,7 +36,7 @@
     @endif
 </div>
     <input type="hidden" value="1" name="searchSubstance">
-    <input type="text" wire:model.live.debounce.300ms="search" name="searchSubstanceString" id="searchSubstanceString" class="w-full px-4 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition duration-200 ease-in-out" placeholder="Search for substances with ecotox data...">
+    <input type="text" wire:model.live.debounce.300ms="search" name="searchSubstanceString" id="searchSubstanceString" class="w-full px-4 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition duration-200 ease-in-out" placeholder="Search for substances with ecotox data...">
     <div class="mt-4">
         <span class="text-gray-700">Search by:</span>
         <div class="mt-2">
@@ -60,7 +60,7 @@
     </div>
     <div>
         @if($resultsAvailable == true)
-        <div class="mt-2 p-2 bg-blue-50 border-l-4 border-blue-500 text-blue-800 text-sm">
+        <div class="mt-2 p-2 bg-lime-50 border-l-4 border-lime-500 text-lime-800 text-sm">
             <p>Select a substance and click <span class="font-semibold">Select & Search</span> to view its ecotoxicology data.</p>
         </div>
         @endif
@@ -75,7 +75,7 @@
                     type="radio" 
                     name="substancesSearch" 
                     value="{{ $result->id }}"
-                    class="form-radio h-4 w-4 text-indigo-600"
+                    class="form-radio h-4 w-4 text-green-600"
                     >
                     <div class="ml-2 flex-grow">
                         <div class="font-medium">{{ $result->name }}</div>
@@ -107,7 +107,7 @@
             >
             Clear
         </button>
-        <button type="button" wire:click="applySubstanceFilter" class="btn-submit-sky">
+        <button type="button" wire:click="applySubstanceFilter" class="btn-submit-lime">
             Select & Search
         </button>
     </div>
