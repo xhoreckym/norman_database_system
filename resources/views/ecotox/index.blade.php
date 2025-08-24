@@ -11,6 +11,58 @@
             record: null,
             recordId: null,
         
+            getTableSections() {
+                return [
+                    'Source',
+                    'Reference',
+                    'Categorisation',
+                    'Test substance',
+                    'Biotest',
+                    'Test Organism',
+                    'Dosing system',
+                    'Controls and Study design',
+                    'Test conditions',
+                    'Statistical design',
+                    'Biological effect',
+                    'Evaluation'
+                ];
+            },
+            getTableRows() {
+                const rows = [];
+                let rowId = 0;
+        
+                if (!this.record?.table_data) return rows;
+        
+                this.getTableSections().forEach(sectionName => {
+                    const sectionData = this.record.table_data[sectionName];
+        
+                    if (sectionData && Object.keys(sectionData).length > 0) {
+                        // Add section header
+                        rows.push({
+                            id: `header-${rowId++}`,
+                            type: 'header',
+                            title: sectionName + ' Information'
+                        });
+        
+                        // Add data rows
+                        Object.entries(sectionData).forEach(([key, value], index) => {
+                            rows.push({
+                                id: `data-${rowId++}`,
+                                type: 'data',
+                                key: key,
+                                columnId: value?.column_id,
+                                original: value?.data?.original,
+                                harmonised: value?.data?.harmonised,
+                                final: value?.data?.final,
+                                isOdd: index % 2 !== 0
+                            });
+                        });
+                    }
+                });
+        
+                return rows;
+            },
+        
             async openModal(recordId) {
                 try {
                     console.log('Opening modal for recordId:', recordId);
@@ -82,7 +134,8 @@
                       @if (($resultsObjects->total() / $resultsObjectsCount) * 100 < 0.01)
                         &le; 0.01% of total
                       @else
-                        {{ number_format(($resultsObjects->total() / $resultsObjectsCount) * 100, 2, '.', ' ') }}% of total
+                        {{ number_format(($resultsObjects->total() / $resultsObjectsCount) * 100, 2, '.', ' ') }}% of
+                        total
                       @endif
                     </span>
                   @endif
@@ -363,7 +416,8 @@
                           <tr class="bg-gray-50">
                             <td colspan="4"
                               class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">
-                              Substance Information</td>
+                              Substance Information
+                            </td>
                           </tr>
                           <tr>
                             <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">Substance Name</td>
@@ -393,243 +447,40 @@
                               x-text="record?.substance?.prefixed_code || 'N/A'"></td>
                           </tr>
 
-                          <!-- Source Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Source Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.Source || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
-                            </tr>
-                          </template>
+                          <!-- Dynamic Sections - Using a flattened approach -->
+                          <template x-for="row in getTableRows()" :key="row.id">
+                            <tr :class="row.type === 'header' ? 'bg-gray-50' : (row.isOdd ? 'bg-gray-50' : '')">
+                              <!-- Section Header -->
+                              <template x-if="row.type === 'header'">
+                                <td colspan="4"
+                                  class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100"
+                                  x-text="row.title">
+                                </td>
+                              </template>
 
-                          <!-- Reference Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Reference Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.Reference || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
-                            </tr>
-                          </template>
-
-                          <!-- Categorisation Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Categorisation Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.Categorisation || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
-                            </tr>
-                          </template>
-
-                          <!-- Test Substance Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Test Substance Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.['Test substance'] || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
-                            </tr>
-                          </template>
-
-                          <!-- Biotest Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Biotest Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.Biotest || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
-                            </tr>
-                          </template>
-
-                          <!-- Test Organism Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Test Organism Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.['Test Organism'] || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
-                            </tr>
-                          </template>
-
-                          <!-- Dosing System Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Dosing System Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.['Dosing system'] || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
-                            </tr>
-                          </template>
-
-                          <!-- Controls and Study Design Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Controls and Study Design Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.['Controls and Study design'] || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
-                            </tr>
-                          </template>
-
-                          <!-- Test Conditions Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Test Conditions Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.['Test conditions'] || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
-                            </tr>
-                          </template>
-
-                          <!-- Statistical Design Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Statistical Design Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.['Statistical design'] || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
-                            </tr>
-                          </template>
-
-                          <!-- Biological Effect Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Biological Effect Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.['Biological effect'] || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
-                            </tr>
-                          </template>
-
-                          <!-- Evaluation Information -->
-                          <tr class="bg-gray-50">
-                            <td colspan="4" class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">Evaluation Information</td>
-                          </tr>
-                          <template x-for="(value, key) in record?.table_data?.Evaluation || {}" :key="key">
-                            <tr>
-                              <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                @if(auth()->check() && auth()->user()->hasRole('super_admin'))
-                                  <div class="font-semibold" x-text="key"></div>
-                                  <div class="text-xs text-gray-500">ID: <span x-text="value?.column_id || 'N/A'"></span></div>
-                                @else
-                                  <span x-text="key"></span>
-                                @endif
-                              </td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.original || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.harmonised || 'N/A'"></td>
-                              <td class="border border-gray-300 px-3 py-2" x-text="value?.data?.final || 'N/A'"></td>
+                              <!-- Data Row -->
+                              <template x-if="row.type === 'data'">
+                                <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
+                                  @if (auth()->check() && auth()->user()->hasRole('super_admin'))
+                                    <div>
+                                      <div class="font-semibold" x-text="row.key"></div>
+                                      <div class="text-xs text-gray-500">ID: <span
+                                          x-text="row.columnId || 'N/A'"></span></div>
+                                    </div>
+                                  @else
+                                    <span x-text="row.key"></span>
+                                  @endif
+                                </td>
+                              </template>
+                              <template x-if="row.type === 'data'">
+                                <td class="border border-gray-300 px-3 py-2" x-text="row.original || 'N/A'"></td>
+                              </template>
+                              <template x-if="row.type === 'data'">
+                                <td class="border border-gray-300 px-3 py-2" x-text="row.harmonised || 'N/A'"></td>
+                              </template>
+                              <template x-if="row.type === 'data'">
+                                <td class="border border-gray-300 px-3 py-2" x-text="row.final || 'N/A'"></td>
+                              </template>
                             </tr>
                           </template>
                         </tbody>
