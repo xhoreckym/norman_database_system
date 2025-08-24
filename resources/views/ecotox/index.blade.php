@@ -62,6 +62,24 @@
             @endauth
           </div>
 
+          <div class="text-gray-600 flex border-l-2 border-white">
+            Search parameters:&nbsp;<span class="font-semibold">
+              @foreach ($searchParameters as $key => $value)
+                @if (is_array($value) || $value instanceof \Illuminate\Support\Collection)
+                  @foreach ($value as $item)
+                    {{ $item }}@if (!$loop->last)
+                      ,
+                    @endif
+                  @endforeach
+                @else
+                  {{ $value }}
+                  @endif @if (!$loop->last)
+                    ;
+                  @endif
+                @endforeach
+            </span>
+          </div>
+
           {{-- Tabs for different matrix-habitat/acute-chronic combinations --}}
           <div class="mt-4">
             <div class="border-b border-gray-200">

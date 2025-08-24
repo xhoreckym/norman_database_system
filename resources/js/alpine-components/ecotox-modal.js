@@ -60,7 +60,7 @@ export default function ecotoxModal() {
                           final: value?.data?.final || '',
                           isEditable: value?.is_editable || false,
                           inputType: value?.input_type || 'text',
-                          dropdownOptions: value?.dropdown_options || ['Yes', 'No', 'Unknown', 'Not applicable'],
+                          dropdownOptions: value?.input_values && value.input_values.length > 0 ? value.input_values : ['Yes', 'No', 'Unknown', 'Not applicable'],
                           isOdd: index % 2 !== 0
                       });
                   });
