@@ -89,7 +89,9 @@ class EcotoxController extends Controller
             // Add the field to the group using header as parameter name, column_name for data retrieval, and column_id for admin display
             $tableData[$group][$header] = [
                 'data' => $getValue($columnName),
-                'column_id' => $columnId
+                'column_id' => $columnId,
+                'is_editable' => $config->is_editable ?? false,
+                'input_type' => $config->input_type ?? 'text'
             ];
         }
 
@@ -140,7 +142,7 @@ class EcotoxController extends Controller
         // Start with a base query with necessary relationships
         $resultsObjects = EcotoxFinal::with([
             'substance',
-        ]);
+        ])->orderBy('ecotox_id', 'asc');
         
         // Apply substance filter (this is the primary filter)
         if (!empty($request->input('substances'))) {
