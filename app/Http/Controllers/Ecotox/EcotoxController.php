@@ -11,6 +11,7 @@ use App\Models\Ecotox\EcotoxFinal;
 use App\Models\Ecotox\EcotoxOriginal;
 use App\Models\Ecotox\EcotoxHarmonised;
 use App\Models\Ecotox\EcotoxComparativeTableConfig;
+use App\Models\Ecotox\EcotoxComparativeTableInputValues;
 use Illuminate\Support\Facades\Auth;
 
 class EcotoxController extends Controller
@@ -81,6 +82,11 @@ class EcotoxController extends Controller
             $columnName = $config->column_name;
             $columnId = $config->column_id;
             
+            // Get input values for this column
+            $inputValues = EcotoxComparativeTableInputValues::where('column_name', $columnName)
+                ->pluck('input_value')
+                ->toArray();
+            
             // Initialize group if it doesn't exist
             if (!isset($tableData[$group])) {
                 $tableData[$group] = [];
@@ -91,7 +97,8 @@ class EcotoxController extends Controller
                 'data' => $getValue($columnName),
                 'column_id' => $columnId,
                 'is_editable' => $config->is_editable ?? false,
-                'input_type' => $config->input_type ?? 'text'
+                'input_type' => $config->input_type ?? 'text',
+                'input_values' => $inputValues
             ];
         }
 

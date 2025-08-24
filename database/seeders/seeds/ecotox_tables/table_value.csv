@@ -1,0 +1,870 @@
+val_id,tab_id,val_value
+1,5,other
+2,9,other 
+3,16,other
+4,17,other
+5,18,other
+6,30,according to 
+7,31,other guideline
+8,34,yes (incl. certificate) 
+9,35,other
+10,36,other
+11,37,other
+12,41,yes
+13,42,other
+14,44,other
+15,51,other
+16,55,other
+17,56,other
+18,63,other
+19,64,yes
+20,65,yes
+21,66,yes
+22,71,other
+23,76,other
+24,77,yes
+25,79,yes
+26,80,yes
+27,112,yes
+28,121,<
+29,125,other
+30,132,yes
+31,134,1
+32,135,other 
+33,137,other
+34,140,other
+35,142,""
+36,146,µg/L
+37,148,yes
+38,150,Y
+39,5,public
+40,9,study report
+41,16,freshwater
+42,17,experimental result
+43,18,acute
+44,30,equivalent or similar to 
+45,31,AFNOR T90-301
+46,34,yes
+47,35,behaviour 
+48,36,avoidance
+49,37,EC05
+50,41,no
+51,42,Aeromonas hydrophila 
+52,44,algae
+53,51,adherence to test vessels
+54,55,adult fish
+55,56,both
+56,63,acid equivalent
+57,64,no
+58,65,no
+59,71,aqueous
+60,76,direct application
+61,77,no
+62,79,no
+63,80,no
+64,112,no
+65,121,≤
+66,125,test material
+67,132,no
+68,134,2
+69,135,Klimesch
+70,137,EU: BPD
+71,140,Oekotoxzentrum_CHE
+72,146,mg/L
+73,148,no
+74,150,N
+75,5,confidential business information
+76,9,company data 
+77,16,marine water
+78,17,estimated by calculation
+79,18,chronic
+80,30,no guideline followed 
+81,31,AFNOR T90-304
+82,34,no
+83,35,development
+84,36,biochemistry
+85,37,EC10
+86,41,not reported
+87,42,Agmenellum quadruplicatum 
+88,44,amphibians
+89,51,aggregation of algal cells
+90,55,juvenile fish 
+91,56,male
+92,63,estimated
+93,64,not reported
+94,65,not reported
+95,71,dietary
+96,76,hand spray
+97,77,not reported
+98,79,not reported
+99,80,not reported
+100,112,not reported
+101,121,=
+102,125,active ingredient
+103,132,not reported
+104,134,3
+105,135,CRED
+106,137,EU: PPP
+107,140,ECHA
+108,146,ng/L
+109,148,not reported
+110,5,intellectual property
+111,9,publication 
+112,16,sediments
+113,17,read-across based on grouping of substances (category approach)
+114,18,sub-acute
+115,30,no guideline available 
+116,31,Bayer Intern
+117,34,not reported
+118,35,ecosystem process
+119,36,yield
+120,37,EC20
+121,42,Alburnus albidus costa 
+122,44,annelids
+123,51,any observations (e.g. precipitation) that might cause a difference between measured and nominal values
+124,55,embryo and sac-fry stage
+125,56,female
+126,63,measured (arith. mean)
+127,71,flow-through
+128,76,spray (unknown type)
+129,121,≥
+130,125,element 
+131,134,4
+132,135,n.r.
+133,137,EU: REACH
+134,140,EFSA
+135,146,µg/kg
+136,5,not public available
+137,9,review article or handbook 
+138,16,soil
+139,17,read-across from supporting substance (structural analogue or surrogate)
+140,18,sub-chronic
+141,30,no guideline required
+142,31,BBA
+143,35,genetics
+144,36,brood size
+145,37,EC50
+146,42,Alburnus alburnus 
+147,44,aquatic invertebrates
+148,51,any stimulation of growth found in any treatment
+149,55,early-life stage
+150,56,not reported
+151,63,measured (geom. mean)
+152,71,injection
+153,76,not reported
+154,121,>
+155,125,dissolved 
+156,134,5
+157,137,CA: CEPA
+158,140,INERIS_FRA
+159,146,mg/kg
+160,5,not reported
+161,9,grey literature 
+162,16,activated sludge
+163,17,(Q)SAR
+164,18,not reported
+165,30,not reported
+166,31,BBA 25-1
+167,35,growth
+168,36,cell number
+169,37,ED15
+170,42,Alburnus lucidus 
+171,44,bacteria
+172,51,colour differences
+173,55,whole life cycle
+174,63,measured (initial)
+175,71,repeated doses
+176,121,ca.
+177,125,labile/free 
+178,137,CA: PCPA
+179,140,LfU Bayern
+180,5,not assigned
+181,9,thesis
+182,16,anaerobic sludge
+183,17,biomarker result
+184,31,BBA Draft
+185,35,histology
+186,36,cell(s)
+187,37,ED50
+188,42,Alectoris rufa 
+189,44,crustaceans
+190,51,effect concentrations exceeding solubility of substance in test medium
+191,55,not appicable
+192,63,measured (not specified)
+193,71,sediment
+194,121,~
+195,125,formulation
+196,137,JP: CSCL
+197,140,NORMAN
+198,9,safety datasheet
+199,16,not reported
+200,17,field experiment
+201,31,BBA Draft 1995
+202,35,immunological
+203,36,emergence
+204,37,ER10
+205,42,Aleochara bilineata 
+206,44,cyanophyta
+207,51,exponential growth in the control (for algal test) yes/no
+208,55,not reported
+209,63,measured (TWA)
+210,71,semi-static
+211,125,not reported
+212,137,OECD: HPVC
+213,140,RIVM_NL
+214,9,secondary source
+215,17,field study result
+216,31,BBA Nr. 33
+217,35,morphology
+218,36,enzyme(s)
+219,37,ER20
+220,42,Allium cepa 
+221,44,diatoms
+222,51,flocculation
+223,63,nominal
+224,71,static
+225,137,US: EPA HPVC
+226,140,UBA_DEU
+227,9,not reported
+228,17,not reported
+229,31,BBA Proposal
+230,35,mortality
+231,36,feeding behavior
+232,37,ER50
+233,42,Alosa pseudobarengus 
+234,44,echinoderms
+235,51,observation of abnormalities (for algal test)
+236,63,nominal but measured
+237,71,not reported
+238,137,US: FIFRA
+239,140,not reported
+240,9,not assigned
+241,31,BBA Teil VI 1-1
+242,35,physiology
+243,36,fertilisation rate
+244,37,ErC50
+245,42,Americamysis bahia (Mysidopsis bahia) 
+246,44,fish
+247,51,stimulation of growth found in any treatment
+248,63,not reported
+249,137,US: TSCA
+250,31,BBA VI 2-2
+251,35,population
+252,36,fertility 
+253,37,ET50
+254,42,Ampelisca abdita 
+255,44,insects
+256,51,unusual cell shape
+257,31,BBA VI 2-3
+258,35,reproduction
+259,36,gonadal histology 
+260,37,EyC50
+261,42,Anabaena cylindrica 
+262,44,macrophytes
+263,51,not reported
+264,31,BBA VI 23-2.3.4
+265,35,not reported
+266,36,growth rate
+267,37,IC10
+268,42,Anabaena doloilum 
+269,44,molluscs
+270,31,"BBA VI, 23-1"
+271,36,hatching rate
+272,37,IC15
+273,42,Anabaena flos-aquae 
+274,44,nematods
+275,31,"BBA VI, 23-2.1.1"
+276,36,hormone(s)
+277,37,IC20
+278,42,Anabaena inaequalis 
+279,44,protozoans
+280,31,"BBA VI, 23-2.1.2"
+281,36,immobilisation
+282,37,IC50
+283,42,Anabaena variabilis 
+284,44,reptiles
+285,31,"BBA VI, 23-2.1.3"
+286,36,injury
+287,37,ID50
+288,42,Anacystis aeruginosa 
+289,44,rotifers
+290,31,"BBA VI, 23-2.1.5"
+291,36,intoxication
+292,37,LC05
+293,42,Anacystis aeruginosa 
+294,44,sediment dweller
+295,31,"BBA VI, 23-2.1.6"
+296,36,larval development 
+297,37,LC10
+298,42,Anas platyrhynchos 
+299,44,worms
+300,31,"BBA VI, 23-2.1.7"
+301,36,length
+302,37,LC16
+303,42,Anchoa mitchilli 
+304,31,"BBA VI, 23-2.1.8"
+305,36,mortality (adult/parent)
+306,37,LC20
+307,42,Anguilla anguilla 
+308,31,"BBA VI, 23-2.1.9"
+309,36,mortality (cummulative)
+310,37,LC50
+311,42,Anguilla japonica 
+312,31,"BBA VI, 23-2.1.10"
+313,36,mortality (embryo)
+314,37,LD50
+315,42,Anguilla rostrata 
+316,31,"BBA VI, 23-2.3.3"
+317,36,mortality (juvenile)
+318,37,LOAEC
+319,42,Ankistrodesmus bibraianus 
+320,31,"BBA VI, 23-2.3.4"
+321,36,mortality (larvae)
+322,37,LOAEL
+323,42,Ankistrodesmus falcatus 
+324,31,BGA Nr. 33
+325,36,number hatched 
+326,37,LOEbC
+327,42,Ankistrodesmus minutissimus 
+328,31,BMRL
+329,36,number of eggs/spawn 
+330,37,LOEC
+331,42,Aphidius rhopalosiphi 
+332,31,CEB No. 129
+333,36,number of offspring 
+334,37,LOEL
+335,42,Apis mellifera 
+336,31,CEB No. 167
+337,36,number offspring per surviving parent
+338,37,LOER
+339,42,Aporrectodea caliginosa 
+340,31,DIN 38404
+341,36,parasitism
+342,37,LOErC
+343,42,Arenicola marina 
+344,31,DIN 38412
+345,36,secondary sexual characteristics 
+346,37,LT10
+347,42,Artemia salina 
+348,31,DIN 38412-L11
+349,36,sex ratio
+350,37,LT50
+351,42,Arthrobacter terregnes 
+352,31,DIN 38412-L15
+353,36,survival
+354,37,NOAEC
+355,42,Asellus intermedius 
+356,31,DIN 38412-L9
+357,36,time to first breed
+358,37,NOAEL
+359,42,Aspergillus niger 
+360,31,DIN/ISO 11267
+361,36,time to hatch 
+362,37,NOAER
+363,42,Avena sativa 
+364,31,EEC C.1
+365,36,time to sexual maturity
+366,37,NOEAEC
+367,42,Azospirillum brasilense 
+368,31,EEC C.14
+369,36,time to swim up 
+370,37,NOEbC
+371,42,Bacillus cirroflagellosus 
+372,31,EEC C.2
+373,36,weight 
+374,37,NOEC
+375,42,Bacillus stearothermophilus 
+376,31,EEC C.20
+377,36,not reported
+378,37,NOEL
+379,42,Bacillus subtilis 
+380,31,EEC C.20 Draft
+381,37,NOER
+382,42,Bacillus thuringiensis 
+383,31,EEC C.3
+384,37,NOErC
+385,42,Barbus barbus 
+386,31,EEC Draft
+387,37,not reported
+388,42,Bembidion lampros 
+389,31,EPA 122-1
+390,42,Beta vulgaris 
+391,31,EPA 123-1
+392,42,Brachydanio rerio (Danio rerio) 
+393,31,EPA 164-2
+394,42,Brachydesmus superus 
+395,31,EPA 1972
+396,42,Branchiura sowerbyi 
+397,31,EPA 250.4250
+398,42,Branchiura sowerbyi 
+399,31,EPA 72-3
+400,42,Brassica alba 
+401,31,EPA 81-3
+402,42,Brassica campestris var. chinensis 
+403,31,"EPA 850.1010, 72-2"
+404,42,Brassica napus 
+405,31,EPA 850.1020
+406,42,Brassica oleracea var. capitata 
+407,31,"EPA 850.1025, 72-3"
+408,42,Brassica rapa 
+409,31,"EPA 850.1035, 72-3"
+410,42,Brevoortia patronus 
+411,31,"EPA 850.1045, 72-3"
+412,42,Brevoortia tyrannus 
+413,31,"EPA 850.1075, 72-1"
+414,42,Caenorhabditis elegans 
+415,31,EPA 850.1085
+416,42,Caenorhabditis elegans 
+417,31,"EPA 850.1300, 72-4"
+418,42,Candida albicans 
+419,31,"EPA 850.1350, 72-4"
+420,42,Candida boidinii 
+421,31,"EPA 850.1400, 72-4"
+422,42,Candida utilis 
+423,31,EPA 850.1500
+424,42,Carassius auratus 
+425,31,"EPA 850.1500, 72-5"
+426,42,Carassius carassius 
+427,31,EPA 850.1735
+428,42,Carassius vulgaris 
+429,31,EPA 850.1790
+430,42,Catostomus commersoni 
+431,31,EPA 850.1900
+432,42,Centropomus undecimalis 
+433,31,"EPA 850.1950, 72-7, 165-5"
+434,42,Centropristis striata 
+435,31,"EPA 850.2100, 71-1"
+436,42,Ceriodaphnia dubia 
+437,31,"EPA 850.2200, 71-2"
+438,42,Chilomonas paramaecium 
+439,31,"EPA 850.2300, 71-4"
+440,42,Chironomus dilutus 
+441,31,EPA 850.2500
+442,42,Chironomus riparius 
+443,31,"EPA 850.3020, 141-1"
+444,42,Chironomus riparius 
+445,31,"EPA 850.3030, 141-2"
+446,42,Chironomus riparius 
+447,31,"EPA 850.3040, 141-5"
+448,42,Chironomus riparius 
+449,31,"EPA 850.4100, 122-1"
+450,42,Chironomus riparius 
+451,31,"EPA 850.4150, 122-1"
+452,42,Chironomus riparius 
+453,31,"EPA 850.4225, 123-1"
+454,42,Chironomus riparius 
+455,31,"EPA 850.4250, 123-1"
+456,42,Chironomus tentans 
+457,31,"EPA 850.4300, 124-1"
+458,42,Chironomus tentans 
+459,31,"EPA 850.4400, 122-2, 123-3"
+460,42,Chironomus yoshimatsui 
+461,31,"EPA 850.5400, 122-2, 123-2"
+462,42,Chironomus yoshimatsui 
+463,31,EPA 850.6200
+464,42,Chlamydomonas reinhardtii 
+465,31,EPA 885.4050
+466,42,Chlorella emersonii 
+467,31,EPA 885.4100
+468,42,Chlorella fusca 
+469,31,EPA 885.4200
+470,42,Chlorella mucosa 
+471,31,EPA 885.4240
+472,42,Chlorella pyrenoidosa 
+473,31,EPA 885.4280
+474,42,Chlorella vulgaris 
+475,31,EPA 885.4340
+476,42,Chrysoperla carnea 
+477,31,EPA 885.4380
+478,42,Clitocybe nebularis 
+479,31,"EPA OPP 122-2 (Algal Toxicity, Tiers I and II) "
+480,42,Clostridium sordellii 
+481,31,EPA OPP 72-4 (Fish Early Life-Stage and Aquatic Invertebrate Life-Cycle Studies) 
+482,42,Clupea harengus 
+483,31,EPA OPP 72-5 (Fish Life Cycle Toxicity) 
+484,42,Coccinella septempunctata 
+485,31,EPA OPPTS 850.1300 (Daphnid Chronic Toxicity Test) 
+486,42,Cognettia shpagnetorum 
+487,31,EPA OPPTS 850.1350 (Mysid Chronic Toxicity Test) 
+488,42,Colinus virginianus 
+489,31,EPA OPPTS 850.1400 (Fish Early-life Stage Toxicity Test) 
+490,42,Colisa fasciatus 
+491,31,EPA OPPTS 850.1500 (Fish Life Cycle Toxicity) 
+492,42,Colomba livia 
+493,31,"EPA OPPTS 850.5400 (Algal Toxicity, Tiers I and II) "
+494,42,Colpidium campylum 
+495,31,EPA OTS 797.1000 (Fish Early-life Stage Toxicity Test) 
+496,42,Coregonus artedii 
+497,31,"EPA OTS 797.1050 (Algal Toxicity, Tiers I and II) "
+498,42,Coregonus clupeaformis 
+499,31,EPA OTS 797.1330 (Daphnid Chronic Toxicity Test) 
+500,42,Corophium arenarium 
+501,31,EPA OTS 797.1950 (Mysid Chronic Toxicity Test) 
+502,42,Corophium volutator 
+503,31,EPPO PP 1/135
+504,42,Coturnix coturnix japonica 
+505,31,EPPO PP 1/170
+506,42,Crangon crangon 
+507,31,EPPO PP 1/207
+508,42,Crangon septemspinosa 
+509,31,ESE
+510,42,Ctenopharyngodon idella 
+511,31,EU Method C.14 (Fish Juvenile Growth Test) 
+512,42,Cucumis sativus 
+513,31,"EU Method C.15 (Fish, Short-term Toxicity Test on Embryo and Sac-fry Stages) "
+514,42,Culex pipiens quinquefasciatus 
+515,31,EU Method C.20 (Daphnia magna Reproduction Test) 
+516,42,Cyclotella cryptica 
+517,31,EU Method C.3 (Algal Inhibition test) 
+518,42,Cymatogaster aggregata 
+519,31,FDA
+520,42,Cynoscion nebulosus 
+521,31,FDA 4.08
+522,42,Cyprinodon variegatus 
+523,31,FETAX
+524,42,Cyprinus auratus 
+525,31,FIFRA
+526,42,Cyprinus carassius 
+527,31,FIFRA 143-1
+528,42,Cyprinus carpio 
+529,31,GWEDR
+530,42,Danio rerio (Brachydanio rerio)
+531,31,IBAMA
+532,42,Daphnia cucullata 
+533,31,IBAMA D.5.1
+534,42,Daphnia magna 
+535,31,ICBB
+536,42,Daphnia pulex 
+537,31,ICI BI68
+538,42,Daphnia pulicaria 
+539,31,IFREMER
+540,42,Daucus carota 
+541,31,INAR
+542,42,Desmodesmus subspicatus (Scenedesmus subspicatus) 
+543,31,IOBC
+544,42,Dictosphaerium pulchellum 
+545,31,ISO 10253 (Water quality - Marine Algal Growth Inhibition Test with Skeletonema costatum and Phaeodactylum tricornutum) 
+546,42,Dorosoma petenese 
+547,31,ISO 11267
+548,42,Drosophila melanogaster 
+549,31,ISO 6341
+550,42,Dunaliella bioculata 
+551,31,ISO 7346
+552,42,Dunaliella salina 
+553,31,ISO 8692
+554,42,Dunaliella tertiolecta 
+555,31,ISO 8692 (Water Quality - Fresh Water Algal Growth Inhibition Test with Scenedesmus subspicatus and Selenastrum capricornutum) 
+556,42,Echinocardium cordatum 
+557,31,ISO/DIS 11268
+558,42,Eisenia fetida 
+559,31,ISTA
+560,42,Elasmopus pectenicrus 
+561,31,IV 13-1
+562,42,Enchytraeus albidus 
+563,31,JAP
+564,42,Enchytraeus globuliferus 
+565,31,JAP (2735 MAF)
+566,42,Endomycopsis fibuligera 
+567,31,JAP (2753 MAF)
+568,42,Entosiphon sulcatum 
+569,31,JAP (MAF)
+570,42,Eohaustorius estuarius 
+571,31,JAP 2735
+572,42,Escherichia coli 
+573,31,JIS K0102
+574,42,Esox lucius 
+575,31,MAFF
+576,42,Esox masquinongi 
+577,31,MAFF SC8820
+578,42,Esox niger 
+579,31,MSZ Ungarn
+580,42,Euglena gracilis 
+581,31,NEN
+582,42,Folsomia candida 
+583,31,NEN 6501
+584,42,Folsomia fimetaria 
+585,31,NEN 6506
+586,42,Fundulus confluentus 
+587,31,"OECD201: Freshwater Alga and Cyanobacteria, Growth Inhibition Test, 2011"
+588,42,Fundulus diaphanus 
+589,31,"OECD202: Daphnia sp. Acute Immobilisation Test, 2004"
+590,42,Fundulus grandis 
+591,31,"OECD203: Fish, Acute Toxicity Test, 1992"
+592,42,Fundulus heteroclitus 
+593,31,"OECD204: Fish, Prolonged Toxicity Test: 14-Day Study, 1984"
+594,42,Fundulus jenkinsi 
+595,31,"OECD205: Avian Dietary Toxicity Test, 1984"
+596,42,Fundulus lucidae 
+597,31,"OECD206: Avian Reproduction Test, 1984"
+598,42,Fundulus majalis 
+599,31,"OECD207: Earthworm, Acute Toxicity Tests, 1984"
+600,42,Fundulus similis 
+601,31,"OECD208: Terrestrial Plant Test: Seedling Emergence and Seedling Growth Test, 2006"
+602,42,Fusarium lini 
+603,31,"OECD209: Activated Sludge, Respiration Inhibition Test (Carbon and Ammonium Oxidation), 2010"
+604,42,Gadus morrhua 
+605,31,"OECD210: Fish, Early-Life Stage Toxicity Test, 1992"
+606,42,Gambusia affinis 
+607,31,"OECD210: Fish, Early-life Stage Toxicity Test, 2013"
+608,42,Gammarus fasciatus 
+609,31,"OECD211: Daphnia magna Reproduction Test, 2008"
+610,42,Gammarus lacustris 
+611,31,"OECD211: Daphnia magna Reproduction Test, 2012"
+612,42,Gammarus minus 
+613,31,"OECD212: Fish, Short-term Toxicity Test on Embryo and Sac-Fry Stages, 1998"
+614,42,Gammarus olivii 
+615,31,"OECD213: Honeybees, Acute Oral Toxicity Test, 1998"
+616,42,Gammarus pulex 
+617,31,"OECD214: Honeybees, Acute Contact Toxicity Test, 1998"
+618,42,Gasterosteus aculeatus 
+619,31,"OECD215: Fish, Juvenile Growth Test, 2000"
+620,42,Gaus mexlaughs 
+621,31,"OECD216: Soil Microorganisms: Nitrogen Transformation Test, 2000"
+622,42,Glycine max (G. soja) 
+623,31,"OECD217: Soil Microorganisms: Carbon Transformation Test, 2000"
+624,42,Haematococcus pluvialis 
+625,31,"OECD218: Sediment-Water Chironomid Toxicity Using Spiked Sediment, 2004"
+626,42,Hansenula glucozyma 
+627,31,"OECD219: Sediment-Water Chironomid Toxicity Using Spiked Water, 2004"
+628,42,Harengula pensacolae 
+629,31,"OECD220: Enchytraeid Reproduction Test, 2004"
+630,42,Helianthus annuus 
+631,31,"OECD221: Lemna sp. Growth Inhibition Test, 2006"
+632,42,Heterocephalolubus pauciannulatus 
+633,31,"OECD222: Earthworm Reproduction Test, 2004"
+634,42,Hordeum vulgare 
+635,31,"OECD223: Avian Acute Oral Toxicity Test, 2010"
+636,42,Hormidium flaccidum 
+637,31,"OECD224: Determination of the Inhibition of the Activity of Anaerobic Bacteria, 2007"
+638,42,Hyalella azteca 
+639,31,"OECD225: Sediment-Water Lumbriculus Toxicity Test Using Spiked Sediment, 2007"
+640,42,Hyalella azteca 
+641,31,"OECD226: Predatory mite reproduction test in soil, 2008"
+642,42,Hypoaspis aculeifer 
+643,31,"OECD227: Terrestrial Plant Test: Vegetative Vigour Test, 2006"
+644,42,Ictalurus catus 
+645,31,"OECD228: Determination of Developmental Toxicity of a Test Chemical to Dipteran Dung Flies, 2008"
+646,42,Ictalurus furcatus 
+647,31,"OECD229: Fish Short Term Reproduction Assay, 2009"
+648,42,Ictalurus melas 
+649,31,"OECD229: Fish Short Term Reproduction Assay, 2012"
+650,42,Ictalurus natalis 
+651,31,"OECD230: 21-day Fish Assay, 2009"
+652,42,Ictalurus nebulosus 
+653,31,"OECD231: Amphibian Metamorphosis Assay, 2009"
+654,42,Ictalurus punctatus 
+655,31,"OECD232: Collembolan Reproduction Test in Soil, 2009"
+656,42,Idotea balthica basteri 
+657,31,"OECD233: Sediment-Water Chironomid Life-Cycle Toxicity Test Using Spiked Water or Spiked Sediment, 2010"
+658,42,Idus idus 
+659,31,"OECD234: Fish Sexual Development Test, 2011"
+660,42,Isotoma anglicana 
+661,31,"OECD235: Chironomus sp., Acute Immobilisation Test, 2011"
+662,42,Isotoma viridis 
+663,31,"OECD236: Fish Embryo Acute Toxicity (FET) Test, 2013"
+664,42,Jordanella floridae 
+665,31,"OECD237: Honey BeeLarval Toxicity Test, Single Exposure, 2013"
+666,42,Lactuca sativa 
+667,31,"OECD238: Sediment-Free Myriophyllum Spicatum Toxicity Test, 2014"
+668,42,Lagodon rhomboides 
+669,31,"OECD239: Water-Sediment Myriophyllum Spicatum Toxicity Test, 2014"
+670,42,Lebistes reticulatus 
+671,31,"OECD240: Medaka Extended One Generation Reproduction Test (MEOGRT), 2015"
+672,42,Leiostomus xanthurus 
+673,31,"OECD241: The Larval Amphibian Growth and Development Assay (LAGDA), 2015"
+674,42,Lemna aequinoctialis 
+675,31,not reported
+676,42,Lemna gibba 
+677,42,Lemna major 
+678,42,Lemna minor 
+679,42,Lemna paucicostata 
+680,42,Lemna perpusilla 
+681,42,Lemna trisulca 
+682,42,Lemna valdiviana 
+683,42,Lepidum sativum 
+684,42,Lepista nuda 
+685,42,Lepomis auritus 
+686,42,Lepomis cyanellus 
+687,42,Lepomis gibbosus 
+688,42,Lepomis humilis 
+689,42,Lepomis macrochirus 
+690,42,Lepomis microlophus 
+691,42,Lepomis pallidus 
+692,42,Leptocheirus plumulosus 
+693,42,Leuciscus cephalus cabeda rissa 
+694,42,Leuciscus idus 
+695,42,Leuciscus idus melanotus 
+696,42,Leuciscus rutilus 
+697,42,Limanda aspera 
+698,42,Limanda limanda 
+699,42,Lithobius mutabilis 
+700,42,Lolium perenne 
+701,42,Lotus corniculatus 
+702,42,Lumbriculus variegatus 
+703,42,Lumbriculus variegatus 
+704,42,Lumbricus rubellus 
+705,42,Lycoperdum mammaeforme 
+706,42,Lycoperdum piriforme 
+707,42,Lycopersicon esculentum 
+708,42,Macrolepiota procera 
+709,42,Melopsittacus undulatus 
+710,42,Menidia beryllina 
+711,42,Menidia menidia 
+712,42,Menidia peninsulae 
+713,42,Mesaphorura macrochaeta 
+714,42,Microcystis aeruginosa 
+715,42,Microcystis aeruginosa 
+716,42,Micropogon undulatus 
+717,42,Micropterus dolomieui 
+718,42,Micropterus salmoides 
+719,42,Microspora canis 
+720,42,Misgurnus anguillicaudatus 
+721,42,Monhystera disjuncta 
+722,42,Monoraphidium griffithii 
+723,42,Morone chrysops 
+724,42,Morone saxatilis 
+725,42,Mugil cephalus 
+726,42,Mugil curema 
+727,42,Musca autumnalis 
+728,42,Musca domestica 
+729,42,Navicula pelliculosa 
+730,42,Navicula seminulum 
+731,42,Neanthes arenaceodentata 
+732,42,Nitocra spinipes 
+733,42,Nitscheria linearis 
+734,42,Nitzschia palea 
+735,42,Nocardia resticta 
+736,42,Notropis atherinoides 
+737,42,Oncorhynchus gorbuscha 
+738,42,Oncorhynchus keta 
+739,42,Oncorhynchus kisutch 
+740,42,Oncorhynchus mykiss (Salmo gairdneri) 
+741,42,Oncorhynchus nerka 
+742,42,Oncorhynchus nerka kennerlyi 
+743,42,Oncorhynchus tschawytscha 
+744,42,Oniscus assellus 
+745,42,Onychiurus armatus 
+746,42,Orchesella cincta 
+747,42,Orius laevigatus 
+748,42,Orthonychiurus folsomi 
+749,42,Oryza sativa 
+750,42,Oryzias latipes 
+751,42,Osmerus mordax 
+752,42,Pagurus logicarpus 
+753,42,Palaemonetes pugio 
+754,42,Palaemonetes vulgaris 
+755,42,Panagrellus redivivus 
+756,42,Paramaecium caudatum 
+757,42,Paronychiurus kimi 
+758,42,Parophrys vetulus 
+759,42,Perca flavescens 
+760,42,Perca fluviatilis 
+761,42,Periconia prolifica 
+762,42,Petromyzon fluviatilis 
+763,42,Petromyzon marinus 
+764,42,Phaeodactylum tricornutum 
+765,42,Phaseolus aureus 
+766,42,Phaseolus vulgaris 
+767,42,Phasianus colchicus 
+768,42,Phialophora cinerescens 
+769,42,Philonthus cognatus 
+770,42,Phormidium tenue 
+771,42,Photobacterium phosphoreum 
+772,42,Phoxinus laevis 
+773,42,Phoxinus phoxinus 
+774,42,Pimephales notatus 
+775,42,Pimephales promelas 
+776,42,Pisum sativum 
+777,42,Platypoecilus maculatus 
+778,42,Plectus acuminatus 
+779,42,Pleuronectes platessa 
+780,42,Poecilia latipinna 
+781,42,Poecilia reticulata 
+782,42,Poecilus cupreus 
+783,42,Poephila guttata 
+784,42,Pogonias cromis 
+785,42,Pomatomus saltatrix 
+786,42,Pomoxis annularis 
+787,42,Pomoxis nigromaculatus 
+788,42,Porcellus scaber 
+789,42,Proisotoma minuta 
+790,42,Prosopium williamsoni 
+791,42,Proteus mirabilis 
+792,42,Proteus vulgaris 
+793,42,Pseudokirchnerella subcapitata (Raphidocelis subcapitata/Selenastrum capricornutum) 
+794,42,Pseudomonas aeruginosa 
+795,42,Pseudomonas alcalignes 
+796,42,Pseudomonas fluorescens 
+797,42,Pseudomonas putida 
+798,42,Pseudomonas testosteroni 
+799,42,Pseudopleuronectes americanus 
+800,42,Pterostichus cupreus 
+801,42,Ptychocheilus oregonensis 
+802,42,Rana catesbaeana  
+803,42,Raphanus sativus 
+804,42,Rasbora heteromorpha 
+805,42,Rhabditis oxycerca 
+806,42,Rhepoxynius abronius 
+807,42,Rhodeus sericeus 
+808,42,Roccus americanus 
+809,42,Rutilus rutilus 
+810,42,Saccharomyces cerevisiae 
+811,42,Salmo aquabonita 
+812,42,Salmo clarki 
+813,42,Salmo irideus 
+814,42,Salmo salar 
+815,42,Salmo trutta 
+816,42,Salmonella typhimurium 
+817,42,Salvelinus alpinus 
+818,42,Salvelinus fontinalis 
+819,42,Salvelinus malma 
+820,42,Salvelinus namaycush 
+821,42,Sardinops sagax 
+822,42,Sarotherodon mossambicus 
+823,42,Scardinius erythrophthalmus 
+824,42,Scathophaga stercoraria 
+825,42,Scenedesmus acutus 
+826,42,Scenedesmus capricornutum 
+827,42,Scenedesmus pannonicus 
+828,42,Scenedesmus quadricauda 
+829,42,Sciaenops ocellata 
+830,42,Secale cereale 
+831,42,Semolitus atromaculatus 
+832,42,Simocephalus serrulatus 
+833,42,Sinapis alba 
+834,42,Sinella curviseta 
+835,42,Skeletonema costatum 
+836,42,Sorghum bicolor 
+837,42,Sorghum vulgare 
+838,42,Sphaeroidus maculatus 
+839,42,Sphaeroma serratum 
+840,42,Spirulina platensis 
+841,42,Staphylococcus aureus 
+842,42,Stemphylium vesicarium 
+843,42,Stizostedion canadense 
+844,42,Stizostedion v. vitreum 
+845,42,Streptococcus faecalis 
+846,42,Streptococcus lactus 
+847,42,Streptomyces antibiotio 
+848,42,Streptomyces griseus 
+849,42,Synechococcus elongatus 
+850,42,Tetrahymena pyriformis 
+851,42,Tinca tinca 
+852,42,Tinca vulgaris 
+853,42,Trachelipus rathkii 
+854,42,Trichoderma mentagrophythes 
+855,42,Trichogramma cacoeciae 
+856,42,Trifolium ornithopodioides 
+857,42,Trifolium pratense 
+858,42,Trigonella foenum-graecum 
+859,42,Triticum aestivum 
+860,42,Trutta iridea 
+861,42,Tubifex tubifex 
+862,42,Tubifex tubifex 
+863,42,Typhlodromus pyri 
+864,42,Uronema parduzci 
+865,42,Vibrio fisheri 
+866,42,Vicia sativa 
+867,42,Zea mays 
+868,5,public available
+869,150,D

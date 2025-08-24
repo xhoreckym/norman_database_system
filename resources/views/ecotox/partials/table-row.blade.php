@@ -61,7 +61,7 @@
                               @change="updateField(row.id, $event.target.value)"
                               class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
                           <option value="">Select option</option>
-                          <template x-for="option in row.dropdownOptions" :key="option">
+                          <template x-for="(option, index) in row.dropdownOptions" :key="`${row.key}-${index}-${option}`">
                               <option x-bind:value="option" 
                                       x-text="option"
                                       x-bind:selected="row.final === option">
