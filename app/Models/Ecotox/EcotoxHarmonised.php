@@ -16,7 +16,7 @@ class EcotoxHarmonised extends Model
      *
      * @var string
      */
-    protected $table = 'ecotox_main_3';
+    protected $table = 'ecotox_main_harmonised';
 
     /**
      * The attributes that are mass assignable.
@@ -151,9 +151,9 @@ class EcotoxHarmonised extends Model
         'standard_test',
         'final_body_weight_of_control',
         'use_study',
+        'added_by',
         'editor',
-        'color_tx',
-        'cred'
+        'color_tx'
     ];
 
     /**
@@ -166,10 +166,10 @@ class EcotoxHarmonised extends Model
         'substance_id' => 'integer',
         'year_publication' => 'integer',
         'concentration_value' => 'double',
-        'reliability_study' => 'integer',
+        'reliability_study' => 'string',
         'editor' => 'integer',
         'color_tx' => 'integer',
-        'cred' => 'double',
+        'added_by' => 'integer',
         'edit_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
@@ -202,28 +202,12 @@ class EcotoxHarmonised extends Model
     }
 
     /**
-     * Get the CRED evaluations for this ecotox record.
+     * Get the user who added this record.
      */
-    public function credEvaluations()
+    public function addedByUser()
     {
-        return $this->hasMany(CredEvaluationMain::class, 'ecotox_id', 'ecotox_id');
+        return $this->belongsTo(User::class, 'added_by', 'id');
     }
-
-    /**
-     * Get the CRED sub-evaluations for this ecotox record.
-     */
-    public function credSubEvaluations()
-    {
-        return $this->hasMany(CredEvaluationSub::class, 'ecotox_id', 'ecotox_id');
-    }
-
-    /**
-     * Get the CRED final evaluations for this ecotox record.
-     */
-    // public function credFinalEvaluations()
-    // {
-    //     return $this->hasMany(CredEvaluationFinal::class, 'ecotox_id', 'ecotox_id');
-    // }
 
     /**
      * Get the derivations associated with this ecotox record.
@@ -332,7 +316,7 @@ class EcotoxHarmonised extends Model
      */
     public function scopeWithReliabilityStudy($query, $reliabilityStudy)
     {
-        if (is_numeric($reliabilityStudy) && $reliabilityStudy > 0) {
+        if (!empty($reliabilityStudy)) {
             return $query->where('reliability_study', $reliabilityStudy);
         }
         return $query;

@@ -259,6 +259,7 @@ class EcotoxController extends Controller
     
     public function search(Request $request)
     {
+        // dd($request->all());
         // Initialize search parameters array to track what filters were applied
         $searchParameters = [];
         
@@ -274,7 +275,10 @@ class EcotoxController extends Controller
             if (is_string($substances)) {
                 $substances = json_decode($substances, true);
             }
-            
+            // Ensure substances is always an array
+            if (!is_array($substances)) {
+                $substances = [$substances];
+            }
             $resultsObjects = $resultsObjects->whereIn('substance_id', $substances);
             $searchParameters['substances'] = Substance::whereIn('id', $substances)->pluck('name');
         } else {
