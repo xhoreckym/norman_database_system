@@ -79,14 +79,18 @@ class EcotoxController extends Controller
             $group = $config->group;
             $header = $config->header;
             $columnName = $config->column_name;
+            $columnId = $config->column_id;
             
             // Initialize group if it doesn't exist
             if (!isset($tableData[$group])) {
                 $tableData[$group] = [];
             }
             
-            // Add the field to the group using header as parameter name and column_name for data retrieval
-            $tableData[$group][$header] = $getValue($columnName);
+            // Add the field to the group using header as parameter name, column_name for data retrieval, and column_id for admin display
+            $tableData[$group][$header] = [
+                'data' => $getValue($columnName),
+                'column_id' => $columnId
+            ];
         }
 
         return response()->json([
