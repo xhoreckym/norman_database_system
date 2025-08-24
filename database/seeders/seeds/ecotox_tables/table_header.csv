@@ -1,0 +1,143 @@
+tab_id,tab_group,tab_h1,tab_h2,tab_edit,tab_type,tab_name,tab_description,tab_order
+147,Source,Ecotox DS ID,Ecotox DS ID,0,text,biotest_id,A system-generated ID to identify the upload files for each sub-module.,1
+1,Source,Biotest ID,Biotest ID,0,text,ecotox_id,A system-generated ID to identifiy the study in the ecotox sub-module.,2
+2,Source,Data source,Data source,1,text,data_source,"Name of the source where the data was taken from, e.g. ""UBA Etox"" or ""EPA Ecotox"" databases.",3
+3,Source,Data source ID,Data source ID,0,text,data_source_id,ID to identify the data entry at the source.,4
+4,Source,Data source reference ID,Data source reference ID,0,text,data_source_ref,ID to identify the reference at the source.,5
+5,Source,Data protection,Data protection,1,dropdown,data_protection,Indicates whether the study is confidential or publically available.,6
+6,Source,Data source link,Data source link,1,text,data_source_link,"URL or website, DOI, pdf-link to the NORMAN repository, etc.",7
+7,Source,Editor,Editor,0,text,edit_editor,Editor who created or modified the record.,8
+150,Source,Use of study,Use of study,1,dropdown,use_study,Indication whether the study should be used in the derivation of quality targets,9
+8,Source,Date,Date,0,date,edit_date,Date representing the day the record was created or modified. ,10
+9,Reference,Reference type,Reference type,1,dropdown,reference_type,"Type of the reference of the source document: e.g. literature study, GLP study report, grey literature, Risk Assessment Report, etc.",11
+10,Reference,Reference ID,Reference ID,0,text,reference_id,A system-generated ID to identify the reference of the study.,12
+11,Reference,Title,Title,1,text,study_title,Title of the publication,13
+12,Reference,Author(s),Author(s),1,text,authors,All authors names of the publication,14
+13,Reference,Year,Year,1,text,year_publication,Year of the publication,15
+14,Reference,Bibliographic source,Bibliographic source,1,text,bibliographic_source,Journal or publisher name + city of publisher + Issue and pages,16
+16,Categorisation,Compartment,Compartment,1,dropdown,matrix_habitat,"Tested compartment (matrix), e.g. freshwater, marine water, freshwater sediments, marine sediments, etc.",17
+17,Categorisation,Test type,Test type,1,dropdown,test_type,Indicates whether the reported value is exerimental or estimated.,18
+18,Categorisation,Acute/Chronic,Acute/Chronic,1,dropdown,acute_or_chronic,Indicates whether the test is considered to be short term or long term.,19
+148,Categorisation,Standard test,Standard test,1,dropdown,standard_test,Indicates whether the test represents a standard endpoint according to an OECD guideline.,20
+19,Test substance,NORMAN Substance ID,NORMAN Substance ID,0,numeric,sus_id,??? INCHI KEY used in the NORMAN Database System (i.e. SUSDAT).,21
+20,Test substance,Substance name,Substance name,1,text,substance_name,Substance name used in the study.,22
+21,Test substance,CAS Number,CAS Number,1,text,cas_number,Substance CAS number used in the study.,23
+22,Test substance,EC Number,EC Number,1,text,ec_number,"EU number used in the study, in cases where no CAS exist.",24
+23,Test substance,Purity qualifier,-,0,"",purity_qualifier,"Qualifier for the % purity value, e.g. >, =, <.",25
+24,Test substance,Purity [%] of test item,Purity [%] of test item,1,text,purity,Reported purity of test material in %.,26
+25,Test substance,Supplier of test item,Supplier of test item,1,text,supplier,"Source / Merchant, where the test material was purchased.",27
+26,Test substance,Vehicle substance,Vehicle substance,1,text,vehicle_substance,Name of vehicle ( i.e. solvent) used.,28
+27,Test substance,Concentrations of vehicle or impurities,Concentrations of vehicle or impurities,1,text,known_concentrations,"Was the concentration of the vehicle or other impurities reported? The vehicle should not exceed 0.01 %, i.e. to exert no effect.",29
+28,Test substance,Radio labeled substance,Radio labeled substance,1,text,radio_substance,Was the test substance radiolabeled? Which isotope was used? How was it quantified?,30
+29,Test substance,Preparation of stock solutions,Preparation of stock solutions,1,text,preparation_solutions,Was the method for preparing the stock solution reported?,31
+30,Biotest,Standard qualifier,Standard qualifier,1,dropdown,standard_qualifier,"Qualifier for the test standard used, e.g. ""according, equivalent or similar to"" the test guideline used.",32
+31,Biotest,Standard used,Standard used,1,dropdown,standard_used,"Standard used, e.g. OECD Guideline 210 (Fish, Early-Life Stage Toxicity Test), or reference to a certain paper.",33
+33,Biotest,Principles of method if other than guideline,Principles of method if other than guideline,1,text,principles,"Description of the test protocol if other than the guideline, giving a justification for using this method if appropriate.",34
+34,Biotest,GLP Certificate,GLP Certificate,1,dropdown,glp_certificate,"Indicates whether the study is GLP compliant, e.g. yes, no, not reported.",35
+35,Biotest,Effect,Effect,1,dropdown,effect,"Observed effect category, e.g. growth, reproduction, mortality.",36
+36,Biotest,Effect measurement,Effect measurement,1,dropdown,effect_measurement,"Effect measurement, e.g. biomass vs growth rate, number of offspring or time to first breed, mortality, survival or immobilisation.",37
+37,Biotest,Endpoint,Endpoint,1,dropdown,endpoint,"Endpoint type to which the effect concentration refers, e.g. LC50, LOEC, NOEC, EC10.",38
+143,Biotest,Response site ,Response site ,1,text,response_site,Molecular site within the test species which is affected by the toxicant.,39
+38,Biotest,Test duration,Test Duration,1,text,duration,Numeric value of the time until the effect is reported.,40
+39,Biotest,Test duration Unit,-,0,"",duration_unit,Unit of the test duration,41
+41,Biotest,Recovery considered?,Recovery considered?,1,dropdown,recovery_considered,Was recovery of test organism considered in the study design?,42
+42,Test Organism,Scientific name,Scientific name,1,dropdown,scientific_name,Scientific name of the test species.,43
+43,Test Organism,Common name,Common name,1,text,common_name,Common name of the test species.,44
+44,Test Organism,Taxonomic group,Taxonomic group,1,dropdown,taxonomic_group,"Taxonomic group or trophic level of test species: e.g. Algae and plants, Fish, Cyanobacteria, etc.",45
+45,Test Organism,Initial body length of control ,Initial body length ,1,text,body_length,Body length of test species at the beginning of the experiment.,46
+144,Test Organism,Final body length of control,Final body length ,1,text,final_body_length_of_control,Body length of test species at the end of the experiment.,47
+46,Test Organism,Body length Unit,-,0,"",length_unit,Unit of body length,48
+47,Test Organism,Initial body weight of control ,Initial body weight ,1,text,body_weight,Body weight of test species at the beginning of the experiment.,49
+149,Test Organism,Final body weight of control,Final body weight ,1,text,final_body_weight_of_control,Body weight of test species at the end of the experiment.,50
+48,Test Organism,Body weight Unit,-,0,"",weight_unit,Unit of body weight ,51
+49,Test Organism,Initial cell density,Initial cell density,1,text,initial_cell_density,Determination of cell concentrations or chlorophyll measurement at the begining of the experiment.,52
+138,Test Organism,Final cell density,End cell density,1,text,final_cell_density,Determination of cell concentrations or chlorophyll measurement at the end of the experiment (for the control).,53
+141,Test Organism,Deformed or abnormal cells / organism,Deformed or abnormal cells / organism,1,text,deformed_or_abnormal_cells,Indication whether any deformed or abnormal cells or organism are observed. ,54
+50,Test Organism,Reproductive condition of the controll,Reproductive condition of controll,1,text,reproductive_condition,"Reproductive condition of test species (number of offspring, mean coefficient of variation for section-by-section specific growth rate) according to minimum requirements.",55
+52,Test Organism,Lipid %,Lipid %,1,text,lipid,Lipid content of the test species.,56
+53,Test Organism,Age,Age,1,text,age,Age of the test species or inoculum.,57
+54,Test Organism,Age unit,-,0,"",age_unit,Unit of age,58
+55,Test Organism,Life stage,Life stage,1,dropdown,life_stage,"Life stage of test species, e.g. Juvenile, adult, nymph, etc.",59
+56,Test Organism,Gender,Gender,1,dropdown,gender,Gender of the test species.,60
+57,Test Organism,"Strain, clone","Strain, clone",1,text,strain_clone,Strain/clone of the test species.,61
+58,Test Organism,"Source (laboratory, culture collection)","Source (laboratory, culture collection)",1,text,organism_source,"Source, where test species were purchased. Is there information about the history of the control species? Have the test species been collected from a polluted site?",62
+59,Test Organism,Culture handling,Culture handling,1,text,culture_handling,"Information, how the test species culuture was handeled (conditions).",63
+60,Test Organism,Acclimation,Acclimation,1,text,acclimation,Did the test species have enough time to acclimate to the test conditions prior to the test begin?,64
+61,Dosing system,Nominal concentrations    ,Nominal concentrations    ,1,text,nominal_concentrations,Nominal concentrations or doses tested.,65
+146,Dosing system,Concentration Unit,Concentration Unit,1,dropdown,unit_concentration,Unit of the nominal and measured concentrations,66
+63,Dosing system,Measured or nominal concentrations,Measured or nominal concentrations,1,dropdown,measured_or_nominal,"If the deviation from the nominal concentration is greater than 20 per cent, results should be based on measured concentrations",67
+64,Dosing system,Limit test,Limit test,1,dropdown,limit_test,Indicator whether the experiment was a limit test.,68
+65,Dosing system,Range finding study,Range finding study,1,dropdown,range_finding_study,Indicator whether the study was performed for range finding.,69
+66,Dosing system,Analytical matrix,Analytical matrix,1,dropdown,analytical_matrix,Indication whether a specific tissue or the whole organism is analyzed.,70
+67,Dosing system,Analytical schedule,Analytical schedule,1,text,analytical_schedule,How often and when was the concentration determined?,71
+68,Dosing system,Analytical method,Analytical method,1,text,analytical_method,Analytical method: description of method.,72
+69,Dosing system,Analytical recovery,Analytical recovery,1,text,analytical_recovery,How was the recovery of the compound?,73
+70,Dosing system,Limit of quantification,Limit of quantification,1,text,limit_of_quantification,How was the limit of quantification?,74
+71,Dosing system,Exposure regime,Exposure regime,1,dropdown,exposure_regime,"Exposure regime (static, semistatic, flow through system,  change of water, repeated doses).",75
+76,Dosing system,Exposure route,Exposure route,1,dropdown,exposure_route,"Exposure route, e.g. aqueous, diatary, injection.",76
+72,Dosing system,Exposure duration,Exposure duration,1,text,exposure_duration,Duration the test species were exposed to the test substance.,77
+73,Dosing system,Exposure duration Unit,-,0,"",exposure_duration_unit,Unit of exposure duration,78
+40,Dosing system,Total test duration,Total test duration,1,text,total_test_duration,Duration the test was conducted for.,79
+74,Dosing system,Application frequency,Application frequency,1,text,application_freq,How often was the test material applied? Was the test solution renewed?,80
+75,Dosing system,Application frequency unit,-,0,"",application_freq_unit,Unit of application frequency (if applicable),81
+142,Controls and Study design,Negative control used?,Negative control used?,1,dropdown,negative_control_used,Indicator whether a negative control was used?,82
+77,Controls and Study design,Positive control used?,Positive control used?,1,dropdown,positive_control_used,Indicator whether a positive control was used?,83
+78,Controls and Study design,Positive control substance,Positive control substance,1,text,positive_control_substance,Which substance was used as a positive control?,84
+51,Controls and Study design,Other effects,Other effects,1,dropdown,other_effects,"Were any effects observed in the control, e.g. high mortality.",85
+79,Controls and Study design,Effects in positive control,Effects in positive control,1,dropdown,effects_control,Did the positive control show the expected effect?,86
+80,Controls and Study design,Vehicle control used?,Vehicle control used?,1,dropdown,vehicle_control,Indicator whether a vehicle control was used?,87
+81,Controls and Study design,Effects in vehicle control,Effects in vehicle control,1,text,effects_vehicle,Was the solvent control significant different from control?,88
+82,Test conditions,Intervals of water quality measurements,Intervals of water quality measurement,1,text,intervals_water,How often was the water quality measured?,89
+83,Test conditions,Intervals of water quality measurements Unit,-,0,"",intervals_water_unit,Time unit of water quality measurements,90
+84,Test conditions,pH,pH,1,text,ph,Test pH applicable to the measured test value or mean or range.,91
+85,Test conditions,Adjustment of pH,Adjustment of pH,1,text,adjustment_ph,Was the test pH adjusted / buffered?,92
+86,Test conditions,Temperature,Temperature,1,text,temperature,Temperature used in the experimental determination of the test value.,93
+87,Test conditions,Temperature Unit,-,0,"",temperature_unit,Temperature Unit,94
+88,Test conditions,Conductivity,Conductivity,1,text,conductivity,Conductivity  used in the experimental determination of the test value.,95
+89,Test conditions,Conductivity Unit,-,0,"",conductivity_unit,Conductivity Unit,96
+90,Test conditions,Light intensity,Light intensity,1,text,light_intensity,Light intensity used in the experimental determination of the test value.,97
+91,Test conditions,Light intensity Unit,-,0,"",light_intensity_unit,Light intensity Unit,98
+92,Test conditions,Light quality (source and homogeneity),Light quality (source and homogeneity),1,text,light_quality,Light quality used in the experimental determination of the test value.,99
+93,Test conditions,Photo period,Photo period,1,text,photo_period,Photo period  used in the experimental determination of the test value.,100
+94,Test conditions,Hardness,Hardness,1,text,hardness,"The concentration of calcium and magnesium ions in water, measured as mg/L calcium carbonate equivalent.",101
+95,Test conditions,Hardness Unit,-,0,"",hardness_unit,Hardness Unit,102
+96,Test conditions,Chlorine,Chlorine,1,text,chlorine,Chlorine concentration determined in the test.,103
+97,Test conditions,Chlorine Unit,-,0,"",chlorine_unit,Chlorine Unit,104
+98,Test conditions,Alkalinity,Alkalinity,1,text,alkalinity,Alkalinity used in the experimental determination of the test value.,105
+99,Test conditions,Alkalinity Unit,-,0,"",alkalinity_unit,Alkalinity Unit,106
+100,Test conditions,Salinity,Salinity,1,text,salinity,Salinity used in the experimental determination of the test value. Especially important for marine or brackish tests.,107
+101,Test conditions,Salinity Unit,-,0,"",salinity_unit,Salinity Unit (e.g. given in ‰) ,108
+102,Test conditions,Total Organic Carbon,Total Organic Carbon,1,text,organic_carbon,Total carbon content used in the experimental determination of the test value. ,109
+103,Test conditions,Total Organic Carbon Unit,-,0,"",organic_carbon_unit,Organic Carbon Unit,110
+104,Test conditions,Dissolved oxygen,Dissolved oxygen,1,text,dissolved_oxygen,Dissolved oxygen concentration should be greater than or equal to 3 mg/l or > 60% in control and test vessels.,111
+105,Test conditions,Dissolved oxygen Unit,-,0,"",dissolved_oxygen_unit,Dissolved oxygen Unit,112
+107,Test conditions,Material of test vessel,Material of test vessel,1,text,material_vessel,"Material of aquarium/container, considering the lipophilicity of the test substance.",113
+108,Test conditions,Volume of test vessel,Volume of test vessel,1,text,volume_vessel,Volume (ml) of test test vessels used.,114
+109,Test conditions,Open or closed system ,Open or closed system ,1,text,open_closed,"Is the system closed or open, considering the volatility of the test substance. ",115
+110,Test conditions,Aeration,Aeration,1,text,aeration,Was the test vessel aerated?,116
+111,Test conditions,Description of test medium,Description of test medium,1,text,description_medium,Was the test medium described? Conditions suitable for test species?,117
+112,Test conditions,Culture medium different from test medium?,Culture medium different from test medium?,1,dropdown,culture_medium,Is the culture medium different from test medium?,118
+113,Test conditions,Feeding protocols,Feeding protocols,1,text,feeding_protocols,Are feeding protocols (for long-term tests) reported?,119
+114,Test conditions,Type and amount of food,Type and amount of food,1,text,type_amount_food,Food composition reported?,120
+115,Statistical design,Number of organisms per replicate,Number of organisms per replicate,1,text,number_organisms,"Number of organisms, or algal cell concentration that were used per replicate.",121
+116,Statistical design,Number of replicates per concentration,Number of replicates per concentration,1,text,number_replicates,Was the number of replicates per treatment reported?,122
+117,Statistical design,Statistical method used,Statistical method used,1,text,statistical_method,Which statistical method was used? Is it appropriate?,123
+118,Statistical design,Trend,Trend,1,text,trend,Is there an increasing or decreasing trend in the dose response curve?,124
+119,Statistical design,Significance of result,Significance of result,1,text,significance_result,Was the test significant?,125
+120,Statistical design,Significance level,Significance level,1,numeric,significance_level,Significance level for NOEC and LOEC data (e.g. 0.05).,126
+121,Biological effect,Effect concentration qualifier,Effect concentration qualifier,1,dropdown,concentration_qualifier,"Qualifier for the effect value, e.g. >, =, <.",127
+122,Biological effect,Effect concentration,Effect concentration,1,numeric,concentration_value,Effect value (e.g. LC50) in µg/L or mg/kg.,128
+123,Biological effect,Effect concentration unit,-,0,"",concentration_unit,"Concentration unit, e.g. µg/L, µg/Kg",129
+124,Biological effect,Estimate of variability for LC and EC data,Estimate of variability for LC and EC data,1,text,estimate_variability,Was an estimate of variability for LC and EC data given?,130
+125,Biological effect,Test item,Test item,1,dropdown,test_item,"The effect is based on a formulation, active ingredient, free ion, etc.",131
+127,Biological effect,Result comment,Result comment,1,text,result_comment,Any comments regarding the test results.,132
+129,Evaluation,Dose-response reported in figure/text/table,Dose-response reported in figure/text/table,1,text,dose_response,Dose-response reported in figure/text/table?,133
+131,Evaluation,Availability of raw data,Availability of raw data,1,text,availability_raw_data,Is the raw data available (e.g. Doc III = Effect data)? Link to the data.,134
+132,Evaluation,Study available,Study available,1,file,study_available,Does NORMAN has a digital copy of/access to the study? Link,135
+133,Evaluation,General Comment,General Comment,1,text,general_comment,"General comments, e.g. QSAR Software used",136
+134,Evaluation,Existing reliabilty score ,Existing reliabilty score ,1,dropdown,reliability_study,"Reliability score: e.g.  1 to 4  from CRED, 5 = not evaluated.",137
+135,Evaluation,Reliability score system used,Reliability score system used,1,dropdown,reliability_score,"Reliability according to:  e.g. Klimisch, CRED, etc.",138
+140,Evaluation,Authority issuing the reliabilty score,Authority issuing the reliabilty score,1,dropdown,institution_study,"Institute, Organisation or Authority that released the reliability score.",139
+136,Evaluation,Existing rational reliability,Existing rational reliability,1,text,existing_rational_reliability,Rationale for the reliablilty classification.,140
+137,Evaluation,Regulatory context,Regulatory context,1,dropdown,regulatory_purpose,Indication of the regulatory or other programme for which the data are used.,141
+139,Evaluation,Used for regulaltory purpose,Used for regulaltory purpose,1,text,used_for_regulaltory_purpose,"Indication if the study was used for regulatory purposes, i.e. key study, supporting study.",142
