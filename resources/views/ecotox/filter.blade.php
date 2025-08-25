@@ -85,7 +85,7 @@
         @submit="submitForm($event)"
         name="searchEcotox" 
         id="searchEcotox" 
-        action="{{route('ecotox.search.search')}}" 
+        action="{{route('ecotox.data.search.search')}}" 
         method="GET">
         
         <!-- Full-screen overlay with timer and cancel button -->
@@ -162,7 +162,7 @@
       
       <!-- Main Search form -->
       <div class="flex justify-end m-2">
-        <a href="{{route('ecotox.search.filter')}}" class="btn-clear mx-2"> Reset </a>
+        <a href="{{route('ecotox.data.search.filter')}}" class="btn-clear mx-2"> Reset </a>
         {{-- <button type="submit" class="btn-submit"> Search
         </button> --}}
         

@@ -14,7 +14,7 @@ use App\Models\Ecotox\EcotoxComparativeTableConfig;
 use App\Models\Ecotox\EcotoxComparativeTableInputValues;
 use Illuminate\Support\Facades\Auth;
 
-class EcotoxController extends Controller
+class EcotoxCREDEvaluationController extends Controller
 {
     /**
     * Display a listing of the resource.
@@ -22,7 +22,7 @@ class EcotoxController extends Controller
     public function index()
     {
         //
-        return redirect()->route('ecotox.home.index');
+        return redirect()->route('ecotox.credevaluation.home.index');
     }
     
     /**
@@ -39,74 +39,6 @@ class EcotoxController extends Controller
     public function store(Request $request)
     {
         //
-    }
-    
-        /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        // Fetch data from all three Ecotox models for the given ecotox_id
-        $ecotoxFinal = EcotoxFinal::with(['substance'])
-            ->where('ecotox_id', $id)
-            ->first();
-            
-        $ecotoxOriginal = EcotoxOriginal::with(['substance'])
-            ->where('ecotox_id', $id)
-            ->first();
-            
-        $ecotoxHarmonised = EcotoxHarmonised::with(['substance'])
-            ->where('ecotox_id', $id)
-            ->first();
-
-        if (!$ecotoxFinal && !$ecotoxOriginal && !$ecotoxHarmonised) {
-            return response()->json(['error' => 'Record not found'], 404);
-        }
-
-        // Helper function to get value from models
-        $getValue = function($field) use ($ecotoxOriginal, $ecotoxHarmonised, $ecotoxFinal) {
-            return [
-                'original' => $ecotoxOriginal?->$field ?? 'N/A',
-                'harmonised' => $ecotoxHarmonised?->$field ?? 'N/A',
-                'final' => $ecotoxFinal?->$field ?? 'N/A'
-            ];
-        };
-
-        // Generate table data dynamically from EcotoxComparativeTableConfig
-        $tableConfigs = EcotoxComparativeTableConfig::orderBy('order')->get();
-        $tableData = [];
-        
-        foreach ($tableConfigs as $config) {
-            $group = $config->group;
-            $header = $config->header;
-            $columnName = $config->column_name;
-            $columnId = $config->column_id;
-            
-            // Get input values for this column
-            $inputValues = EcotoxComparativeTableInputValues::where('column_name', $columnName)
-                ->pluck('input_value')
-                ->toArray();
-            
-            // Initialize group if it doesn't exist
-            if (!isset($tableData[$group])) {
-                $tableData[$group] = [];
-            }
-            
-            // Add the field to the group using header as parameter name, column_name for data retrieval, and column_id for admin display
-            $tableData[$group][$header] = [
-                'data' => $getValue($columnName),
-                'column_id' => $columnId,
-                'is_editable' => $config->is_editable ?? false,
-                'input_type' => $config->input_type ?? 'text',
-                'input_values' => $inputValues
-            ];
-        }
-
-        return response()->json([
-            'ecotox_id' => $id,
-            'substance' => $ecotoxFinal?->substance ?? $ecotoxOriginal?->substance ?? $ecotoxHarmonised?->substance,
-            'table_data' => $tableData
-        ]);
     }
     
     /**
@@ -135,21 +67,20 @@ class EcotoxController extends Controller
     
     public function filter(Request $request)
     {
-        return view('ecotox.filter', [
+        return view('ecotox.credevaluation.filter', [
             'request' => $request,
         ]);
     }
     
     public function search(Request $request)
     {
-        // dd($request->all());
         // Initialize search parameters array to track what filters were applied
         $searchParameters = [];
         
         // Start with a base query with necessary relationships
         $resultsObjects = EcotoxFinal::with([
             'substance',
-        ])->orderBy('ecotox_id', 'asc');
+        ])->whereIn('use_study', ['y', 'Y', 'yes', 'YES', 'Yes'])->orderBy('ecotox_id', 'asc');
         
         // Apply substance filter (this is the primary filter)
         if (!empty($request->input('substances'))) {
@@ -169,7 +100,7 @@ class EcotoxController extends Controller
             $request->merge(['substances' => []]);
             // Return early as we require at least one substance
             session()->flash('info', 'Please select at least one substance to search.');
-            return redirect()->route('ecotox.data.search.filter');
+            return redirect()->route('ecotox.credevaluation.search.filter');
         }
         
         // Get the full request data for logging
@@ -203,7 +134,7 @@ class EcotoxController extends Controller
                     'updated_at'   => $now,
                 ]);
             } catch (\Exception $e) {
-                if (Auth::check() && Auth::user()->hasRole('super_admin')) {
+                if (auth()->check() && auth()->user()->hasRole('super_admin')) {
                     session()->flash('failure', 'Query logging error: ' . $e->getMessage());
                 } else {
                     session()->flash('error', 'An error occurred while processing your request.');
@@ -225,7 +156,7 @@ class EcotoxController extends Controller
         }
         
         // Return the view with results and metadata
-        return view('ecotox.index', [
+        return view('ecotox.credevaluation.index', [
             'resultsObjects'      => $resultsObjects,
             'resultsObjectsCount' => $resultsObjectsCount,
             'query_log_id'        => QueryLog::orderBy('id', 'desc')->first()->id ?? 0,

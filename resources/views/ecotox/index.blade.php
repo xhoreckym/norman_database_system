@@ -10,7 +10,7 @@
         <div class="p-6 text-gray-900" x-data="ecotoxModal()">
 
           <a
-            href="{{ route('ecotox.search.filter', [
+            href="{{ route('ecotox.data.search.filter', [
                 'substances' => $request->input('substances'),
                 'query_log_id' => $query_log_id,
             ]) }}">

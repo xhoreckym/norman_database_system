@@ -6,11 +6,11 @@
   <div class="py-4">
     <div class="w-full mx-auto sm:px-6 lg:px-8">
       <div class="bg-white shadow-lg sm:rounded-lg">
-        <div class="p-6 text-gray-900">
-          {{-- main div --}}
+        <!-- Initialize Alpine component with clean x-data -->
+        <div class="p-6 text-gray-900" x-data="ecotoxModal()">
 
           <a
-            href="{{ route('ecotox.data.search.filter', [
+            href="{{ route('ecotox.credevaluation.search.filter', [
                 'substances' => $request->input('substances'),
                 'query_log_id' => $query_log_id,
             ]) }}">
@@ -132,6 +132,7 @@
             </div>
           </div>
 
+          <!-- Results Table -->
           {{-- Single Unified Table --}}
           <div class="mt-4">
             <table class="table-standard">
@@ -232,6 +233,7 @@
                       <td class="p-1 text-center">
                         @if ($e->editorUser)
                           {{ $e->editorUser->name ?? 'N/A' }}
+                        </td>
                         @else
                           N/A
                         @endif
@@ -278,148 +280,9 @@
             {{ $resultsObjects->links('pagination::tailwind') }}
           @endif
 
-          <!-- Modal Window -->
-          <div x-show="showModal" x-cloak @keydown.escape.window="closeModal()"
-            class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50 ecotox-modal">
+          <!-- Include the modal component -->
+          <x-ecotox-modal :auth-check="auth()->check()" :is-super-admin="auth()->check() && auth()->user()->hasRole('super_admin')" />
 
-            <div class="bg-white w-11/12 md:w-3/4 lg:w-3/4 xl:w-2/3 rounded shadow-lg relative" x-transition>
-
-              <!-- Modal Header -->
-              <div class="flex justify-between items-center border-b px-4 py-2 bg-lime-600 text-white">
-                <div class="flex items-center space-x-4">
-                  <h3 class="text-lg font-semibold">Ecotox Record ID: <span x-text="recordId"></span></h3>
-                  <h3 class="text-lg font-semibold text-lime-200">Biotest ID: <span
-                      x-text="record?.ecotox_id || 'N/A'"></span></h3>
-                </div>
-                <button @click="closeModal()" class="text-white hover:text-gray-200 text-xl">
-                  &times;
-                </button>
-              </div>
-
-              <!-- Modal Content -->
-              <div class="p-4 max-h-[70vh] overflow-y-auto">
-                <div x-show="!record" class="text-center py-8">
-                  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-600 mx-auto"></div>
-                  <p class="mt-2 text-gray-600">Loading record data...</p>
-                </div>
-
-                <div x-show="record" x-transition>
-
-
-                  <!-- Table View -->
-                  <div>
-                    <div class="overflow-x-auto">
-                      <table class="w-full border border-gray-300 text-sm">
-                        <thead>
-                          <tr class="bg-gray-100">
-                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
-                              Parameter Name
-                            </th>
-                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Original
-                            </th>
-                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
-                              Harmonised</th>
-                            <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">Final
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <!-- Substance Information -->
-                          <tr class="bg-gray-50" data-row-id="substance-header">
-                            <td colspan="4"
-                              class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100">
-                              Substance Information
-                            </td>
-                          </tr>
-                          <tr data-row-id="substance-name">
-                            <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">Substance Name</td>
-                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.name || 'N/A'">
-                            </td>
-                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.name || 'N/A'">
-                            </td>
-                            <td class="border border-gray-300 px-3 py-2" x-text="record?.substance?.name || 'N/A'">
-                            </td>
-                          </tr>
-                          <tr class="bg-gray-50" data-row-id="substance-cas">
-                            <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">CAS Number</td>
-                            <td class="border border-gray-300 px-3 py-2"
-                              x-text="record?.substance?.cas_number || 'N/A'"></td>
-                            <td class="border border-gray-300 px-3 py-2"
-                              x-text="record?.substance?.cas_number || 'N/A'"></td>
-                            <td class="border border-gray-300 px-3 py-2"
-                              x-text="record?.substance?.cas_number || 'N/A'"></td>
-                          </tr>
-                          <tr data-row-id="substance-code">
-                            <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">Substance Code</td>
-                            <td class="border border-gray-300 px-3 py-2"
-                              x-text="record?.substance?.prefixed_code || 'N/A'"></td>
-                            <td class="border border-gray-300 px-3 py-2"
-                              x-text="record?.substance?.prefixed_code || 'N/A'"></td>
-                            <td class="border border-gray-300 px-3 py-2"
-                              x-text="record?.substance?.prefixed_code || 'N/A'"></td>
-                          </tr>
-
-                          <!-- Dynamic Sections - Using a flattened approach -->
-                          <template x-for="row in getTableRows()" :key="row.id">
-                            <tr :class="row.type === 'header' ? 'bg-gray-50' : (row.isOdd ? 'bg-gray-50' : '')" :data-row-id="row.id">
-                              <!-- Section Header -->
-                              <template x-if="row.type === 'header'">
-                                <td colspan="4"
-                                  class="border border-gray-300 px-3 py-2 font-semibold text-center text-gray-800 bg-lime-100"
-                                  x-text="row.title">
-                                </td>
-                              </template>
-
-                              <!-- Data Row -->
-                              <template x-if="row.type === 'data'">
-                                <td class="border border-gray-300 px-3 py-2 font-medium text-gray-700">
-                                  @if (auth()->check() && auth()->user()->hasRole('super_admin'))
-                                    <div>
-                                      <div class="font-semibold" x-text="row.key"></div>
-                                      <div class="text-xs text-gray-500">ID: <span
-                                          x-text="row.columnId || 'N/A'"></span></div>
-                                    </div>
-                                  @else
-                                    <span x-text="row.key"></span>
-                                  @endif
-                                </td>
-                              </template>
-                              <template x-if="row.type === 'data'">
-                                <td class="border border-gray-300 px-3 py-2" x-text="row.original || 'N/A'"></td>
-                              </template>
-                              <template x-if="row.type === 'data'">
-                                <td class="border border-gray-300 px-3 py-2" x-text="row.harmonised || 'N/A'"></td>
-                              </template>
-                                                             <template x-if="row.type === 'data'">
-                                 <td class="border border-gray-300 px-3 py-2">
-                                   <template x-if="row.isEditable">
-                                     <div x-html="row.inputHtml"></div>
-                                   </template>
-                                   <template x-if="!row.isEditable">
-                                     <span x-text="row.final || 'N/A'"></span>
-                                   </template>
-                                 </td>
-                               </template>
-                            </tr>
-                          </template>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              <!-- Modal Footer -->
-              <div class="flex justify-end border-t px-4 py-2">
-                <button @click="closeModal()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {{-- end of main div --}}
         </div>
       </div>
     </div>
@@ -483,7 +346,7 @@
           filterTable(matrixFilter, acuteFilter);
 
           // Save active tab to localStorage
-          localStorage.setItem('activeEcotoxTab', tabId);
+          localStorage.setItem('activeEcotoxCREDEvaluationTab', tabId);
         }
 
         // Add click event to tab buttons
@@ -494,7 +357,7 @@
         });
 
         // Check for saved tab in localStorage and activate it
-        const savedTab = localStorage.getItem('activeEcotoxTab');
+        const savedTab = localStorage.getItem('activeEcotoxCREDEvaluationTab');
         if (savedTab) {
           const savedButton = document.querySelector(`[data-tab="${savedTab}"]`);
           if (savedButton) {
@@ -504,6 +367,4 @@
       });
     </script>
   @endpush
-
-
 </x-app-layout>
