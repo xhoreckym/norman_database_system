@@ -7,7 +7,7 @@
     <div class="w-full mx-auto sm:px-6 lg:px-8">
       <div class="bg-white shadow-lg sm:rounded-lg">
         <!-- Initialize Alpine component with clean x-data -->
-        <div class="p-6 text-gray-900" x-data="ecotoxModal()">
+        <div class="p-6 text-gray-900" x-data="{ ...ecotoxModal(), ...credEvaluationModal() }">
 
           <a
             href="{{ route('ecotox.credevaluation.search.filter', [
@@ -138,6 +138,7 @@
             <table class="table-standard">
               <thead>
                 <tr class="bg-gray-600 text-white">
+                  <th>Evaluate</th>
                   <th>Biotest ID</th>
                   <th>Taxonomic group</th>
                   <th>Scientific name</th>
@@ -168,6 +169,15 @@
                 @foreach ($resultsObjects as $e)
                   <tr class="ecotox-row @if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif"
                     data-matrix="{{ $e->matrix_habitat }}" data-acute="{{ $e->acute_or_chronic }}">
+                    <td class="p-1 text-center">
+                      <button 
+                        type="button" 
+                        class="btn-create text-sm px-3 py-1"
+                        x-on:click="openModalCredEvaluation('{{ $e->ecotox_id }}')"
+                        title="Evaluate this record">
+                        Evaluate
+                      </button>
+                    </td>
                     <td class="p-1 text-center">
                       @if (auth()->check() &&
                               (auth()->user()->hasRole('super_admin') ||
@@ -282,6 +292,9 @@
 
           <!-- Include the modal component -->
           <x-ecotox-modal :auth-check="auth()->check()" :is-super-admin="auth()->check() && auth()->user()->hasRole('super_admin')" />
+
+          <!-- Include the CRED evaluation modal component -->
+          <x-cred-evaluation-modal />
 
         </div>
       </div>

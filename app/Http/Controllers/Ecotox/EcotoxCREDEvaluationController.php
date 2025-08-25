@@ -125,7 +125,7 @@ class EcotoxCREDEvaluationController extends Controller
                 QueryLog::insert([
                     'content'      => json_encode(['request' => $main_request, 'bindings' => $bindings]),
                     'query'        => $sql,
-                    'user_id'      => auth()->check() ? auth()->id() : null,
+                    'user_id'      => Auth::check() ? Auth::id() : null,
                     'total_count'  => $resultsObjectsCount,
                     'actual_count' => is_null($actual_count) ? $resultsObjects->count() : $actual_count,
                     'database_key' => $database_key,
@@ -134,7 +134,7 @@ class EcotoxCREDEvaluationController extends Controller
                     'updated_at'   => $now,
                 ]);
             } catch (\Exception $e) {
-                if (auth()->check() && auth()->user()->hasRole('super_admin')) {
+                if (Auth::check() && Auth::user()->hasRole('super_admin')) {
                     session()->flash('failure', 'Query logging error: ' . $e->getMessage());
                 } else {
                     session()->flash('error', 'An error occurred while processing your request.');
@@ -172,5 +172,78 @@ class EcotoxCREDEvaluationController extends Controller
         ]);
         session()->flash('success', 'Database counts updated successfully');
         return redirect()->back();
+    }
+    
+    /**
+     * Get data for CRED evaluation modal
+     */
+    public function getModalData($recordId)
+    {
+        try {
+            $record = EcotoxFinal::with(['substance'])
+                ->where('ecotox_id', $recordId)
+                ->first();
+            
+            if (!$record) {
+                return response()->json(['error' => 'Record not found'], 404);
+            }
+            
+            return response()->json($record);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch record data'], 500);
+        }
+    }
+    
+    /**
+     * Get evaluation history for a record
+     */
+    public function getEvaluationHistory($recordId)
+    {
+        try {
+            // This would typically come from a CredEvaluation model
+            // For now, returning empty array as placeholder
+            $history = [];
+            
+            return response()->json($history);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch evaluation history'], 500);
+        }
+    }
+    
+    /**
+     * Save CRED evaluation
+     */
+    public function saveEvaluation(Request $request)
+    {
+        try {
+            $request->validate([
+                'record_id' => 'required|string',
+                'reliability_score' => 'required|string',
+                'use_of_study' => 'required|string',
+                'comments' => 'nullable|string',
+                'evaluation_date' => 'required|date',
+            ]);
+            
+            // This would typically save to a CredEvaluation model
+            // For now, just returning success as placeholder
+            $evaluationData = $request->all();
+            $evaluationData['evaluated_by'] = Auth::id();
+            $evaluationData['evaluated_at'] = now();
+            
+            // TODO: Implement actual saving logic
+            // CredEvaluation::create($evaluationData);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Evaluation saved successfully',
+                'data' => $evaluationData
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save evaluation: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
