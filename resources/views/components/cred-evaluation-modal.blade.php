@@ -19,9 +19,16 @@
                     Biotest ID: <span x-text="credEvaluationRecord?.ecotox_id || 'N/A'"></span>
                 </h3>
             </div>
-            <button @click="closeModalCredEvaluation()" class="text-white hover:text-gray-200 text-xl">
-                &times;
-            </button>
+            <div class="flex items-center space-x-2">
+                <!-- Debug button -->
+                <button @click="console.log('Modal state:', { showCredEvaluationModal, credQuestions: credQuestions?.length || 0, record: credEvaluationRecord })" 
+                        class="px-2 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700">
+                    Debug
+                </button>
+                <button @click="closeModalCredEvaluation()" class="text-white hover:text-gray-200 text-xl">
+                    &times;
+                </button>
+            </div>
         </div>
 
         <!-- Modal Content -->
@@ -34,6 +41,16 @@
 
             <!-- CRED Evaluation Content -->
             <div x-show="credEvaluationRecord" x-transition>
+                <!-- Debug Info -->
+                <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="text-sm text-yellow-800">
+                        <strong>Debug Info:</strong>
+                        <span x-text="'Questions loaded: ' + (credQuestions?.length || 0)"></span> |
+                        <span x-text="'Record ID: ' + (credEvaluationRecordId || 'None')"></span> |
+                        <span x-text="'Modal open: ' + showCredEvaluationModal"></span>
+                    </div>
+                </div>
+                
                 <div class="space-y-6">
                     <!-- Record Information Summary -->
                     <div class="bg-gray-50 p-4 rounded-lg">
@@ -58,60 +75,89 @@
                         </div>
                     </div>
 
-                    <!-- CRED Evaluation Form -->
+                    
+
+                    <!-- CRED Questions Table -->
                     <div class="bg-white border border-gray-200 rounded-lg p-4">
-                        <h4 class="font-semibold text-gray-800 mb-4">CRED Evaluation Criteria</h4>
+                        <h4 class="font-semibold text-gray-800 mb-4">CRED Evaluation Questions</h4>
                         
-                        <!-- Evaluation Sections -->
-                        <div class="space-y-4">
-                            <!-- Reliability Score -->
-                            <div class="border-b border-gray-100 pb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Reliability Score
-                                </label>
-                                <select x-model="credEvaluationData.reliabilityScore" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500">
-                                    <option value="">Select reliability score</option>
-                                    <option value="1">1 - Reliable without restrictions</option>
-                                    <option value="2">2 - Reliable with restrictions</option>
-                                    <option value="3">3 - Not reliable</option>
-                                    <option value="4">4 - Not assignable</option>
-                                </select>
+                        <!-- Questions Table -->
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full border border-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="border border-gray-200 px-3 py-2 text-left text-sm font-medium text-gray-700 w-20">Number</th>
+                                        <th class="border border-gray-200 px-3 py-2 text-left text-sm font-medium text-gray-700">Question</th>
+                                        <th class="border border-gray-200 px-3 py-2 text-left text-sm font-medium text-gray-700 w-24">Screening Score</th>
+                                        <th class="border border-gray-200 px-3 py-2 text-left text-sm font-medium text-gray-700 w-20">Max Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white">
+                                    <!-- Main Questions and Sub-questions -->
+                                    <template x-for="question in credQuestions" :key="question.id">
+                                        <!-- Main Question Row - Spans all columns -->
+                                        <tr class="border-b border-gray-200 bg-blue-600 text-white">
+                                            <td colspan="4" class="px-3 py-3">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="font-semibold text-lg" x-text="question.question_number"></span>
+                                                        <span class="text-blue-100" x-text="question.question_text"></span>
+                                                    </div>
+                                                    <div class="flex items-center space-x-4 text-sm">
+                                                        <span>Screening: <span x-text="question.screening_score || '0.00'"></span></span>
+                                                        <span>Max: <span x-text="question.max_score || '0'"></span></span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Sub-questions -->
+                                        <template x-for="subQuestion in question.sub_questions" :key="subQuestion.id">
+                                            <tr class="border-b border-gray-100 bg-gray-25">
+                                                <td class="border border-gray-200 px-3 py-2 text-sm text-gray-700">
+                                                    <span class="font-medium text-gray-900" x-text="question.question_number + subQuestion.question_letter"></span>
+                                                </td>
+                                                <td class="border border-gray-200 px-3 py-2 text-sm text-gray-700" x-text="subQuestion.question_text"></td>
+                                                <td class="border border-gray-200 px-3 py-2 text-sm text-gray-600 text-center" x-text="subQuestion.screening_score || '0.00'"></td>
+                                                <td class="border border-gray-200 px-3 py-2 text-sm text-gray-600 text-center" x-text="subQuestion.max_score || '0'"></td>
+                                            </tr>
+                                        </template>
+                                        
+                                        <!-- Empty row for spacing if no sub-questions -->
+                                        <template x-if="!question.sub_questions || question.sub_questions.length === 0">
+                                            <tr class="border-b border-gray-100 bg-gray-25">
+                                                <td class="border border-gray-200 px-3 py-2 text-sm text-gray-700">
+                                                    <span class="font-medium text-gray-900" x-text="question.question_number + 'a'"></span>
+                                                </td>
+                                                <td class="border border-gray-200 px-3 py-2 text-sm text-gray-700 text-gray-500 italic">No sub-questions defined</td>
+                                                <td class="border border-gray-200 px-3 py-2 text-sm text-gray-600 text-center">-</td>
+                                                <td class="border border-gray-200 px-3 py-2 text-sm text-gray-600 text-center">-</td>
+                                            </tr>
+                                        </template>
+                                    </template>
+                                    
+                                    <!-- Loading State for Questions -->
+                                    <tr x-show="!credQuestions || credQuestions.length === 0">
+                                        <td colspan="4" class="border border-gray-200 px-3 py-8 text-center text-gray-500">
+                                            <div class="flex items-center justify-center space-x-2">
+                                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-600"></div>
+                                                <span>Loading CRED questions...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Total Score Summary -->
+                        <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium text-gray-700">Total Screening Score:</span>
+                                <span class="font-semibold text-lg text-gray-900" x-text="totalScreeningScore || '0.00'"></span>
                             </div>
-
-                            <!-- Use of Study -->
-                            <div class="border-b border-gray-100 pb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Use of Study
-                                </label>
-                                <select x-model="credEvaluationData.useOfStudy" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500">
-                                    <option value="">Select use of study</option>
-                                    <option value="key">Key study</option>
-                                    <option value="supporting">Supporting study</option>
-                                    <option value="not_used">Not used</option>
-                                </select>
-                            </div>
-
-                            <!-- Additional Comments -->
-                            <div class="border-b border-gray-100 pb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Additional Comments
-                                </label>
-                                <textarea 
-                                    x-model="credEvaluationData.comments" 
-                                    rows="3" 
-                                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
-                                    placeholder="Enter any additional comments or justification for the evaluation..."></textarea>
-                            </div>
-
-                            <!-- Evaluation Date -->
-                            <div class="border-b border-gray-100 pb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Evaluation Date
-                                </label>
-                                <input 
-                                    type="date" 
-                                    x-model="credEvaluationData.evaluationDate" 
-                                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                            <div class="flex justify-between items-center mt-1">
+                                <span class="font-medium text-gray-700">Total Max Score:</span>
+                                <span class="font-semibold text-lg text-gray-900" x-text="totalMaxScore || '0'"></span>
                             </div>
                         </div>
                     </div>

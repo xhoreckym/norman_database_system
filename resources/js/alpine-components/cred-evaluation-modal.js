@@ -3,6 +3,7 @@ export default function credEvaluationModal() {
       showCredEvaluationModal: false,
       credEvaluationRecord: null,
       credEvaluationRecordId: null,
+      credQuestions: [],
       credEvaluationData: {
           reliabilityScore: '',
           useOfStudy: '',
@@ -19,13 +20,46 @@ export default function credEvaluationModal() {
           this.credEvaluationData.evaluationDate = new Date().toISOString().split('T')[0];
       },
       
+      // Computed properties for total scores
+      get totalScreeningScore() {
+          if (!this.credQuestions || this.credQuestions.length === 0) return '0.00';
+          
+          let total = 0;
+          this.credQuestions.forEach(question => {
+              if (question.screening_score) total += parseFloat(question.screening_score);
+              question.sub_questions.forEach(subQuestion => {
+                  if (subQuestion.screening_score) total += parseFloat(subQuestion.screening_score);
+              });
+          });
+          return total.toFixed(2);
+      },
+      
+      get totalMaxScore() {
+          if (!this.credQuestions || this.credQuestions.length === 0) return '0';
+          
+          let total = 0;
+          this.credQuestions.forEach(question => {
+              if (question.max_score) total += parseFloat(question.max_score);
+              question.sub_questions.forEach(subQuestion => {
+                  if (subQuestion.max_score) total += parseFloat(subQuestion.max_score);
+              });
+          });
+          return total.toString();
+      },
+      
       async openModalCredEvaluation(recordId) {
           try {
-              console.log('Opening CRED evaluation modal for recordId:', recordId);
+              console.log('=== CRED Modal Opening ===');
+              console.log('Record ID:', recordId);
+              console.log('Modal state before:', this.showCredEvaluationModal);
+              
               this.credEvaluationRecordId = recordId;
               this.showCredEvaluationModal = true;
               this.credEvaluationRecord = null;
+              this.credQuestions = [];
               this.credEvaluationHistory = [];
+              
+              console.log('Modal state after:', this.showCredEvaluationModal);
               
               // Reset form data
               this.credEvaluationData = {
@@ -38,14 +72,36 @@ export default function credEvaluationModal() {
               // Fetch record data for CRED evaluation
               // Replace this URL with your Laravel route for CRED evaluation data
               const url = `/ecotox/credevaluation/data/${recordId}`;
+              console.log('Fetching from URL:', url);
+              
               const response = await fetch(url);
+              console.log('Response status:', response.status);
+              console.log('Response ok:', response.ok);
               
               if (!response.ok) {
                   throw new Error('Failed to fetch CRED evaluation data');
               }
               
-              this.credEvaluationRecord = await response.json();
+              const data = await response.json();
+              console.log('Raw response data:', data);
+              
+              this.credEvaluationRecord = data.record;
+              this.credQuestions = data.credQuestions || [];
+              
               console.log('CRED evaluation record data:', this.credEvaluationRecord);
+              console.log('CRED questions data:', this.credQuestions);
+              console.log('Total questions loaded:', this.credQuestions.length);
+              
+              if (this.credQuestions.length === 0) {
+                  console.warn('No CRED questions loaded from the server');
+              } else {
+                  console.log('Questions structure:', this.credQuestions.map(q => ({
+                      id: q.id,
+                      number: q.question_number,
+                      text: q.question_text?.substring(0, 50) + '...',
+                      sub_count: q.sub_questions?.length || 0
+                  })));
+              }
               
               // Load previous evaluation history if available
               await this.loadEvaluationHistory(recordId);
@@ -61,6 +117,7 @@ export default function credEvaluationModal() {
           this.showCredEvaluationModal = false;
           this.credEvaluationRecord = null;
           this.credEvaluationRecordId = null;
+          this.credQuestions = [];
           this.credEvaluationHistory = [];
           
           // Reset form data

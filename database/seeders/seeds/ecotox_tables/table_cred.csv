@@ -1,0 +1,102 @@
+cred_id,cca_number,tab_id,cred_main_question_number,cred_main_question,cred_sub_question_number,cred_sub_question,cred_question_running_number,question_running_number,weighting_factor
+1,1,30,1,"Is a guideline method (e.g., OECD/ISO) or modified guideline used?* ",1a,Is a standard method (e.g. OECD/ISO) or slightly modified standard used?,1,1,3
+2,1,31,0,"","","",1,0,0
+3,1,32,0,"","","",1,0,0
+4,1,33,0,"","","",1,0,0
+5,2,34,2,Is the test performed under GLP conditions?* ,2a,Is the test performed under GLP conditions?,2,2,3
+6,3,51,3,"If applicable, are validity criteria fulfilled (e.g. control survival, growth)?",3a,Was the mortality / biomass increase in the control group according to guidelines? ,3,3,10
+7,3,49,0,"","","",3,0,0
+8,3,138,0,"","","",3,0,0
+9,3,141,0,"","","",3,0,0
+10,3,45,0,"",3b,"If applicable, were growth and sex ratio of test animals, or the variation for the section-by-section growth rates, in the control groups according to guidelines? ",4,4,10
+11,3,47,0,"","","",4,0,0
+12,3,50,0,"",3c,"If applicable, was the reproductive success or the variation for the average specific growth rate among the replicates of the control goups according to guidelines? ",5,5,10
+13,4,51,4,"Are appropriate controls performed (e.g. solvent control, negative and positive control)?",4a,Was a negative control performed?,7,7,3
+14,4,77,0,"",4b,"Was a positive control performed, if required? Did it reach the expected effect?",8,8,3
+15,4,78,0,"","","",8,0,0
+16,4,79,0,"","","",8,0,0
+17,4,80,0,"",4c,"If a solvent was used, was a solvent control performed? Was it similar to the negative control?",9,9,3
+18,4,26,0,"","","",9,0,0
+19,4,81,0,"","","",9,0,0
+20,5,20,5,Is the test substance identified clearly with name or CAS-number? Are test results reported for the appropriate compound?,5a,Is the test substance identified clearly with name or CAS-number and are test results reported for the appropriate compound?,10,10,3
+21,5,21,0,"","","",10,0,0
+22,5,22,0,"","","",10,0,0
+23,5,28,0,"","","",10,0,0
+24,6,23,6,"Is the purity of the test substance reported? Or, is the source of the test substance trustworthy?  ",6a,Is the purity of the test substance reported and in an acceptable range (>95%)?,11,11,3
+25,6,24,0,"","","",0,0,0
+26,6,25,0,"",6b,Is the source of the test substance reported and trustworthy?  ,12,12,2
+27,7,125,7,If a formulation is used or if impurities are present: Do other ingredients in the formulation exert an effect? Is the amount of test substance in the formulation known?,7a,"If a formulation is used or if impurities are present, can it be excluded that other ingredients in the formulation or impurities exert an effect? ",13,13,3
+28,7,126,0,"","","",13,0,0
+29,7,29,0,"",7b,Is the amount of test substance in the formulation indicated?,14,14,3
+30,8,42,8,"Are the organisms well described (e.g. scientific name, weight, length, growth, age/life stage, strain/clone, gender if appropriate)?",8a,Is the test species clearly identified?,15,15,3
+31,8,43,0,"","","",15,0,0
+32,8,44,0,"","","",15,0,0
+33,8,49,0,"",8b,For algae: is mean cell density at the test start within the appropriate range? For other test organisms: Is mean body weight/length of the test organism in the appropriate range?,16,16,2
+34,8,45,0,"","","",16,0,0
+35,8,47,0,"","","",16,0,0
+36,8,52,0,"","","",16,0,0
+37,8,53,0,"",8c,"Is age/life stage of the organisms at test start reported and in the required range, where appropriate (e.g. not for algae)?",17,17,2
+38,8,55,0,"","","",17,0,0
+39,8,56,0,"",8d,Is sex of the test organisms reported (e.g.  when evaluating sexual-endocrine effects)?,18,18,2
+40,8,57,0,"",8e,Is the species strain reported where required?,19,19,1
+41,9,58,9,Are the test organisms from a trustworthy source and acclimatized to test conditions? Have the organisms not been pre-exposed to test compound or other unintended stressors?,9a,Are the test organisms from a reliable source? For field collected organisms: is the site of origin well-described?,20,20,2
+42,9,60,0,"",9b,"Have the organisms been acclimatized to test conditions (e.g. water type, temperature) before the start of exposure?",21,21,2
+43,9,59,0,"",9c,Are the test organisms exempt from previous exposure or any other kind of stressor?,22,22,2
+44,10,71,10,"Is the experimental system appropriate for the test substance, taking into account its physico-chemical characteristics and respective validity criteria?",10a,"Does the experimental system consider the stability of the substance , i.e. were semi-static or flow-through tests used for unstable substances or for long term studies?",23,23,3
+45,10,109,0,"",10b,"Does the experimental system consider the potential volatility of the substance, i.e. were closed test vessels used for volatile substances?",24,24,3
+46,10,107,0,"",10c,"Does the experimental system consider the lipophilicity of the substance, i.e. no plastic vessels were used for highly lipophilic substances?",25,25,5
+47,10,85,0,"",10d,"Does the experimental system consider whether the substance is ionizable, i.e. the pH-range with the highest log D value was tested?",26,26,5
+48,10,84,0,"","","",26,0,0
+49,11,82,11,"Is the experimental system appropriate for the test organism (e.g., choice of medium or test water, feeding, water characteristics, temperature, light/dark conditions, pH, oxygen content), considering respective validity criteria? Have conditions been stable during the test?",11a,"Does the experimental system consider the general test requirements of the test species (e.g., choice of medium or test water, feeding, water characteristics, light/dark conditions and pH)?",27,27,3
+50,11,111,0,"","","",27,0,0
+51,11,113,0,"","","",27,0,0
+52,11,114,0,"","","",27,0,0
+53,11,90,0,"","","",27,0,0
+54,11,92,0,"","","",27,0,0
+55,11,93,0,"","","",27,0,0
+56,11,88,0,"","","",27,0,0
+57,11,94,0,"","","",27,0,0
+58,11,96,0,"","","",27,0,0
+59,11,98,0,"","","",27,0,0
+60,11,100,0,"","","",27,0,0
+61,11,102,0,"","","",27,0,0
+62,11,106,0,"","","",27,0,0
+63,11,112,0,"","","",27,0,0
+64,11,104,0,"",11b,Was the oxygen content in all test vessels above 60% at all times?,28,28,5
+65,11,110,0,"","","",28,0,0
+66,11,86,0,"",11c,"If applicable, was the temperature maintained within a range of 2°C of the temperature range specified for the test species and did it not differ by more than ± 1.5 °C between the test vessels at any one time during the exposure period?",29,29,5
+67,12,64,12,"Were exposure concentrations below the limit of water solubility (taking the use of a solvent into account)? If a solvent is used, is the solvent within the appropriate range and is a solvent control included?",12a,Were exposure concentrations below the limit of water solubility?,30,30,3
+68,12,27,0,"",12b,"If a solvent was used, was solvent concentration within the appropriate range (i.e. not higher than 0.01%)?",31,31,3
+69,13,65,13,Is a correct spacing between exposure concentrations applied?,13a,Is a correct spacing between exposure concentrations applied?,32,32,2
+70,13,61,0,"","","",0,0,0
+71,14,38,14,Is the exposure duration defined?,14a,Is the exposure duration defined?,33,33,3
+72,14,72,0,"","","",33,0,0
+73,14,40,0,"","","",33,0,0
+74,14,74,0,"","","",33,0,0
+75,15,62,15,Are chemical analyses adequate to verify concentrations of the test substance over the duration of the study? ,15a,Have chemical analyses been performed to verify substance concentrations over the duration of the study? ,34,34,20
+76,15,63,0,"","","",34,0,0
+77,15,66,0,"","","",34,0,0
+78,15,67,0,"","","",34,0,0
+79,15,68,0,"","","",34,0,0
+80,15,69,0,"","","",34,0,0
+81,15,70,0,"","","",34,0,0
+82,16,108,16,Is the biomass loading of the organisms in the test system within the appropriate range (e.g. < 1 g/L)?,16a,Is the biomass loading of the organisms in the test system within an appropriate range?,35,35,3
+83,16,115,0,"","","",35,0,0
+84,16,49,0,"","","",35,0,0
+85,16,47,0,"","","",35,0,0
+86,17,116,17,Is a sufficient number of replicates used? Is a sufficient number of organisms per replicate used for all controls and test concentrations?,17a,Is a sufficient number of replicates used for all controls and treatments? ,36,36,3
+87,17,115,0,"",17b,Is a sufficient number of organisms per replicate used for all controls and test concentrations?,37,37,3
+88,18,117,18,Are appropriate statistical methods used?,18a,Are appropriate statistical methods used to derive the effect concentrations?,38,38,3
+89,18,118,0,"","","",38,0,0
+90,19,129,19,Is a concentration-response curve observed? Is the response statistically significant?,19a,Is a concentration-response curve observed?,39,39,3
+91,19,130,0,"","","",39,0,0
+92,19,127,0,"","","",39,0,0
+93,19,119,0,"",19b,Is the observed effect statistically significant?,40,40,3
+94,19,120,0,"","","",40,0,0
+95,19,37,0,"","","",40,0,0
+96,19,121,0,"","","",40,0,0
+97,19,122,0,"","","",40,0,0
+98,19,124,0,"","","",40,0,0
+99,19,133,0,"","","",40,0,0
+100,20,131,20,"Are sufficient data available to check the calculation of endpoints and (if applicable)  validity criteria (e.g., control data, concentration-response curves)?",20a,"Are sufficient data available to check the calculation of endpoints and (if applicable) fulfilment of the validity criteria (e.g. control data, concentration-response curves)?",41,41,3
+101,20,132,0,"","","",41,0,0
