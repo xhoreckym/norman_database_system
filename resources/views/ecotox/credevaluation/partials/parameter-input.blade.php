@@ -2,7 +2,16 @@
     $inputType = $parameter->ecotoxConfig->input_type ?? 'text';
     $columnName = $parameter->ecotoxConfig->column_name ?? '';
     $parameterId = $parameter->id;
-    $parameterValue = $parameterValues[$parameterId] ?? '';
+    
+    // Handle new parameterValues structure
+    if (isset($parameterValues[$parameterId]) && is_array($parameterValues[$parameterId])) {
+        $parameterValue = $parameterValues[$parameterId]['value'] ?? '';
+        $hasChanges = $parameterValues[$parameterId]['hasChanges'] ?? false;
+    } else {
+        // Fallback for old structure
+        $parameterValue = $parameterValues[$parameterId] ?? '';
+        $hasChanges = false;
+    }
 @endphp
 
 @switch($inputType)

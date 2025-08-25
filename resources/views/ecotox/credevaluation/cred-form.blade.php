@@ -1,5 +1,44 @@
 <x-app-layout>
-  <div class="container mx-auto px-4 py-8">
+  <div class="container mx-auto px-4 py-8" 
+       x-data="{
+         showChangesModal: false,
+         selectedEcotoxId: null,
+         selectedColumnName: '',
+         changesData: null,
+         
+         openChangesModal(ecotoxId, columnName) {
+           console.log('Opening modal for:', ecotoxId, columnName);
+           this.selectedEcotoxId = ecotoxId;
+           this.selectedColumnName = columnName;
+           this.showChangesModal = true;
+           this.changesData = null;
+           this.loadChangesData(ecotoxId, columnName);
+         },
+         
+         closeChangesModal() {
+           this.showChangesModal = false;
+           this.selectedEcotoxId = null;
+           this.selectedColumnName = '';
+           this.changesData = null;
+         },
+         
+         async loadChangesData(ecotoxId, columnName) {
+           console.log('Loading changes data for:', ecotoxId, columnName);
+           try {
+             const url = `/ecotox/credevaluation/changes/${ecotoxId}/${encodeURIComponent(columnName)}`;
+             console.log('Fetching from URL:', url);
+             const response = await fetch(url);
+             if (!response.ok) {
+               throw new Error('Failed to fetch changes data');
+             }
+             this.changesData = await response.json();
+             console.log('Changes data loaded:', this.changesData);
+           } catch (error) {
+             console.error('Error loading changes data:', error);
+             this.changesData = [];
+           }
+         }
+       }">
     <!-- Breadcrumb Navigation -->
     <nav class="mb-6">
       <ol class="flex items-center space-x-2 text-sm text-gray-500">
@@ -151,6 +190,10 @@
               class="px-1 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-32 border border-gray-300">
               Evaluation
             </th>
+            <th
+              class="px-1 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-20 border border-gray-300">
+              Edit
+            </th>
           </tr>
         </thead>
         <tbody class="bg-white">
@@ -186,6 +229,9 @@
                     <option value="5">fulfilled</option>
                   </select>
                 </td>
+                <td class="px-1 py-2 text-center border border-gray-300">
+                  -
+                </td>
               </tr>
 
               <!-- Sub Questions -->
@@ -193,7 +239,13 @@
                 @foreach ($question->subQuestions as $subQuestion)
                   @if ($subQuestion->parameters && $subQuestion->parameters->count() > 0)
                     @foreach ($subQuestion->parameters as $index => $parameter)
-                      <tr class="bg-white border border-gray-300">
+                      @php
+                        $hasChanges = false;
+                        if (isset($parameterValues[$parameter->id]) && is_array($parameterValues[$parameter->id])) {
+                            $hasChanges = $parameterValues[$parameter->id]['hasChanges'] ?? false;
+                        }
+                      @endphp
+                      <tr class="{{ $hasChanges ? 'bg-rose-300' : 'bg-white' }} border border-gray-300">
                         @if ($index === 0)
                           <!-- First parameter row - show sub-question info with rowspan -->
                           <td class="px-1 py-2 text-sm  text-center text-gray-700 border border-gray-300"
@@ -238,6 +290,19 @@
                               <option value="4">partially fulfilled</option>
                               <option value="5">fulfilled</option>
                             </select>
+                          </td>
+                          <td class="px-1 py-2 text-sm text-center text-gray-700 border border-gray-300"
+                            rowspan="{{ $subQuestion->parameters->count() }}">
+                            @if (isset($parameterValues[$subQuestion->parameters->first()->id]['hasChanges']) && $parameterValues[$subQuestion->parameters->first()->id]['hasChanges'])
+                              <button 
+                                @click="openChangesModal('{{ $recordId }}', '{{ $parameterValues[$subQuestion->parameters->first()->id]['columnName'] }}')"
+                                class="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full hover:bg-green-200 cursor-pointer transition-colors">
+                                <i class="fas fa-edit mr-1"></i>
+                                Edited
+                              </button>
+                            @else
+                              <span class="text-gray-400">-</span>
+                            @endif
                           </td>
                         @else
                           <!-- Subsequent parameter rows - only show parameter label and value input -->
@@ -290,6 +355,9 @@
                           <option value="5">fulfilled</option>
                         </select>
                       </td>
+                      <td class="px-1 py-2 text-sm text-center text-gray-300 border border-gray-300">
+                        -
+                      </td>
                     </tr>
                   @endif
                 @endforeach
@@ -297,7 +365,7 @@
             @endforeach
           @else
             <tr>
-              <td colspan="9" class="px-1 py-2 text-sm text-gray-500 text-center">
+              <td colspan="10" class="px-1 py-2 text-sm text-gray-500 text-center">
                 No CRED questions available
               </td>
             </tr>
@@ -378,6 +446,86 @@
         </div>
       </div>
     @endif --}}
+  </div>
+
+  <!-- Changes Modal -->
+  <div x-show="showChangesModal" 
+       x-cloak 
+       @keydown.escape.window="closeChangesModal()"
+       class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+
+    <div class="bg-white w-11/12 md:w-3/4 lg:w-3/4 xl:w-2/3 rounded shadow-lg relative">
+
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center border-b px-4 py-2 bg-lime-600 text-white">
+        <div class="flex items-center space-x-4">
+          <h3 class="text-lg font-semibold">
+            Changes History
+          </h3>
+        </div>
+        <button @click="closeChangesModal()" class="text-white hover:text-gray-200 text-xl">
+          &times;
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="p-4 max-h-[70vh] overflow-y-auto">
+        <!-- Loading State -->
+        <div x-show="!changesData && showChangesModal" class="text-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-600 mx-auto"></div>
+          <p class="mt-2 text-gray-600">Loading changes data...</p>
+        </div>
+
+        <!-- Changes Content -->
+        <div x-show="changesData" x-transition>
+          <div class="text-sm py-2 px-2">
+            For column: <span x-text="selectedColumnName" class="font-mono"></span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full border border-gray-300 text-sm">
+              <thead>
+                <tr class="bg-gray-100">
+                  <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                    Date
+                  </th>
+                  <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                    User
+                  </th>
+                  <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                    Old Value
+                  </th>
+                  <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                    New Value
+                  </th>
+                  <th class="border border-gray-300 px-3 py-2 text-left font-semibold text-gray-700">
+                    Change Type
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="change in changesData" :key="change.id">
+                  <tr class="border-b border-gray-200">
+                    <td class="border border-gray-300 px-3 py-2" x-text="change.change_date"></td>
+                    <td class="border border-gray-300 px-3 py-2" x-text="change.user_name || 'Unknown'"></td>
+                    <td class="border border-gray-300 px-3 py-2" x-text="change.change_old || 'N/A'"></td>
+                    <td class="border border-gray-300 px-3 py-2" x-text="change.change_new || 'N/A'"></td>
+                    <td class="border border-gray-300 px-3 py-2" x-text="change.change_type || 'N/A'"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex justify-between border-t px-4 py-2">
+        <button @click="closeChangesModal()" 
+                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+          Close
+        </button>
+      </div>
+    </div>
   </div>
 
   <script>
