@@ -19,9 +19,13 @@ import './bootstrap';
 // Import the ecotox modal component
 import './alpine-components/ecotox-modal.js';
 
+// Import the CRED evaluation modal component
+import './alpine-components/cred-evaluation-modal.js';
+
 // Register the component with Alpine (which is already available from Livewire)
 document.addEventListener('DOMContentLoaded', () => {
     if (window.Alpine) {
         Alpine.data('ecotoxModal', window.ecotoxModal);
+        Alpine.data('credEvaluationModal', window.credEvaluationModal);
     }
 });

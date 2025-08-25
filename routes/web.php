@@ -228,6 +228,11 @@ Route::prefix('ecotox')->group(function () {
         Route::get('search/filter/', [EcotoxCREDEvaluationController::class, 'filter'])->name('ecotox.credevaluation.search.filter');
         Route::get('search/search/', [EcotoxCREDEvaluationController::class, 'search'])->name('ecotox.credevaluation.search.search');
         Route::get('countAll', [EcotoxCREDEvaluationController::class, 'countAll'])->middleware('auth')->name('ecotox.credevaluation.countAll');
+        
+        // CRED Evaluation Modal Routes
+        Route::get('data/{recordId}', [EcotoxCREDEvaluationController::class, 'getModalData'])->name('ecotox.credevaluation.modal.data');
+        Route::get('history/{recordId}', [EcotoxCREDEvaluationController::class, 'getEvaluationHistory'])->name('ecotox.credevaluation.modal.history');
+        Route::post('save', [EcotoxCREDEvaluationController::class, 'saveEvaluation'])->name('ecotox.credevaluation.modal.save');
     });
     
 });
