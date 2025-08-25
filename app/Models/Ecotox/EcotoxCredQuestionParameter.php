@@ -15,7 +15,7 @@ class EcotoxCredQuestionParameter extends Model
      *
      * @var string
      */
-    protected $table = 'cred_question_parameters';
+    protected $table = 'ecotox_cred_question_parameters';
 
     /**
      * The attributes that are mass assignable.
