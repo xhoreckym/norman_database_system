@@ -19,4 +19,12 @@ class EcotoxComparativeTableConfig extends Model
         'description',
         'order',
     ];
+
+    /**
+     * Get the input values for this config (for dropdowns)
+     */
+    public function inputValues()
+    {
+        return $this->hasMany(EcotoxComparativeTableInputValues::class, 'column_id', 'column_id');
+    }
 }
