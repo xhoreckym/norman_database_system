@@ -292,13 +292,21 @@ class EcotoxCREDEvaluationController extends Controller
     /**
      * Show the CRED evaluation form with questions table
      */
-    public function showForm($recordId = null, Request $request)
+    public function showForm($recordId = null, Request $request = null)
     {
         try {
-            // Fetch CRED questions with their sub-questions
-            $credQuestions = EcotoxCredQuestion::with(['subQuestions' => function($query) {
-                $query->orderBy('sort_order');
-            }])
+            // Fetch CRED questions with their sub-questions and parameters
+            $credQuestions = EcotoxCredQuestion::with([
+                'subQuestions' => function($query) {
+                    $query->orderBy('sort_order');
+                },
+                'subQuestions.parameters.ecotoxConfig' => function($query) {
+                    $query->orderBy('order');
+                },
+                'subQuestions.parameters.ecotoxConfig.inputValues' => function($query) {
+                    $query->orderBy('input_value');
+                }
+            ])
             ->whereNull('parent_id')
             ->orderBy('sort_order')
             ->get();
@@ -323,16 +331,16 @@ class EcotoxCREDEvaluationController extends Controller
                     return redirect()->back()->with('error', 'Record not found.');
                 }
                 
-                // Get substances from query parameters if available
-                if ($request->has('substances')) {
-                    $substanceIds = json_decode($request->substances, true);
-                    if (is_array($substanceIds)) {
-                        $substances = Substance::whereIn('id', $substanceIds)->get();
-                    }
+                            // Get substances from query parameters if available
+            if ($request && $request->has('substances')) {
+                $substanceIds = json_decode($request->substances, true);
+                if (is_array($substanceIds)) {
+                    $substances = Substance::whereIn('id', $substanceIds)->get();
                 }
-                
-                // Get return URL if available
-                $returnUrl = $request->get('returnUrl');
+            }
+            
+            // Get return URL if available
+            $returnUrl = $request ? $request->get('returnUrl') : null;
                 
             }
             

@@ -57,7 +57,7 @@ class EcotoxCredQuestion extends Model
      */
     public function subQuestions()
     {
-        return $this->hasMany(EcotoxCredQuestion::class, 'parent_id')->orderBy('sort_order');
+        return $this->hasMany(EcotoxCredQuestion::class, 'parent_id');
     }
 
     /**
@@ -65,7 +65,7 @@ class EcotoxCredQuestion extends Model
      */
     public function parameters()
     {
-        return $this->hasMany(EcotoxCredQuestionParameter::class, 'question_id')->orderBy('sort_order');
+        return $this->hasMany(EcotoxCredQuestionParameter::class, 'question_id');
     }
 
     /**
