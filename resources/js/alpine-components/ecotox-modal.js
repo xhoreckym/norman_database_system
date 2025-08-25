@@ -79,7 +79,7 @@ export default function ecotoxModal() {
               this.tableRows = [];
               
               // Replace this URL with your Laravel route
-              const url = `/ecotox/show/${recordId}`;
+              const url = `/ecotox/data/show/${recordId}`;
               const response = await fetch(url);
               
               if (!response.ok) {

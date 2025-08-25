@@ -6,8 +6,13 @@
   Home
 </x-nav-link-header>
 
-<x-nav-link-header :href="route('ecotox.search.filter')" :active="request()->is('*search*')">
+
+<x-nav-link-header :href="route('ecotox.data.search.filter')" :active="request()->is('*data*')">
   Search Data
+</x-nav-link-header>
+
+<x-nav-link-header :href="route('ecotox.credevaluation.search.filter')" :active="request()->is('ecotox/credevaluation*')">
+  CRED Evaluation
 </x-nav-link-header>
 
 <x-nav-link-header :href="route('templates.specific.index', ['code' => 'ecotox'])" :active="request()->is('backend/templates/entity/ecotox*')">
@@ -17,6 +22,7 @@
 <x-nav-link-header :href="route('ecotox.lowestpnec.index')" :active="request()->is('ecotox/lowestpnec*')">
   Lowest PNEC
 </x-nav-link-header>
+
 
 @role('super_admin')
 <x-nav-link-header :href="route('querylog.index', ['module' => 'ecotox'])" :active="request()->is('*querylog*')">

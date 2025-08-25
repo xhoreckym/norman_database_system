@@ -27,6 +27,8 @@ use App\Http\Controllers\Susdat\SubstanceController;
 use App\Http\Controllers\Bioassay\BioassayController;
 use App\Http\Controllers\DatabaseDirectoryController;
 use App\Http\Controllers\Ecotox\EcotoxHomeController;
+use App\Http\Controllers\Ecotox\EcotoxCREDEvaluationController;
+use App\Http\Controllers\Ecotox\EcotoxCREDEvaluationHomeController;
 use App\Http\Controllers\Ecotox\LowestPNECController;
 use App\Http\Controllers\Indoor\IndoorHomeController;
 use App\Http\Controllers\Empodat\EmpodatHomeController;
@@ -209,14 +211,24 @@ Route::prefix('ecotox')->group(function () {
         Route::get('countAll', [LowestPNECController::class, 'countAll'])->middleware('auth')->name('ecotox.lowestpnec.countAll');
     });
     
-    
-    Route::get('search/filter/', [EcotoxController::class, 'filter'])->name('ecotox.search.filter');
-    Route::get('search/search/', [EcotoxController::class, 'search'])->name('ecotox.search.search');
-    Route::get('show/{id}', [EcotoxController::class, 'show'])->name('ecotox.show');
+    Route::prefix('data')->group(function () {
+        Route::get('search/filter/', [EcotoxController::class, 'filter'])->name('ecotox.data.search.filter');
+        Route::get('search/search/', [EcotoxController::class, 'search'])->name('ecotox.data.search.search');
+        Route::get('show/{id}', [EcotoxController::class, 'show'])->name('ecotox.data.show');
+    });
+
+
     Route::get('e/countAll', [EcotoxController::class, 'countAll'])->middleware('auth')->name('ecotox.ecotox.countAll');
     Route::get('ee/countAll', [EcotoxHomeController::class, 'countAll'])->middleware('auth')->name('ecotox.countAll');
-    
     Route::get('unique/search/substances', [EcotoxHomeController::class, 'syncNewSubstances'])->name('ecotox.unique.search.substances');
+    
+    // CRED Evaluation routes
+    Route::prefix('credevaluation')->group(function () {
+        Route::resource('home', EcotoxCREDEvaluationHomeController::class)->only(['index'])->names(['index' => 'ecotox.credevaluation.home.index']);
+        Route::get('search/filter/', [EcotoxCREDEvaluationController::class, 'filter'])->name('ecotox.credevaluation.search.filter');
+        Route::get('search/search/', [EcotoxCREDEvaluationController::class, 'search'])->name('ecotox.credevaluation.search.search');
+        Route::get('countAll', [EcotoxCREDEvaluationController::class, 'countAll'])->middleware('auth')->name('ecotox.credevaluation.countAll');
+    });
     
 });
 
