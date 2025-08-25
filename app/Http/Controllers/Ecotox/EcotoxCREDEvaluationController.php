@@ -13,6 +13,8 @@ use App\Models\Ecotox\EcotoxHarmonised;
 use App\Models\Ecotox\EcotoxComparativeTableConfig;
 use App\Models\Ecotox\EcotoxComparativeTableInputValues;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use App\Models\Ecotox\EcotoxCredQuestion;
 
 class EcotoxCREDEvaluationController extends Controller
 {
@@ -188,9 +190,51 @@ class EcotoxCREDEvaluationController extends Controller
                 return response()->json(['error' => 'Record not found'], 404);
             }
             
-            return response()->json($record);
+            // Fetch CRED questions with their sub-questions
+            $credQuestions = EcotoxCredQuestion::with(['subQuestions' => function($query) {
+                $query->orderBy('sort_order');
+            }])
+            ->whereNull('parent_id')
+            ->orderBy('sort_order')
+            ->get();
+            
+            // Debug logging
+            \Log::info('CRED Questions Query Result', [
+                'total_questions' => $credQuestions->count(),
+                'questions' => $credQuestions->toArray()
+            ]);
+            
+            $credQuestions = $credQuestions->map(function($question) {
+                return [
+                    'id' => $question->id,
+                    'question_number' => $question->question_number,
+                    'question_text' => $question->question_text,
+                    'max_score' => $question->max_score,
+                    'screening_score' => $question->screening_score,
+                    'sort_order' => $question->sort_order,
+                    'sub_questions' => $question->subQuestions->map(function($subQuestion) {
+                        return [
+                            'id' => $subQuestion->id,
+                            'question_letter' => $subQuestion->question_letter,
+                            'question_text' => $subQuestion->question_text,
+                            'max_score' => $subQuestion->max_score,
+                            'screening_score' => $subQuestion->screening_score,
+                            'sort_order' => $subQuestion->sort_order,
+                        ];
+                    })
+                ];
+            });
+            
+            return response()->json([
+                'record' => $record,
+                'credQuestions' => $credQuestions
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to fetch record data'], 500);
+            \Log::error('Error in getModalData', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Failed to fetch record data: ' . $e->getMessage()], 500);
         }
     }
     

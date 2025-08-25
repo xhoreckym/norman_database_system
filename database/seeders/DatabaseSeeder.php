@@ -149,6 +149,7 @@ class DatabaseSeeder extends Seeder
 
             // Ecotox
             
+            EcotoxCredQuestionSeeder::class,
             EcotoxLowestPNECSeeder::class,
             EcotoxLowestPNECMainSeeder::class,
             EcotoxPNEC3Seeder::class,

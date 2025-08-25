@@ -23,7 +23,7 @@ return new class extends Migration
             $table->timestamps();
             
             // Foreign key to self for parent-child relationship
-            $table->foreign('parent_id')->references('id')->on('cred_questions')->onDelete('cascade');
+            $table->foreign('parent_id')->references('id')->on('ecotox_cred_questions')->onDelete('cascade');
             
             // Indexes for better performance
             $table->index('parent_id');

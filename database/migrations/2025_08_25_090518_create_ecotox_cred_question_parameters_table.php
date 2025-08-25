@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamps();
             
             // Foreign keys
-            $table->foreign('question_id')->references('id')->on('cred_questions')->onDelete('cascade');
+            $table->foreign('question_id')->references('id')->on('ecotox_cred_questions')->onDelete('cascade');
             $table->foreign('ecotox_config_id')->references('id')->on('ecotox_comparative_table_configs')->onDelete('cascade');
             
             // Indexes for better performance
