@@ -43,9 +43,9 @@
               @endif
             </h1>
             @if ($recordId)
-              <p class="text-gray-600">Evaluating Record ID: {{ $recordId }}</p>
+              <p class="text-gray-700">Evaluating Record ID: {{ $recordId }}</p>
             @else
-              <p class="text-gray-600">This is a demonstration of the CRED evaluation form. You can test the scoring
+              <p class="text-gray-700">This is a demonstration of the CRED evaluation form. You can test the scoring
                 system and see how questions are organized.</p>
             @endif
           </div>
@@ -115,25 +115,39 @@
     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
       <div class="px-1 py-2 bg-gray-50 border-b border-gray-200">
         <h2 class="text-lg font-semibold text-gray-900">CRED Evaluation Questions</h2>
-        <p class="text-sm text-gray-600 mt-1">Rate each question based on the quality and reliability of the data</p>
+        <p class="text-sm text-gray-700 mt-1">Rate each question based on the quality and reliability of the data</p>
       </div>
 
       <table class="w-full border border-gray-300">
         <thead class="bg-gray-100">
           <tr>
-            <th class="px-1 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-20 border border-gray-300" colspan="2">Question
+            <th
+              class="px-1 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-20 border border-gray-300"
+              colspan="2">Question
             </th>
-            <th class="px-1 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-32 border border-gray-300">Parameters
+            <th
+              class="px-1 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-32 border border-gray-300">
+              Parameters
             </th>
-            <th class="px-1 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-48 border border-gray-300">Value
+            <th
+              class="px-1 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-48 border border-gray-300">
+              Value
             </th>
-            <th class="px-1 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-24 border border-gray-300">Screening
+            <th
+              class="px-1 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-24 border border-gray-300">
+              Screening
               Score</th>
-            <th class="px-1 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-24 border border-gray-300">Max Score
+            <th
+              class="px-1 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider w-24 border border-gray-300">
+              Max Score
             </th>
-            <th class="px-1 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-40 border border-gray-300">Comment
+            <th
+              class="px-1 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-40 border border-gray-300">
+              Comment
             </th>
-            <th class="px-1 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-32 border border-gray-300">Evaluation
+            <th
+              class="px-1 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-32 border border-gray-300">
+              Evaluation
             </th>
           </tr>
         </thead>
@@ -142,7 +156,7 @@
             @foreach ($credQuestions as $question)
               <!-- Main Question -->
               <tr class="bg-gray-100 border border-gray-300">
-                <td class="px-1 py-2 text-sm font-semibold text-black border border-gray-300">
+                <td class="px-1 py-2 text-sm font-semibold text-center text-black border border-gray-300">
                   {{ $question->question_number }}.
                 </td>
                 <td class="px-1 py-2 text-sm font-medium text-gray-900 border border-gray-300" colspan="3">
@@ -155,12 +169,14 @@
                   {{ $question->max_score ?? '-' }}
                 </td>
                 <td class="px-1 py-2 text-center border border-gray-300">
-                  <textarea name="comment_{{ $question->id }}" rows="3" 
-                            class="w-full px-1 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
-                            placeholder="Add comment for main question..."></textarea>
+                  <textarea name="comment_{{ $question->id }}" rows="3"
+                    class="w-full px-1 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                    placeholder="Add comment for main question..."></textarea>
                 </td>
                 <td class="px-1 py-2 text-center border border-gray-300">
-                  <select class="w-full px-1 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500" name="evaluation_{{ $question->id }}" id="evaluation{{ $question->id }}">
+                  <select
+                    class="w-full px-1 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                    name="evaluation_{{ $question->id }}" id="evaluation{{ $question->id }}">
                     <option value="1">not reported</option>
                     <option value="2">not applicable</option>
                     <option value="3">not fulfilled</option>
@@ -178,20 +194,21 @@
                       <tr class="bg-white border border-gray-300">
                         @if ($index === 0)
                           <!-- First parameter row - show sub-question info with rowspan -->
-                          <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300"
+                          <td class="px-1 py-2 text-sm  text-center text-gray-700 border border-gray-300"
                             rowspan="{{ $subQuestion->parameters->count() }}">
                             {{ $subQuestion->question_letter }}
                           </td>
-                          <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300"
+                          <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300"
                             rowspan="{{ $subQuestion->parameters->count() }}">
                             {{ $subQuestion->question_text }}
                           </td>
-                          <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300">
+                          <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300">
                             {{ $parameter->parameter_label }}
                           </td>
-                          <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300">
+                          <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300">
                             @include('ecotox.credevaluation.partials.parameter-input', [
                                 'parameter' => $parameter,
+                                'parameterValues' => $parameterValues,
                             ])
                           </td>
                           <td class="px-1 py-2 text-sm text-center text-gray-700 border border-gray-300"
@@ -202,16 +219,17 @@
                             rowspan="{{ $subQuestion->parameters->count() }}">
                             -
                           </td>
-                          <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300"
+                          <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300"
                             rowspan="{{ $subQuestion->parameters->count() }}">
                             <textarea name="comment_{{ $subQuestion->id }}" rows="3"
                               class="w-full px-1 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
                               placeholder="Add comment..."></textarea>
                           </td>
-                          <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300"
+                          <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300"
                             rowspan="{{ $subQuestion->parameters->count() }}">
-                            <select class="w-full px-1 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500" name="evaluation_{{ $subQuestion->id }}"
-                              id="evaluation{{ $subQuestion->id }}">
+                            <select
+                              class="w-full px-1 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                              name="evaluation_{{ $subQuestion->id }}" id="evaluation{{ $subQuestion->id }}">
                               <option value="1">not reported</option>
                               <option value="2">not applicable</option>
                               <option value="3">not fulfilled</option>
@@ -221,12 +239,13 @@
                           </td>
                         @else
                           <!-- Subsequent parameter rows - only show parameter label and value input -->
-                          <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300">
+                          <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300">
                             {{ $parameter->parameter_label }}
                           </td>
-                          <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300">
+                          <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300">
                             @include('ecotox.credevaluation.partials.parameter-input', [
                                 'parameter' => $parameter,
+                                'parameterValues' => $parameterValues,
                             ])
                           </td>
                         @endif
@@ -235,16 +254,16 @@
                   @else
                     <!-- Sub-question with no parameters -->
                     <tr class="bg-white border border-gray-300">
-                      <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300">
+                      <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300">
                         {{ $subQuestion->question_letter }}
                       </td>
-                      <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300">
+                      <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300">
                         {{ $subQuestion->question_text }}
                       </td>
-                      <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300">
+                      <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300">
                         <span class="text-gray-400 text-xs">No parameters</span>
                       </td>
-                      <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300">
+                      <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300">
                         <!-- No value input for questions without parameters -->
                       </td>
                       <td class="px-1 py-2 text-sm text-center text-gray-700 border border-gray-300">
@@ -253,14 +272,15 @@
                       <td class="px-1 py-2 text-sm text-center text-gray-500 border border-gray-300">
                         -
                       </td>
-                      <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300">
+                      <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300">
                         <textarea name="comment_{{ $subQuestion->id }}" rows="3"
                           class="w-full px-1 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
                           placeholder="Add comment..."></textarea>
                       </td>
-                      <td class="px-1 py-2 text-sm text-gray-600 border border-gray-300">
-                        <select class="w-full px-1 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500" name="evaluation_{{ $subQuestion->id }}"
-                          id="evaluation{{ $subQuestion->id }}">
+                      <td class="px-1 py-2 text-sm text-gray-700 border border-gray-300">
+                        <select
+                          class="w-full px-1 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                          name="evaluation_{{ $subQuestion->id }}" id="evaluation{{ $subQuestion->id }}">
                           <option value="1">not reported</option>
                           <option value="2">not applicable</option>
                           <option value="3">not fulfilled</option>
@@ -324,7 +344,7 @@
           <h3 class="text-sm font-medium text-gray-800 mb-2">Score Quality Assessment</h3>
           <div class="flex items-center space-x-2">
             <div class="w-4 h-4 rounded-full" id="quality-indicator"></div>
-            <span class="text-sm text-gray-600" id="quality-text">Enter scores to see quality assessment</span>
+            <span class="text-sm text-gray-700" id="quality-text">Enter scores to see quality assessment</span>
           </div>
         </div>
       </div>

@@ -34,6 +34,7 @@ use Database\Seeders\Migrators\SuspectListExchangeMigrator;
 use Database\Seeders\QualityEmpodatAnalyticalMethodsSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Database\Seeders\SusdatSusdatCategoryJoinSeeder;
+use Database\Seeders\EcotoxMain3ChangeSeeder;
 use Illuminate\Database\Seeder;
 
 
@@ -153,6 +154,7 @@ class DatabaseSeeder extends Seeder
             EcotoxLowestPNECSeeder::class,
             EcotoxLowestPNECMainSeeder::class,
             EcotoxPNEC3Seeder::class,
+            EcotoxMain3ChangeSeeder::class,
             
         ]);
     }

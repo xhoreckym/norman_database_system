@@ -321,6 +321,7 @@ class EcotoxCREDEvaluationController extends Controller
             $record = null;
             $substances = [];
             $returnUrl = null;
+            $parameterValues = [];
             
             if ($recordId) {
                 $record = EcotoxFinal::with(['substance'])
@@ -331,17 +332,36 @@ class EcotoxCREDEvaluationController extends Controller
                     return redirect()->back()->with('error', 'Record not found.');
                 }
                 
-                            // Get substances from query parameters if available
-            if ($request && $request->has('substances')) {
-                $substanceIds = json_decode($request->substances, true);
-                if (is_array($substanceIds)) {
-                    $substances = Substance::whereIn('id', $substanceIds)->get();
+                // Extract parameter values from EcotoxFinal using column_name from parameters
+                foreach ($credQuestions as $question) {
+                    foreach ($question->subQuestions as $subQuestion) {
+                        foreach ($subQuestion->parameters as $parameter) {
+                            if ($parameter->ecotoxConfig && $parameter->ecotoxConfig->column_name) {
+                                $columnName = $parameter->ecotoxConfig->column_name;
+                                $parameterValues[$parameter->id] = $record->$columnName ?? null;
+                                
+                                // Log the extraction for debugging
+                                Log::info('Parameter value extraction', [
+                                    'parameter_id' => $parameter->id,
+                                    'column_name' => $columnName,
+                                    'value' => $record->$columnName ?? null,
+                                    'parameter_label' => $parameter->parameter_label
+                                ]);
+                            }
+                        }
+                    }
                 }
-            }
-            
-            // Get return URL if available
-            $returnUrl = $request ? $request->get('returnUrl') : null;
                 
+                // Get substances from query parameters if available
+                if ($request && $request->has('substances')) {
+                    $substanceIds = json_decode($request->substances, true);
+                    if (is_array($substanceIds)) {
+                        $substances = Substance::whereIn('id', $substanceIds)->get();
+                    }
+                }
+                
+                // Get return URL if available
+                $returnUrl = $request ? $request->get('returnUrl') : null;
             }
             
             return view('ecotox.credevaluation.cred-form', [
@@ -349,7 +369,8 @@ class EcotoxCREDEvaluationController extends Controller
                 'recordId' => $recordId,
                 'record' => $record,
                 'substances' => $substances,
-                'returnUrl' => $returnUrl
+                'returnUrl' => $returnUrl,
+                'parameterValues' => $parameterValues
             ]);
             
         } catch (\Exception $e) {
