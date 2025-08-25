@@ -129,11 +129,13 @@
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value
             </th>
-            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Max Score
-            </th>
             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Screening
               Score</th>
-            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Your Score
+            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Max Score
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comment
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Evaluation
             </th>
           </tr>
         </thead>
@@ -148,16 +150,14 @@
                 <td class="px-6 py-4 text-sm font-medium text-gray-900" colspan="3">
                   {{ $question->question_text }}
                 </td>
-                <td>
+                <td class="px-6 py-4 text-center">
+                  -
                 </td>
                 <td class="px-6 py-4 text-sm text-center text-gray-800 font-medium">
-                  {{ $question->screening_score ?? '-' }}
+                  {{ $question->max_score ?? '-' }}
                 </td>
-                <td class="px-6 py-4 text-center">
-                  <input type="number" name="score_{{ $question->id }}" min="0"
-                    max="{{ $question->max_score }}" step="0.1"
-                    class="score-input w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
-                    placeholder="0" data-max-score="{{ $question->max_score }}">
+                <td class="px-6 py-4 text-center" colspan="2">
+                  
                 </td>
               </tr>
 
@@ -169,29 +169,46 @@
                       <tr class="hover:bg-gray-50">
                         @if ($index === 0)
                           <!-- First parameter row - show sub-question info with rowspan -->
-                          <td class="px-6 py-3 text-sm text-gray-600 pl-12" rowspan="{{ $subQuestion->parameters->count() }}">
+                          <td class="px-6 py-3 text-sm text-gray-600 pl-12"
+                            rowspan="{{ $subQuestion->parameters->count() }}">
                             {{ $subQuestion->question_letter }}
                           </td>
-                          <td class="px-6 py-3 text-sm text-gray-600" rowspan="{{ $subQuestion->parameters->count() }}">
+                          <td class="px-6 py-3 text-sm text-gray-600"
+                            rowspan="{{ $subQuestion->parameters->count() }}">
                             {{ $subQuestion->question_text }}
                           </td>
                           <td class="px-6 py-3 text-sm text-gray-600">
                             {{ $parameter->parameter_label }}
                           </td>
                           <td class="px-6 py-3 text-sm text-gray-600">
-                            @include('ecotox.credevaluation.partials.parameter-input', ['parameter' => $parameter])
+                            @include('ecotox.credevaluation.partials.parameter-input', [
+                                'parameter' => $parameter,
+                            ])
                           </td>
-                          <td class="px-6 py-3 text-sm text-center text-gray-700" rowspan="{{ $subQuestion->parameters->count() }}">
+                          <td class="px-6 py-3 text-sm text-center text-gray-700"
+                            rowspan="{{ $subQuestion->parameters->count() }}">
                             {{ $subQuestion->max_score }}
                           </td>
-                          <td class="px-6 py-3 text-sm text-center text-gray-500" rowspan="{{ $subQuestion->parameters->count() }}">
+                          <td class="px-6 py-3 text-sm text-center text-gray-500"
+                            rowspan="{{ $subQuestion->parameters->count() }}">
                             -
                           </td>
-                          <td class="px-6 py-3 text-center" rowspan="{{ $subQuestion->parameters->count() }}">
-                            <input type="number" name="score_{{ $subQuestion->id }}" min="0"
-                              max="{{ $subQuestion->max_score }}" step="0.1"
-                              class="score-input w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
-                              placeholder="0" data-max-score="{{ $subQuestion->max_score }}">
+                          <td class="px-6 py-3 text-sm text-gray-600"
+                            rowspan="{{ $subQuestion->parameters->count() }}">
+                            <textarea name="comment_{{ $subQuestion->id }}" rows="2"
+                              class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                              placeholder="Add comment..."></textarea>
+                          </td>
+                          <td class="px-6 py-3 text-sm text-gray-600"
+                            rowspan="{{ $subQuestion->parameters->count() }}">
+                            <select class="select cred-evaluation-select" name="evaluation_{{ $subQuestion->id }}"
+                              id="evaluation{{ $subQuestion->id }}">
+                              <option value="1">not reported</option>
+                              <option value="2">not applicable</option>
+                              <option value="3">not fulfilled</option>
+                              <option value="4">partially fulfilled</option>
+                              <option value="5">fulfilled</option>
+                            </select>
                           </td>
                         @else
                           <!-- Subsequent parameter rows - only show parameter label and value input -->
@@ -199,7 +216,9 @@
                             {{ $parameter->parameter_label }}
                           </td>
                           <td class="px-6 py-3 text-sm text-gray-600">
-                            @include('ecotox.credevaluation.partials.parameter-input', ['parameter' => $parameter])
+                            @include('ecotox.credevaluation.partials.parameter-input', [
+                                'parameter' => $parameter,
+                            ])
                           </td>
                         @endif
                       </tr>
@@ -225,11 +244,21 @@
                       <td class="px-6 py-3 text-sm text-center text-gray-500">
                         -
                       </td>
-                      <td class="px-6 py-3 text-center">
-                        <input type="number" name="score_{{ $subQuestion->id }}" min="0"
-                          max="{{ $subQuestion->max_score }}" step="0.1"
-                          class="score-input w-16 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
-                          placeholder="0" data-max-score="{{ $subQuestion->max_score }}">
+
+                      <td class="px-6 py-3 text-sm text-gray-600">
+                        <textarea name="comment_{{ $subQuestion->id }}" rows="2"
+                          class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
+                          placeholder="Add comment..."></textarea>
+                      </td>
+                      <td class="px-6 py-3 text-sm text-gray-600">
+                        <select class="select cred-evaluation-select" name="evaluation_{{ $subQuestion->id }}"
+                          id="evaluation{{ $subQuestion->id }}">
+                          <option value="1">not reported</option>
+                          <option value="2">not applicable</option>
+                          <option value="3">not fulfilled</option>
+                          <option value="4">partially fulfilled</option>
+                          <option value="5">fulfilled</option>
+                        </select>
                       </td>
                     </tr>
                   @endif
@@ -238,7 +267,7 @@
             @endforeach
           @else
             <tr>
-              <td colspan="7" class="px-6 py-4 text-sm text-gray-500 text-center">
+              <td colspan="9" class="px-6 py-4 text-sm text-gray-500 text-center">
                 No CRED questions available
               </td>
             </tr>
