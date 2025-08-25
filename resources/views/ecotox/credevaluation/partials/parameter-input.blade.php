@@ -2,12 +2,23 @@
     $inputType = $parameter->ecotoxConfig->input_type ?? 'text';
     $columnName = $parameter->ecotoxConfig->column_name ?? '';
     $parameterId = $parameter->id;
+    
+    // Handle new parameterValues structure
+    if (isset($parameterValues[$parameterId]) && is_array($parameterValues[$parameterId])) {
+        $parameterValue = $parameterValues[$parameterId]['value'] ?? '';
+        $hasChanges = $parameterValues[$parameterId]['hasChanges'] ?? false;
+    } else {
+        // Fallback for old structure
+        $parameterValue = $parameterValues[$parameterId] ?? '';
+        $hasChanges = false;
+    }
 @endphp
 
 @switch($inputType)
     @case('text')
         <input type="text" 
                name="parameter_{{ $parameterId }}" 
+               value="{{ $parameterValue }}"
                class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
                placeholder="Enter {{ $columnName }}">
         @break
@@ -15,6 +26,7 @@
     @case('numeric')
         <input type="number" 
                name="parameter_{{ $parameterId }}" 
+               value="{{ $parameterValue }}"
                step="any"
                class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
                placeholder="Enter {{ $columnName }}">
@@ -26,7 +38,9 @@
             <option value="">Select ...</option>
             @if ($parameter->ecotoxConfig && $parameter->ecotoxConfig->inputValues && $parameter->ecotoxConfig->inputValues->count() > 0)
                 @foreach ($parameter->ecotoxConfig->inputValues as $inputValue)
-                    <option value="{{ $inputValue->input_value }}">{{ $inputValue->input_value }}</option>
+                    <option value="{{ $inputValue->input_value }}" {{ $parameterValue == $inputValue->input_value ? 'selected' : '' }}>
+                        {{ $inputValue->input_value }}
+                    </option>
                 @endforeach
             @else
                 {{-- no fallback options --}}
@@ -37,6 +51,7 @@
     @case('date')
         <input type="date" 
                name="parameter_{{ $parameterId }}" 
+               value="{{ $parameterValue }}"
                class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500">
         @break
         
@@ -48,6 +63,7 @@
     @default
         <input type="text" 
                name="parameter_{{ $parameterId }}" 
+               value="{{ $parameterValue }}"
                class="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-slate-500 focus:border-slate-500"
                placeholder="Enter {{ $columnName }}">
 @endswitch

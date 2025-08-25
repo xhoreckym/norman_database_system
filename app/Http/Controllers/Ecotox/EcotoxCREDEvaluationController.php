@@ -12,6 +12,7 @@ use App\Models\Ecotox\EcotoxOriginal;
 use App\Models\Ecotox\EcotoxHarmonised;
 use App\Models\Ecotox\EcotoxComparativeTableConfig;
 use App\Models\Ecotox\EcotoxComparativeTableInputValues;
+use App\Models\Ecotox\EcotoxMainFinalChange;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Models\Ecotox\EcotoxCredQuestion;
@@ -321,6 +322,7 @@ class EcotoxCREDEvaluationController extends Controller
             $record = null;
             $substances = [];
             $returnUrl = null;
+            $parameterValues = [];
             
             if ($recordId) {
                 $record = EcotoxFinal::with(['substance'])
@@ -331,17 +333,49 @@ class EcotoxCREDEvaluationController extends Controller
                     return redirect()->back()->with('error', 'Record not found.');
                 }
                 
-                            // Get substances from query parameters if available
-            if ($request && $request->has('substances')) {
-                $substanceIds = json_decode($request->substances, true);
-                if (is_array($substanceIds)) {
-                    $substances = Substance::whereIn('id', $substanceIds)->get();
+                // Extract parameter values from EcotoxFinal using column_name from parameters
+                foreach ($credQuestions as $question) {
+                    foreach ($question->subQuestions as $subQuestion) {
+                        foreach ($subQuestion->parameters as $parameter) {
+                            if ($parameter->ecotoxConfig && $parameter->ecotoxConfig->column_name) {
+                                $columnName = $parameter->ecotoxConfig->column_name;
+                                $parameterValues[$parameter->id] = $record->$columnName ?? null;
+                                
+                                // Check if this parameter has been changed
+                                $hasChanges = EcotoxMainFinalChange::where('ecotox_id', $recordId)
+                                    ->where('column_name', $columnName)
+                                    ->exists();
+                                
+                                // Store both value and change status
+                                $parameterValues[$parameter->id] = [
+                                    'value' => $record->$columnName ?? null,
+                                    'hasChanges' => $hasChanges,
+                                    'columnName' => $columnName
+                                ];
+                                
+                                // Log the extraction for debugging
+                                Log::info('Parameter value extraction', [
+                                    'parameter_id' => $parameter->id,
+                                    'column_name' => $columnName,
+                                    'value' => $record->$columnName ?? null,
+                                    'parameter_label' => $parameter->parameter_label,
+                                    'hasChanges' => $hasChanges
+                                ]);
+                            }
+                        }
+                    }
                 }
-            }
-            
-            // Get return URL if available
-            $returnUrl = $request ? $request->get('returnUrl') : null;
                 
+                // Get substances from query parameters if available
+                if ($request && $request->has('substances')) {
+                    $substanceIds = json_decode($request->substances, true);
+                    if (is_array($substanceIds)) {
+                        $substances = Substance::whereIn('id', $substanceIds)->get();
+                    }
+                }
+                
+                // Get return URL if available
+                $returnUrl = $request ? $request->get('returnUrl') : null;
             }
             
             return view('ecotox.credevaluation.cred-form', [
@@ -349,7 +383,8 @@ class EcotoxCREDEvaluationController extends Controller
                 'recordId' => $recordId,
                 'record' => $record,
                 'substances' => $substances,
-                'returnUrl' => $returnUrl
+                'returnUrl' => $returnUrl,
+                'parameterValues' => $parameterValues
             ]);
             
         } catch (\Exception $e) {
@@ -362,6 +397,30 @@ class EcotoxCREDEvaluationController extends Controller
             // Return to previous page with error message
             return redirect()->back()->with('error', 'Failed to load CRED evaluation form: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Get changes for a specific ecotox_id and column_name.
+     */
+    public function getChanges(string $ecotoxId, string $columnName)
+    {
+        $changes = EcotoxMainFinalChange::with(['user'])
+            ->where('ecotox_id', $ecotoxId)
+            ->where('column_name', $columnName)
+            ->orderBy('change_date', 'desc')
+            ->get()
+            ->map(function ($change) {
+                return [
+                    'id' => $change->id,
+                    'change_date' => $change->change_date ? $change->change_date->format('Y-m-d H:i:s') : 'N/A',
+                    'user_name' => $change->user ? $change->user->getFormattedNameAttribute() : 'Unknown',
+                    'change_old' => $change->change_old,
+                    'change_new' => $change->change_new,
+                    'change_type' => $change->change_type,
+                ];
+            });
+
+        return response()->json($changes);
     }
 
     /**

@@ -215,6 +215,8 @@ Route::prefix('ecotox')->group(function () {
         Route::get('search/filter/', [EcotoxController::class, 'filter'])->name('ecotox.data.search.filter');
         Route::get('search/search/', [EcotoxController::class, 'search'])->name('ecotox.data.search.search');
         Route::get('show/{id}', [EcotoxController::class, 'show'])->name('ecotox.data.show');
+        Route::get('form/{id}', [EcotoxController::class, 'showForm'])->name('ecotox.data.form');
+        Route::get('changes/{ecotoxId}/{columnName}', [EcotoxController::class, 'getChanges'])->name('ecotox.data.changes');
     });
 
 
@@ -236,6 +238,7 @@ Route::prefix('ecotox')->group(function () {
         // CRED Evaluation Modal Routes
         Route::get('data/{recordId}', [EcotoxCREDEvaluationController::class, 'getModalData'])->name('ecotox.credevaluation.modal.data');
         Route::get('history/{recordId}', [EcotoxCREDEvaluationController::class, 'getEvaluationHistory'])->name('ecotox.credevaluation.modal.history');
+        Route::get('changes/{ecotoxId}/{columnName}', [EcotoxCREDEvaluationController::class, 'getChanges'])->name('ecotox.credevaluation.changes');
         Route::post('save', [EcotoxCREDEvaluationController::class, 'saveEvaluation'])->name('ecotox.credevaluation.modal.save');
     });
     

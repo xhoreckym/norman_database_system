@@ -12,6 +12,7 @@ use App\Models\Ecotox\EcotoxOriginal;
 use App\Models\Ecotox\EcotoxHarmonised;
 use App\Models\Ecotox\EcotoxComparativeTableConfig;
 use App\Models\Ecotox\EcotoxComparativeTableInputValues;
+use App\Models\Ecotox\EcotoxMainFinalChange;
 use Illuminate\Support\Facades\Auth;
 
 class EcotoxController extends Controller
@@ -108,10 +109,168 @@ class EcotoxController extends Controller
             'table_data' => $tableData
         ]);
     }
+
+    /**
+     * Display the form view for the specified resource.
+     */
+    public function showForm(string $id)
+    {
+        // Fetch data from all three Ecotox models for the given ecotox_id
+        $ecotoxFinal = EcotoxFinal::with(['substance'])
+            ->where('ecotox_id', $id)
+            ->first();
+            
+        $ecotoxOriginal = EcotoxOriginal::with(['substance'])
+            ->where('ecotox_id', $id)
+            ->first();
+            
+        $ecotoxHarmonised = EcotoxHarmonised::with(['substance'])
+            ->where('ecotox_id', $id)
+            ->first();
+
+        if (!$ecotoxFinal && !$ecotoxOriginal && !$ecotoxHarmonised) {
+            abort(404, 'Record not found');
+        }
+
+        // Helper function to get value from models
+        $getValue = function($field) use ($ecotoxOriginal, $ecotoxHarmonised, $ecotoxFinal) {
+            return [
+                'original' => $ecotoxOriginal?->$field ?? 'N/A',
+                'harmonised' => $ecotoxHarmonised?->$field ?? 'N/A',
+                'final' => $ecotoxFinal?->$field ?? 'N/A'
+            ];
+        };
+
+        // Generate table data dynamically from EcotoxComparativeTableConfig
+        $tableConfigs = EcotoxComparativeTableConfig::orderBy('order')->get();
+        $tableData = [];
+        $tableRows = [];
+        
+        foreach ($tableConfigs as $config) {
+            $group = $config->group;
+            $header = $config->header;
+            $columnName = $config->column_name;
+            $columnId = $config->column_id;
+            
+            // Get input values for this column
+            $inputValues = EcotoxComparativeTableInputValues::where('column_name', $columnName)
+                ->pluck('input_value')
+                ->toArray();
+            
+            // Initialize group if it doesn't exist
+            if (!isset($tableData[$group])) {
+                $tableData[$group] = [];
+            }
+            
+            // Add the field to the group using header as parameter name, column_name for data retrieval, and column_id for admin_id for admin display
+            $tableData[$group][$header] = [
+                'data' => $getValue($columnName),
+                'column_id' => $columnId,
+                'column_name' => $columnName,
+                'is_editable' => $config->is_editable ?? false,
+                'input_type' => $config->input_type ?? 'text',
+                'input_values' => $inputValues
+            ];
+        }
+
+        // Build table rows for the view (moved from JavaScript)
+        $tableSections = [
+            'Source',
+            'Reference',
+            'Categorisation',
+            'Test substance',
+            'Biotest',
+            'Test Organism',
+            'Dosing system',
+            'Controls and Study design',
+            'Test conditions',
+            'Statistical design',
+            'Biological effect',
+            'Evaluation'
+        ];
+
+        $rowId = 0;
+        foreach ($tableSections as $sectionName) {
+            $sectionData = $tableData[$sectionName] ?? [];
+            
+            if (!empty($sectionData)) {
+                // Add section header
+                $tableRows[] = [
+                    'id' => 'header-' . $rowId++,
+                    'type' => 'header',
+                    'title' => $sectionName . ' Information'
+                ];
+                
+                // Add data rows
+                $index = 0;
+                foreach ($sectionData as $key => $value) {
+                    // Check if this column has been edited
+                    $hasChanges = EcotoxMainFinalChange::where('ecotox_id', $id)
+                        ->where('column_name', $value['column_name'] ?? '')
+                        ->exists();
+                    
+                    $tableRows[] = [
+                        'id' => 'data-' . $rowId++,
+                        'type' => 'data',
+                        'key' => $key,
+                        'sectionName' => $sectionName,
+                        'columnId' => $value['column_id'],
+                        'columnName' => $value['column_name'] ?? '',
+                        'original' => $value['data']['original'] ?? '',
+                        'harmonised' => $value['data']['harmonised'] ?? '',
+                        'final' => $value['data']['final'] ?? '',
+                        'isEditable' => $value['is_editable'] ?? false,
+                        'inputType' => $value['input_type'] ?? 'text',
+                        'dropdownOptions' => !empty($value['input_values']) ? $value['input_values'] : ['Yes', 'No', 'Unknown', 'Not applicable'],
+                        'isOdd' => $index % 2 !== 0,
+                        'hasChanges' => $hasChanges
+                    ];
+                    $index++;
+                }
+            }
+        }
+
+        $record = [
+            'ecotox_id' => $id,
+            'substance' => $ecotoxFinal?->substance ?? $ecotoxOriginal?->substance ?? $ecotoxHarmonised?->substance,
+            'table_data' => $tableData
+        ];
+
+                return view('ecotox.data.ecotox-form', [
+            'recordId' => $id,
+            'record' => $record,
+            'tableRows' => $tableRows,
+            'isSuperAdmin' => Auth::check() && Auth::user()->hasRole('super_admin')
+        ]);
+    }
+
+    /**
+     * Get changes for a specific ecotox_id and column_name.
+     */
+    public function getChanges(string $ecotoxId, string $columnName)
+    {
+        $changes = EcotoxMainFinalChange::with(['user'])
+            ->where('ecotox_id', $ecotoxId)
+            ->where('column_name', $columnName)
+            ->orderBy('change_date', 'desc')
+            ->get()
+            ->map(function ($change) {
+                return [
+                    'id' => $change->id,
+                    'change_date' => $change->change_date ? $change->change_date->format('Y-m-d H:i:s') : 'N/A',
+                    'user_name' => $change->user ? $change->user->getFormattedNameAttribute() : 'Unknown',
+                    'change_old' => $change->change_old,
+                    'change_new' => $change->change_new,
+                    'change_type' => $change->change_type,
+                ];
+            });
+
+        return response()->json($changes);
+    }
     
     /**
-    * Show the form for editing the specified resource.
-    */
+     * Show the form for editing the specified resource.
+     */
     public function edit(string $id)
     {
         //
