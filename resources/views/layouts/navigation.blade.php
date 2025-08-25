@@ -115,7 +115,6 @@
     </div>
     
     <!-- Responsive Settings Options -->
-    
     <div class="pt-4 pb-1 border-t border-gray-200">
         <div class="px-4">
             <div class="font-medium text-base text-gray-800">{{ Auth::user()->full_name }}</div>
@@ -138,6 +137,29 @@
         </form>
     </div>
 </div>
-@endauth
+    @endauth
+    
+    <!-- Add missing navigation links for mobile -->
+    <div class="pt-2 pb-3 space-y-1">
+        <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('databases.index') || request()->is('landing')">
+            {{ __('Databases index') }}
+        </x-responsive-nav-link>
+        
+        <x-responsive-nav-link :href="url('/').'/docs'" :active="request()->routeIs('apidoc')" target="_blank">
+            API Documentation 
+        </x-responsive-nav-link>
+    </div>
+    
+    @guest
+    <!-- Guest user navigation links for mobile -->
+    <div class="pt-2 pb-3 space-y-1">
+        <x-responsive-nav-link :href="route('register')" :active="request()->is('empodat/*')">
+            Register
+        </x-responsive-nav-link>
+        <x-responsive-nav-link :href="route('login')" :active="request()->is('empodat/*')">
+            Login
+        </x-responsive-nav-link>
+    </div>
+    @endguest
 </div>
 </nav>
