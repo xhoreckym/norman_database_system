@@ -1,0 +1,46 @@
+# Laravel Environmental Database Project Rules
+
+## Personal preferences
+- keep the source code changes specific to request. Do not invent things, unless instructed.
+
+## Laravel Framework
+- Use Eloquent models with explicit `$table`, `$fillable`, and `$casts` properties
+- Follow the established controller pattern: `filter()` method for search forms, `search()` method for results
+- Keep controllers thin, use services for business logic
+- Always use migrations for database changes
+- Use `{{ }}` for safe output, add `@csrf` to forms
+
+## Database & Models
+- Use naming convention: `{module}_main` for primary tables (e.g., `indoor_main`, `passive_sampling_main`)
+- Foreign keys: `{table}_id` format
+- Use chunked seeder processing for large datasets
+- Include formatted attributes for display (e.g., `getSamplingDateAttribute()`)
+
+## Controllers
+- Follow the established search pattern with query logging
+- Use eager loading: `with(['country', 'matrix', 'environmentType'])`
+- Support both simple and cursor pagination based on `displayOption`
+- Include download functionality for authenticated users
+
+## Tailwind CSS Preferences
+- **NEVER use blue colors**: No `bg-blue-`, `text-blue-`, `border-blue-`, etc.
+- Use gray/slate/stone palette instead
+- Use indigo for primary actions: `btn-submit`, `bg-slate-600`, `text-gray-700`, etc.
+- Follow mobile-first responsive design: `sm:`, `md:`, `lg:`
+
+## JavaScript & Testing
+- Keep tests simple during development, avoid complex test scenarios
+- Avoid complex AlpineJS logic - use Laravel controllers instead
+- Place JavaScript in `resources/js/*` files, not inline
+- Prefer server-side logic over client-side complexity
+
+## Code Style
+- Use meaningful names: PascalCase for classes, snake_case for methods
+- Use type hints on methods
+- Remove `dd()` and commented code before committing
+- Provide minimal explanations, focus on code output
+
+## Module Structure
+- Each module: Main model, Controller with filter/search, Home controller
+- Route naming: `{module}.search.filter`, `{module}.search.search`
+- Use consistent namespace: `App\Models\{Module}`, `App\Http\Controllers\{Module}`

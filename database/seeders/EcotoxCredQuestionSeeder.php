@@ -35,9 +35,8 @@ class EcotoxCredQuestionSeeder extends Seeder
                 continue;
             }
             
-            // If this row has both main question text and a sub-question, we need to create both records
+            // If this row has main question text, create a main question record
             if (!empty(trim($r['cred_main_question']))) {
-                // This is a main question (or main question + first sub-question)
                 $mainQuestions[] = [
                     'question_number' => $mainQuestionNumber,
                     'question_letter' => null,
@@ -49,30 +48,26 @@ class EcotoxCredQuestionSeeder extends Seeder
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];
-                
-                // If there's also a sub-question on this row, create it too
-                if (!empty($subQuestionLetter)) {
-                    $subQuestions[] = [
-                        'question_number' => $mainQuestionNumber,
-                        'question_letter' => $subQuestionLetter,
-                        'question_text' => trim($r['cred_sub_question']),
-                        'parent_id' => null, // Will be set after main questions are created
-                        'max_score' => $weightingFactor,
-                        'screening_score' => $weightingFactor,
-                        'sort_order' => $sortOrder,
-                        'created_at' => $now,
-                        'updated_at' => $now,
-                    ];
+            }
+            
+            // If this row has a sub-question, create a sub-question record
+            if (!empty($subQuestionLetter)) {
+                // For sub-questions with cred_main_question_number = 0, infer the main question number from the letter
+                $actualMainQuestionNumber = $mainQuestionNumber;
+                if ($mainQuestionNumber === 0) {
+                    // Extract the number from the sub-question letter (e.g., "3b" -> 3, "4c" -> 4)
+                    if (preg_match('/^(\d+)/', $subQuestionLetter, $matches)) {
+                        $actualMainQuestionNumber = (int) $matches[1];
+                    }
                 }
-            } elseif (!empty($subQuestionLetter)) {
-                // This is a standalone sub-question (no main question text on this row)
+                
                 $subQuestions[] = [
-                    'question_number' => $mainQuestionNumber,
+                    'question_number' => $actualMainQuestionNumber,
                     'question_letter' => $subQuestionLetter,
                     'question_text' => trim($r['cred_sub_question']),
                     'parent_id' => null, // Will be set after main questions are created
                     'max_score' => $weightingFactor,
-                    'screening_score' => $weightingFactor,
+                    'screening_score' => null, // Sub-questions don't have screening scores
                     'sort_order' => $sortOrder,
                     'created_at' => $now,
                     'updated_at' => $now,

@@ -170,13 +170,13 @@
                   <tr class="ecotox-row @if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif"
                     data-matrix="{{ $e->matrix_habitat }}" data-acute="{{ $e->acute_or_chronic }}">
                     <td class="p-1 text-center">
-                      <button 
-                        type="button" 
-                        class="btn-create text-sm px-3 py-1"
-                        x-on:click="openModalCredEvaluation('{{ $e->ecotox_id }}')"
-                        title="Evaluate this record">
-                        Evaluate
-                      </button>
+                      <div class="flex space-x-2 justify-center">
+                        <a href="{{ route('ecotox.credevaluation.form', $e->ecotox_id) }}?substances={{ json_encode($request->substances) }}&returnUrl={{ urlencode(url()->current() . '?' . http_build_query($request->all())) }}" 
+                           class="btn-create text-sm px-3 py-1"
+                           title="Evaluate this record with CRED form">
+                          Evaluate
+                        </a>
+                      </div>
                     </td>
                     <td class="p-1 text-center">
                       @if (auth()->check() &&

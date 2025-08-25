@@ -136,9 +136,7 @@ class EcotoxCREDEvaluationController extends Controller
                     'updated_at'   => $now,
                 ]);
             } catch (\Exception $e) {
-                if (Auth::check() && Auth::user()->hasRole('super_admin')) {
-                    session()->flash('failure', 'Query logging error: ' . $e->getMessage());
-                } else {
+                if (Auth::check()) {
                     session()->flash('error', 'An error occurred while processing your request.');
                 }
             }
@@ -199,7 +197,7 @@ class EcotoxCREDEvaluationController extends Controller
             ->get();
             
             // Debug logging
-            \Log::info('CRED Questions Query Result', [
+            Log::info('CRED Questions Query Result', [
                 'total_questions' => $credQuestions->count(),
                 'questions' => $credQuestions->toArray()
             ]);
@@ -230,7 +228,7 @@ class EcotoxCREDEvaluationController extends Controller
                 'credQuestions' => $credQuestions
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error in getModalData', [
+            Log::error('Error in getModalData', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -289,5 +287,80 @@ class EcotoxCREDEvaluationController extends Controller
                 'message' => 'Failed to save evaluation: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Show the CRED evaluation form with questions table
+     */
+    public function showForm($recordId = null, Request $request)
+    {
+        try {
+            // Fetch CRED questions with their sub-questions
+            $credQuestions = EcotoxCredQuestion::with(['subQuestions' => function($query) {
+                $query->orderBy('sort_order');
+            }])
+            ->whereNull('parent_id')
+            ->orderBy('sort_order')
+            ->get();
+            
+            // If no questions found, show error
+            if ($credQuestions->isEmpty()) {
+                Log::warning('No CRED questions found in database');
+                return redirect()->back()->with('warning', 'No CRED questions are available in the database. Please ensure the questions have been seeded.');
+            }
+            
+            // Fetch record information if recordId is provided
+            $record = null;
+            $substances = [];
+            $returnUrl = null;
+            
+            if ($recordId) {
+                $record = EcotoxFinal::with(['substance'])
+                    ->where('ecotox_id', $recordId)
+                    ->first();
+                
+                if (!$record) {
+                    return redirect()->back()->with('error', 'Record not found.');
+                }
+                
+                // Get substances from query parameters if available
+                if ($request->has('substances')) {
+                    $substanceIds = json_decode($request->substances, true);
+                    if (is_array($substanceIds)) {
+                        $substances = Substance::whereIn('id', $substanceIds)->get();
+                    }
+                }
+                
+                // Get return URL if available
+                $returnUrl = $request->get('returnUrl');
+                
+            }
+            
+            return view('ecotox.credevaluation.cred-form', [
+                'credQuestions' => $credQuestions,
+                'recordId' => $recordId,
+                'record' => $record,
+                'substances' => $substances,
+                'returnUrl' => $returnUrl
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in showForm', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'record_id' => $recordId
+            ]);
+            
+            // Return to previous page with error message
+            return redirect()->back()->with('error', 'Failed to load CRED evaluation form: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show the CRED evaluation form without requiring a record ID (for testing/demo)
+     */
+    public function showDemoForm(Request $request)
+    {
+        return $this->showForm(null, $request);
     }
 }
