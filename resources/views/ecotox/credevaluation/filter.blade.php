@@ -132,7 +132,7 @@
                   Substance criteria:
                 </div>
                 <div>
-                  @livewire('ecotox.credevaluation-substance-search', ['existingSubstances' => $request->substances])
+                  @livewire('ecotox.cred-substance-search', ['existingSubstances' => $request->substances])
                 </div>
               </div>
             </div>

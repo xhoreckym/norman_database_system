@@ -7,7 +7,7 @@ use App\Models\Susdat\Substance;
 use App\Models\Ecotox\EcotoxSubstanceDistinct;
 use Illuminate\Support\Facades\DB;
 
-class CREDEvaluationSubstanceSearch extends Component
+class CredSubstanceSearch extends Component
 {
     public $search = '';
     public $searchType = 'name';
@@ -60,7 +60,7 @@ class CREDEvaluationSubstanceSearch extends Component
             $resultsAvailable = count($results) > 0;
         }
         
-        return view('livewire.ecotox.credevaluation-substance-search', [
+        return view('livewire.ecotox.cred-substance-search', [
             'results' => $results,
             'resultsAvailable' => $resultsAvailable,
             'searchType' => $this->searchType,
