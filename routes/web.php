@@ -215,6 +215,8 @@ Route::prefix('ecotox')->group(function () {
         Route::get('search/filter/', [EcotoxController::class, 'filter'])->name('ecotox.data.search.filter');
         Route::get('search/search/', [EcotoxController::class, 'search'])->name('ecotox.data.search.search');
         Route::get('show/{id}', [EcotoxController::class, 'show'])->name('ecotox.data.show');
+        Route::get('form/{id}', [EcotoxController::class, 'showForm'])->name('ecotox.data.form');
+        Route::get('changes/{ecotoxId}/{columnName}', [EcotoxController::class, 'getChanges'])->name('ecotox.data.changes');
     });
 
 

@@ -173,12 +173,16 @@
                               (auth()->user()->hasRole('super_admin') ||
                                   auth()->user()->hasRole('admin') ||
                                   auth()->user()->hasRole('ecotox')))
-                        <div class="">
-
+                        <div class="flex space-x-2">
                           <a href="#" class="link-lime-text" title="Click to view details"
                             x-on:click.prevent="openModal('{{ $e->ecotox_id }}')">
                             {{-- <i class="fas fa-search"></i> --}}
                             {{ $e->ecotox_id ?? 'N/A' }}
+                          </a>
+                          <a href="{{ route('ecotox.data.form', $e->ecotox_id) }}" 
+                             class="link-lime-text text-xs" 
+                             title="View full form">
+                            <i class="fas fa-external-link-alt"></i>
                           </a>
                         </div>
                       @else

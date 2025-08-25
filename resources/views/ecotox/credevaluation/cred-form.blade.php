@@ -24,6 +24,7 @@
 
     <div>
 
+        <!-- Primary information -->
       <div class="grid grid-cols-3 gap-4">
         <div class="col-span-1">
           @if (!empty(request()->get('returnUrl')))
@@ -102,6 +103,7 @@
           @endif
         </div>
       </div>
+      <!-- End of Primary information -->
     </div>
 
     <!-- Top Go Back Button -->
