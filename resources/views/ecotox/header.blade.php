@@ -11,9 +11,11 @@
     Search Data
   </x-nav-link-header>
 
+  @role('super_admin|admin|ecotox')
   <x-nav-link-header :href="route('ecotox.credevaluation.search.filter')" :active="request()->is('ecotox/credevaluation*')">
     CRED Evaluation
   </x-nav-link-header>
+  @endrole
 
   <x-nav-link-header :href="route('templates.specific.index', ['code' => 'ecotox'])" :active="request()->is('backend/templates/entity/ecotox*')">
     DCT Download
