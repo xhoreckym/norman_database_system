@@ -223,7 +223,7 @@ Route::prefix('ecotox')->group(function () {
     Route::get('unique/search/substances', [EcotoxHomeController::class, 'syncNewSubstances'])->name('ecotox.unique.search.substances');
     
     // CRED Evaluation routes
-    Route::prefix('credevaluation')->group(function () {
+    Route::prefix('credevaluation')->middleware(['auth', 'role:super_admin|admin|ecotox'])->group(function () {
         Route::resource('home', EcotoxCREDEvaluationHomeController::class)->only(['index'])->names(['index' => 'ecotox.credevaluation.home.index']);
         Route::get('search/filter/', [EcotoxCREDEvaluationController::class, 'filter'])->name('ecotox.credevaluation.search.filter');
         Route::get('search/search/', [EcotoxCREDEvaluationController::class, 'search'])->name('ecotox.credevaluation.search.search');
