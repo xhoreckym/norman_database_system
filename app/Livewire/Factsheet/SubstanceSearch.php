@@ -31,39 +31,25 @@ class SubstanceSearch extends Component
         $resultsAvailable = false;
         
         if(strlen($this->search) > 2) {
-            // Build the query for substances with factsheet data
-            $query = Substance::query()
-                ->select([
-                    'susdat_substances.*',
-                    DB::raw('(SELECT COUNT(*) FROM empodat_main WHERE substance_id = susdat_substances.id) as empodat_count'),
-                    DB::raw('(SELECT COUNT(*) FROM ecotox_main_3 WHERE substance_id = susdat_substances.id) as ecotox_count'),
-                    DB::raw('(SELECT COUNT(*) FROM indoor_main WHERE substance_id = susdat_substances.id) as indoor_count'),
-                    DB::raw('(SELECT COUNT(*) FROM passive_sampling_main WHERE substance_id = susdat_substances.id) as passive_count')
-                ])
-                ->where(function($q) {
-                    $q->whereRaw('(SELECT COUNT(*) FROM empodat_main WHERE substance_id = susdat_substances.id) > 0')
-                      ->orWhereRaw('(SELECT COUNT(*) FROM ecotox_main_3 WHERE substance_id = susdat_substances.id) > 0')
-                      ->orWhereRaw('(SELECT COUNT(*) FROM indoor_main WHERE substance_id = susdat_substances.id) > 0')
-                      ->orWhereRaw('(SELECT COUNT(*) FROM passive_sampling_main WHERE substance_id = susdat_substances.id) > 0');
-                });
+            // Start query to get all substances (no filtering restrictions)
+            $query = Substance::query();
             
             // Apply search filters
             if($this->searchType == 'cas_number') {
                 $searchTerm = str_replace('-', '', $this->search);
                 $query = $query->where(function($q) use ($searchTerm) {
-                    $q->where('susdat_substances.cas_number', 'ilike', '%' . $this->search . '%')
-                      ->orWhere(DB::raw("REPLACE(susdat_substances.cas_number, '-', '')"), 'ilike', '%' . $searchTerm . '%');
+                    $q->where('cas_number', 'ilike', '%' . $this->search . '%')
+                      ->orWhere(DB::raw("REPLACE(cas_number, '-', '')"), 'ilike', '%' . $searchTerm . '%');
                 });
             } elseif($this->searchType == 'name') {
-                $query = $query->where('susdat_substances.name', 'ilike', '%' . $this->search . '%');
+                $query = $query->where('name', 'ilike', '%' . $this->search . '%');
             } elseif($this->searchType == 'stdinchikey') {
-                $query = $query->where('susdat_substances.stdinchikey', 'ilike', $this->search . '%');
+                $query = $query->where('stdinchikey', 'ilike', $this->search . '%');
             }
             
-            // Order by total data count and limit
+            // Order by name and limit results
             $results = $query
-                ->orderByRaw('(empodat_count + ecotox_count + indoor_count + passive_count) DESC')
-                ->orderBy('susdat_substances.name', 'asc')
+                ->orderBy('name', 'asc')
                 ->limit(30)
                 ->get();
             
@@ -92,35 +78,17 @@ class SubstanceSearch extends Component
             $substanceId = end($this->selectedSubstanceIds);
             $this->selectedSubstanceIds = [$substanceId];
             
-            // Fetch substance with data counts
-            $substance = Substance::query()
-                ->select([
-                    'susdat_substances.*',
-                    DB::raw('(SELECT COUNT(*) FROM empodat_main WHERE substance_id = susdat_substances.id) as empodat_count'),
-                    DB::raw('(SELECT COUNT(*) FROM ecotox_main_3 WHERE substance_id = susdat_substances.id) as ecotox_count'),
-                    DB::raw('(SELECT COUNT(*) FROM indoor_main WHERE substance_id = susdat_substances.id) as indoor_count'),
-                    DB::raw('(SELECT COUNT(*) FROM passive_sampling_main WHERE substance_id = susdat_substances.id) as passive_count')
-                ])
-                ->where('susdat_substances.id', $substanceId)
-                ->first();
-            
+            // Fetch the selected substance
+            $substance = Substance::find($substanceId);
             if ($substance) {
-                $totalCount = $substance->empodat_count + $substance->ecotox_count + 
-                             $substance->indoor_count + $substance->passive_count;
-                
                 $this->selectedSubstances = [[
                     'id' => $substance->id,
                     'name' => $substance->name,
                     'cas_number' => $substance->cas_number,
                     'stdinchikey' => $substance->stdinchikey,
-                    'total_records' => $totalCount,
-                    'empodat_count' => $substance->empodat_count,
-                    'ecotox_count' => $substance->ecotox_count,
-                    'indoor_count' => $substance->indoor_count,
-                    'passive_count' => $substance->passive_count
                 ]];
                 
-                $this->dispatch('autoSubmitForm');
+                $this->dispatch('substancesSelected', substances: $this->selectedSubstances);
             } else {
                 $this->selectedSubstances = [];
             }

@@ -9,29 +9,7 @@
                         
                         <div class="flex flex-col">
                             <span class="font-medium text-lime-800">{{ $substance['name'] }}</span>
-                            <span class="text-xs text-lime-600">CAS: {{ $substance['cas_number'] }}</span>
-                        </div>
-                        
-                        <div class="ml-3 flex items-center gap-1 px-2 py-1 rounded-full bg-lime-200 text-lime-800">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                            <span class="text-xs font-medium">{{ $substance['total_records'] }} total records</span>
-                        </div>
-                        
-                        <div class="ml-2 flex items-center gap-1">
-                            @if($substance['empodat_count'] > 0)
-                                <span class="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs">{{ $substance['empodat_count'] }} EMPODAT</span>
-                            @endif
-                            @if($substance['ecotox_count'] > 0)
-                                <span class="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs">{{ $substance['ecotox_count'] }} ECOTOX</span>
-                            @endif
-                            @if($substance['indoor_count'] > 0)
-                                <span class="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs">{{ $substance['indoor_count'] }} Indoor</span>
-                            @endif
-                            @if($substance['passive_count'] > 0)
-                                <span class="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs">{{ $substance['passive_count'] }} Passive</span>
-                            @endif
+                            <span class="text-xs text-lime-600">CAS: {{ $substance['cas_number'] ?? 'N/A' }}</span>
                         </div>
                         
                         <button type="button" wire:click="removeSubstance({{$substance['id']}})" class="ml-3 text-lime-800 hover:text-red-600 focus:outline-none group-hover:text-red-600 transition duration-150 ease-in-out">
@@ -50,7 +28,7 @@
     </div>
     
     <input type="hidden" value="1" name="searchSubstance">
-    <input type="text" wire:model.live.debounce.300ms="search" name="searchSubstanceString" id="searchSubstanceString" class="w-full px-4 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition duration-200 ease-in-out" placeholder="Search for substances with factsheet data...">
+    <input type="text" wire:model.live.debounce.300ms="search" name="searchSubstanceString" id="searchSubstanceString" class="w-full px-4 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition duration-200 ease-in-out" placeholder="Search for substances...">
     
     <div class="mt-4">
         <span class="text-gray-700">Search by:</span>
@@ -71,7 +49,7 @@
     </div>
     
     <div class="flex flex-col md:flex-row justify-between text-sm text-gray-600 mt-2">
-        <span>The search is limited to 30 substances with factsheet data</span>
+        <span>The search is limited to 30 substances</span>
         <span class="text-gray-500">Search type: {{$searchType}}</span>
     </div>
     
@@ -96,21 +74,15 @@
                     >
                     <div class="ml-2 flex-grow">
                         <div class="font-medium">{{ $result->name }}</div>
-                        <div class="text-sm text-gray-500">{{ $result->cas_number }} | {{ $result->stdinchikey }}</div>
-                    </div>
-                    <div class="ml-2 flex items-center gap-1">
-                        @if($result->empodat_count > 0)
-                            <span class="bg-slate-100 px-2 py-1 rounded-full text-xs font-medium">{{ $result->empodat_count }} EMPODAT</span>
-                        @endif
-                        @if($result->ecotox_count > 0)
-                            <span class="bg-slate-100 px-2 py-1 rounded-full text-xs font-medium">{{ $result->ecotox_count }} ECOTOX</span>
-                        @endif
-                        @if($result->indoor_count > 0)
-                            <span class="bg-slate-100 px-2 py-1 rounded-full text-xs font-medium">{{ $result->indoor_count }} Indoor</span>
-                        @endif
-                        @if($result->passive_count > 0)
-                            <span class="bg-slate-100 px-2 py-1 rounded-full text-xs font-medium">{{ $result->passive_count }} Passive</span>
-                        @endif
+                        <div class="text-sm text-gray-500">
+                            @if($result->cas_number)
+                                CAS: {{ $result->cas_number }}
+                            @endif
+                            @if($result->stdinchikey)
+                                @if($result->cas_number) | @endif
+                                InChIKey: {{ $result->stdinchikey }}
+                            @endif
+                        </div>
                     </div>
                 </label>
             </div>

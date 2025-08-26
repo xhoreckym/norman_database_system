@@ -1,6 +1,6 @@
 <x-app-layout>
   <x-slot name="header">
-    @include('factsheet.header')
+    @include('ecotox.header')
   </x-slot>
   
   <div class="py-4">
@@ -83,9 +83,9 @@
           }
       }" 
         @submit="submitForm($event)"
-        name="searchFactsheet" 
-        id="searchFactsheet" 
-        action="{{route('factsheets.search.search')}}" 
+        name="searchEcotox" 
+        id="searchEcotox" 
+        action="{{route('ecotox.data.search.search')}}" 
         method="GET">
         
         <!-- Full-screen overlay with timer and cancel button -->
@@ -94,7 +94,7 @@
         style="display: none;">
         <div class="text-center p-8 bg-white rounded-lg shadow-xl max-w-md w-full">
           <!-- Logo or icon could go here -->
-          <h2 class="text-xl font-bold text-slate-700 mb-2">Factsheet Search</h2>
+          <h2 class="text-xl font-bold text-slate-700 mb-2">ECOTOX Search</h2>
           
           <svg class="mx-auto animate-spin h-20 w-20 text-slate-500 my-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -136,7 +136,7 @@
             Substance criteria:
           </div>
           <div>
-            @livewire('factsheet.substance-search', ['existingSubstances' => $request->substances])
+            @livewire('ecotox.substance-search', ['existingSubstances' => $request->substances])
           </div>
         </div>
       </div>
@@ -162,7 +162,7 @@
       
       <!-- Main Search form -->
       <div class="flex justify-end m-2">
-        <a href="{{route('factsheets.search.filter')}}" class="btn-clear mx-2"> Reset </a>
+        <a href="{{route('ecotox.data.search.filter')}}" class="btn-clear mx-2"> Reset </a>
         {{-- <button type="submit" class="btn-submit"> Search
         </button> --}}
         

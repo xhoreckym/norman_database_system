@@ -22,14 +22,31 @@ class FactsheetController extends Controller
         $searchType = $request->get('searchType', 'name');
         $substances = $request->get('substances', []);
         
-        return view('factsheet.filter', compact('search', 'searchType', 'substances'));
+        // Convert to array if it's a single value
+        if (!is_array($substances)) {
+            $substances = $substances ? [$substances] : [];
+        }
+        
+        return view('factsheet.filter', compact('request', 'search', 'searchType', 'substances'));
     }
 
     public function search(Request $request)
     {
+        // Get selected substances from the request and ensure it's an array
+        $substances = $request->get('substances', []);
         
+        // Convert to array if it's a single value
+        if (!is_array($substances)) {
+            $substances = $substances ? [$substances] : [];
+        }
         
-        return view('factsheet.index');
+        // If substances are selected, fetch their basic information
+        $substanceData = [];
+        if (!empty($substances)) {
+            $substanceData = Substance::whereIn('id', $substances)->get();
+        }
+        
+        return view('factsheet.index', compact('substanceData'));
     }
 
 }
