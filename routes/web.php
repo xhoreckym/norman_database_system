@@ -249,6 +249,8 @@ Route::prefix('ecotox')->group(function () {
         Route::get('/', [EcotoxQualityController::class, 'index'])->name('ecotox.quality.index');
         Route::get('search/filter/', [EcotoxQualityController::class, 'filter'])->name('ecotox.quality.search.filter');
         Route::get('search/search/', [EcotoxQualityController::class, 'search'])->name('ecotox.quality.search.search');
+        Route::get('form/{id}', [EcotoxQualityController::class, 'showForm'])->name('ecotox.quality.form');
+        Route::get('changes/{pnecId}/{columnName}', [EcotoxQualityController::class, 'getChanges'])->name('ecotox.quality.changes');
     });
     
 });

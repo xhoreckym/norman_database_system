@@ -15,7 +15,7 @@ class PNEC2 extends Model
      *
      * @var string
      */
-    protected $table = 'ecotox_pnec3';
+    protected $table = 'ecotox_pnec2';
 
     /**
      * The attributes that are mass assignable.

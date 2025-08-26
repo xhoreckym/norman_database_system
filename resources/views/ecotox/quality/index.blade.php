@@ -104,31 +104,45 @@
 
 
           {{-- Results Table --}}
-          @if($resultsObjects->count() > 0)
+          @if($resultsObjects->count() > 0 || $derivationObjects->count() > 0)
             <div class="mt-6">
               <table class="table-standard">
                 <thead>
                   <tr class="bg-gray-600 text-white">
-                    <th>PNEC ID</th>
-                    <th>PNEC Type</th>
-                    <th>PNEC Type Country</th>
+                    <th>Data Source</th>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Country/Region</th>
                     <th>Institution</th>
                     <th>Scientific Name</th>
                     <th>Endpoint|Duration|Effect</th>
                     <th>Derivation Method</th>
                     <th>AF</th>
                     <th>Justification</th>
-                    <th>PNEC Value</th>
+                    <th>Value</th>
                     <th>Remarks</th>
                     <th>Editor</th>
-                    <th>Biotest ID</th>
+                    <th>Reference ID</th>
                   </tr>
                 </thead>
                 <tbody id="quality-table-body">
+                  {{-- PNEC Records --}}
                   @foreach ($resultsObjects as $pnec)
                     <tr class="quality-row @if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif"
-                        data-matrix="{{ $pnec->matrix_habitat }}">
-                      <td class="p-1 text-center">{{ $pnec->norman_pnec_id ?? 'N/A' }}</td>
+                        data-matrix="{{ $pnec->matrix_habitat }}" data-source="pnec">
+                      <td class="p-1 text-center">
+                        <span class="px-2 py-1 text-xs font-medium bg-slate-600 text-white rounded-full">PNEC</span>
+                      </td>
+                      <td class="p-1 text-center">
+                        @if (Auth::check() && (Auth::user()->hasRole('super_admin') || Auth::user()->hasRole('admin') || Auth::user()->hasRole('ecotox')))
+                          <a href="{{ route('ecotox.quality.form', $pnec->norman_pnec_id) }}?substances={{ json_encode($request->substances) }}&returnUrl={{ urlencode(url()->current() . '?' . http_build_query($request->all())) }}" 
+                             class="text-slate-600 hover:text-slate-800 underline font-medium">
+                            {{ $pnec->norman_pnec_id ?? 'N/A' }}
+                          </a>
+                        @else
+                          {{ $pnec->norman_pnec_id ?? 'N/A' }}
+                        @endif
+                      </td>
                       <td class="p-1 text-center">{{ $pnec->pnec_type ?? 'N/A' }}</td>
                       <td class="p-1 text-center">{{ $pnec->pnec_type_country ?? 'N/A' }}</td>
                       <td class="p-1 text-center">{{ $pnec->institution ?? 'N/A' }}</td>
@@ -164,6 +178,52 @@
                         @endif
                       </td>
                       <td class="p-1 text-center">{{ $pnec->ecotox_id ?? 'N/A' }}</td>
+                    </tr>
+                  @endforeach
+                  
+                  {{-- Derivation Records --}}
+                  @foreach ($derivationObjects as $derivation)
+                    <tr class="quality-row @if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif"
+                        data-matrix="{{ $derivation->matrix_habitat ?? 'Unknown' }}" data-source="derivation">
+                      <td class="p-1 text-center">
+                        <span class="px-2 py-1 text-xs font-medium bg-stone-600 text-white rounded-full">Derivation</span>
+                      </td>
+                      <td class="p-1 text-center">{{ $derivation->norman_pnec_id ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $derivation->pnec_type ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $derivation->country_or_region ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $derivation->institution ?? 'N/A' }}</td>
+                      <td class="p-1">
+                        <div class="italic">{{ $derivation->scientific_name ?? 'N/A' }}</div>
+                      </td>
+                      <td class="p-1 text-center">
+                        <div class="text-sm">
+                          <div><strong>Endpoint:</strong> {{ $derivation->endpoint ?? 'N/A' }}</div>
+                          <div><strong>Duration:</strong> {{ $derivation->duration ?? 'N/A' }}</div>
+                          <div><strong>Effect:</strong> {{ $derivation->effect_measurement ?? 'N/A' }}</div>
+                        </div>
+                      </td>
+                      <td class="p-1 text-center">{{ $derivation->derivation_method ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $derivation->AF ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">{{ $derivation->justification ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">
+                        @if ($derivation->concentration_value)
+                          <div class="font-medium">{{ $derivation->concentration_value }}</div>
+                          @if ($derivation->concentration_qualifier)
+                            <div class="text-xs text-gray-500">{{ $derivation->concentration_qualifier }}</div>
+                          @endif
+                        @else
+                          <span class="text-gray-400">N/A</span>
+                        @endif
+                      </td>
+                      <td class="p-1 text-center">{{ $derivation->remarks ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">
+                        @if ($derivation->der_editor)
+                          {{ $derivation->der_editor ?? 'N/A' }}
+                        @else
+                          N/A
+                        @endif
+                      </td>
+                      <td class="p-1 text-center">{{ $derivation->ecotox_id ?? 'N/A' }}</td>
                     </tr>
                   @endforeach
                 </tbody>
@@ -207,7 +267,7 @@
             </div>
           @else
             <div class="mt-6 text-center text-gray-500 py-8">
-              <p>No PNEC3 records found for the selected substance.</p>
+              <p>No PNEC3 or Derivation records found for the selected substance.</p>
             </div>
           @endif
 
@@ -215,11 +275,6 @@
       </div>
     </div>
     
-    <div class="mt-6 flex justify-center">
-      <a href="{{ route('ecotox.quality.search.filter') }}" class="btn-create">
-        New Search
-      </a>
-    </div>
   </div>
 
   @push('scripts')
@@ -236,6 +291,7 @@
 
           tableRows.forEach(row => {
             const rowMatrix = row.dataset.matrix;
+            const rowSource = row.dataset.source;
 
             // Show row if it matches the filter (or if "All" is selected)
             if (matrixFilter === '') {

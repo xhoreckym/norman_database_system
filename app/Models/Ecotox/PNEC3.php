@@ -96,15 +96,15 @@ class PNEC3 extends Model
      */
     public function substance()
     {
-        return $this->belongsTo(Substance::class, 'sus_id', 'id');
+        return $this->belongsTo(Substance::class, 'substance_id', 'id');
     }
 
     /**
      * Get the substance that the PNEC3 record belongs to via substance_id.
      */
-    public function substanceNew()
+    public function substanceLegacy()
     {
-        return $this->belongsTo(Substance::class, 'substance_id', 'id');
+        return $this->belongsTo(Substance::class, 'sus_id', 'code');
     }
 
     
