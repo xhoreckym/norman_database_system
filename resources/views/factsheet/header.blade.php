@@ -1,22 +1,15 @@
 <div class="px-4 sm:px-6 lg:px-8">
   <span class="mr-12 font-bold text-lime-700">
-    Chemical Occurrence Data
+    Substance Factsheets
   </span>
 
-  <x-nav-link-header :href="route('codhome.index')" :active="request()->is('*home*')">
+
+  <x-nav-link-header :href="route('factsheets.home.index')" :active="request()->is('*home*')">
     Home
   </x-nav-link-header>
 
-  <x-nav-link-header :href="route('codsearch.filter')" :active="request()->is('*search*')">
-    Search
-  </x-nav-link-header>
-
-  <x-nav-link-header :href="route('empodat.templates', ['code' => 'empodat'])" :active="request()->is('empodat/templates/entity/empodat*')">
-    DCT Download
-  </x-nav-link-header>
-
-  <x-nav-link-header :href="route('empodat.statistics.index')" :active="request()->is('empodat/statistics*')">
-    Statistics
+  <x-nav-link-header :href="route('factsheets.search.filter')" :active="request()->is('*search*')">
+    Search Data
   </x-nav-link-header>
 
   @role('super_admin')

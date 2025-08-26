@@ -1,0 +1,20 @@
+ecotox_id,user_id,cred_final_score,cred_final_score_total,cred_final_close,cred_final_evaluation,cred_final_comment,cred_final_date
+EPA3557,545,153,153,1,1,Summary,2017-07-30 22:34:43
+EPA206583,1225,146,156,1,1,this study is reliable,2017-09-01 14:01:25
+EPA2008550,181,85.5,156,1,3,"",2017-10-18 14:17:11
+A00064,181,138,150,1,1,"The study is well reported and the endpoint seems plausible. However the EC10 of 1.6 µg/L is far below the NOEC of 128 µg/L, indicating a slow increaseofthe effect up to 128 µg/L, and then a rapid increase of the effect beyond.",2023-12-05 12:24:23
+OZ_TMP_94,1235,101.5,147,1,1,"This study is well reported and seems solid and well conducted. Exposure concentrations were analytically measured. Shortcomings are the missing description of ctls growth performance and in some cases the dose-response curve fit is poor (thus, case by case reliability assessment)
+This study is well reported and seems solid and well conducted. Exposure concentrations were analytically measured. Shortcomings are the missing description of ctls growth performance and in some cases the dose-response curve fit is poor (thus, case by case reliability assessment)",2017-11-20 17:26:27
+OZ_TMP_88,1235,156,156,1,1,kjkhhjjhjhjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj,2017-11-20 13:31:58
+OZ_TMP_94,1212,156,156,1,1,"This is a test! Therefore, this study got a full score...........",2017-11-20 13:31:53
+EPA2102037,181,100,134,1,2,This is just a test!,2018-03-06 13:29:06
+EPA703834,181,108,143,1,1,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,2018-04-10 10:22:10
+EPA111088,181,33.5,156,1,4,to few information,2018-06-12 13:34:12
+EPA2104193,181,156,156,1,1,"everything is fine here, hahhahahahahahah",2018-06-12 14:24:51
+EPA2008550,1212,24,140,1,4,Looks good,2018-10-10 16:04:12
+EPA2019655,181,156,156,1,1,"Alles super, oder nicht?",2019-02-12 09:37:51
+EPA2008550,545,110.5,144,1,1,"",2019-09-08 07:18:43
+EPA273,181,113,156,1,2,"This is again just a test, but so far, it seems to be working fine.",2020-05-24 14:56:35
+EPA703828,181,0,156,1,4,There is basically no information given to give this test CRED evaluation,2020-05-29 14:42:58
+A00114,948,133,150,1,1,The endpoint is reliable for PNEC and EQS derivation non standard species for most sensitive taxonomic group dicot plants very relevant,2021-09-22 16:23:44
+EPA2050440,181,97,145,1,2,This is just a test,2023-04-20 09:27:26

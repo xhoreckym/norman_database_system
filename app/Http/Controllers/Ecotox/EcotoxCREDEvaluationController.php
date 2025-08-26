@@ -156,6 +156,25 @@ class EcotoxCREDEvaluationController extends Controller
             ->withQueryString();
         }
         
+        // Get CRED evaluation data for the records
+        $ecotoxIds = $resultsObjects->pluck('ecotox_id')->filter()->unique();
+        
+        $credEvaluations = \App\Models\Ecotox\EcotoxCredEvaluationFinal::whereIn('ecotox_id', $ecotoxIds)
+            ->get()
+            ->keyBy('ecotox_id');
+        
+        // Add CRED screening scores to records
+        $resultsObjects->getCollection()->transform(function ($record) use ($credEvaluations) {
+            $record->cred_screening_score = 0;
+            if ($record->ecotox_id && isset($credEvaluations[$record->ecotox_id])) {
+                $evaluation = $credEvaluations[$record->ecotox_id];
+                if ($evaluation->cred_final_score_total && $evaluation->cred_final_score_total > 0) {
+                    $record->cred_screening_score = round(($evaluation->cred_final_score / $evaluation->cred_final_score_total) * 100, 2);
+                }
+            }
+            return $record;
+        });
+        
         // Return the view with results and metadata
         return view('ecotox.credevaluation.index', [
             'resultsObjects'      => $resultsObjects,
