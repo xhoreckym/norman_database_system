@@ -39,27 +39,6 @@
            }
          }
        }">
-    <!-- Breadcrumb Navigation -->
-    <nav class="mb-6">
-      <ol class="flex items-center space-x-2 text-sm text-gray-500">
-        <li>
-          <a href="{{ route('ecotox.credevaluation.home.index') }}" class="link-lime-text hover:text-lime-700">
-            CRED Evaluation
-          </a>
-        </li>
-        <li>
-          <span class="mx-2">/</span>
-        </li>
-        <li class="text-gray-800 font-medium">
-          @if ($recordId)
-            Evaluation Form for Record {{ $recordId }}
-          @else
-            Demo Evaluation Form
-          @endif
-        </li>
-      </ol>
-    </nav>
-
     
 
     <div>
