@@ -1,0 +1,4 @@
+---
+description: NEVER use blue colors: No `bg-blue-`, `text-blue-`, `border-blue-`, etc. - Use gray/slate/stone palette instead
+alwaysApply: false
+---

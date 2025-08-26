@@ -14,6 +14,7 @@ use App\Http\Controllers\ARBG\BacteriaController;
 use App\Http\Controllers\Empodat\StatisticsController as EmpodatStatisticsController;
 
 use App\Http\Controllers\Ecotox\EcotoxController;
+use App\Http\Controllers\Ecotox\EcotoxQualityController;
 use App\Http\Controllers\Indoor\IndoorController;
 use App\Http\Controllers\Sars\SarsHomeController;
 use App\Http\Controllers\Backend\GeneralController;
@@ -223,6 +224,7 @@ Route::prefix('ecotox')->group(function () {
     Route::get('e/countAll', [EcotoxController::class, 'countAll'])->middleware('auth')->name('ecotox.ecotox.countAll');
     Route::get('ee/countAll', [EcotoxHomeController::class, 'countAll'])->middleware('auth')->name('ecotox.countAll');
     Route::get('unique/search/substances', [EcotoxHomeController::class, 'syncNewSubstances'])->name('ecotox.unique.search.substances');
+    Route::get('unique/search/substances/pnec3', [EcotoxHomeController::class, 'syncNewSubstancesPnec3'])->name('ecotox.unique.search.substances.pnec3');
     
     // CRED Evaluation routes
     Route::prefix('credevaluation')->middleware(['auth', 'role:super_admin|admin|ecotox'])->group(function () {
@@ -240,6 +242,12 @@ Route::prefix('ecotox')->group(function () {
         Route::get('history/{recordId}', [EcotoxCREDEvaluationController::class, 'getEvaluationHistory'])->name('ecotox.credevaluation.modal.history');
         Route::get('changes/{ecotoxId}/{columnName}', [EcotoxCREDEvaluationController::class, 'getChanges'])->name('ecotox.credevaluation.changes');
         Route::post('save', [EcotoxCREDEvaluationController::class, 'saveEvaluation'])->name('ecotox.credevaluation.modal.save');
+    });
+    
+    // Quality Target routes
+    Route::prefix('quality')->group(function () {
+        Route::get('search/filter/', [EcotoxQualityController::class, 'filter'])->name('ecotox.quality.search.filter');
+        Route::get('search/search/', [EcotoxQualityController::class, 'search'])->name('ecotox.quality.search.search');
     });
     
 });

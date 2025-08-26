@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ecotox_pnec3', function (Blueprint $table) {
+        Schema::create('ecotox_pnec2', function (Blueprint $table) {
             $table->id(); // Standard id column
             $table->string('norman_pnec_id', 30)->nullable()->default(null)->comment('NORMAN PNEC ID');
             $table->text('norman_dataset_id')->nullable()->default(null)->comment('NORMAN Dataset ID');
@@ -74,6 +74,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ecotox_pnec3');
+        Schema::dropIfExists('ecotox_pnec2');
     }
 };
