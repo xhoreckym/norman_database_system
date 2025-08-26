@@ -45,24 +45,7 @@
             {{-- <li>No. of substances with experimental data: <strong>2 197</strong></li> --}}
           </ul>
           
-          <!-- Admin Actions Section -->
-          <div class="mt-8 pt-6 border-t border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Database Management</h3>
-            <div class="flex flex-wrap gap-4">
-              <a href="{{ route('ecotox.unique.search.substances') }}" class="btn-submit">
-                <i class="fas fa-sync-alt mr-2"></i>
-                Sync Ecotox Substances
-              </a>
-              <a href="{{ route('ecotox.unique.search.substances.pnec3') }}" class="btn-submit">
-                <i class="fas fa-sync-alt mr-2"></i>
-                Sync PNEC3 Substances
-              </a>
-              <a href="{{ route('ecotox.countAll') }}" class="btn-submit">
-                <i class="fas fa-calculator mr-2"></i>
-                Update Record Counts
-              </a>
-            </div>
-          </div>
+
           
         </div>
         
