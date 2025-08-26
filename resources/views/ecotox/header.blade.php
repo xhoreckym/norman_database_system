@@ -11,6 +11,10 @@
     Search Data
   </x-nav-link-header>
 
+  <x-nav-link-header :href="route('ecotox.quality.search.filter')" :active="request()->is('ecotox/quality*')">
+    Search Quality Target
+  </x-nav-link-header>
+
   @role('super_admin|admin|ecotox')
   <x-nav-link-header :href="route('ecotox.credevaluation.search.filter')" :active="request()->is('ecotox/credevaluation*')">
     CRED Evaluation

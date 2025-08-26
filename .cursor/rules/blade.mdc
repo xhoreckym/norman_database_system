@@ -1,0 +1,4 @@
+---
+description: project comes with Laravel Breeze, TailwindCSS and x-slot component system, apply it for new blade files
+alwaysApply: false
+---

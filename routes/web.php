@@ -14,6 +14,7 @@ use App\Http\Controllers\ARBG\BacteriaController;
 use App\Http\Controllers\Empodat\StatisticsController as EmpodatStatisticsController;
 
 use App\Http\Controllers\Ecotox\EcotoxController;
+use App\Http\Controllers\Ecotox\EcotoxQualityController;
 use App\Http\Controllers\Indoor\IndoorController;
 use App\Http\Controllers\Sars\SarsHomeController;
 use App\Http\Controllers\Backend\GeneralController;
@@ -240,6 +241,12 @@ Route::prefix('ecotox')->group(function () {
         Route::get('history/{recordId}', [EcotoxCREDEvaluationController::class, 'getEvaluationHistory'])->name('ecotox.credevaluation.modal.history');
         Route::get('changes/{ecotoxId}/{columnName}', [EcotoxCREDEvaluationController::class, 'getChanges'])->name('ecotox.credevaluation.changes');
         Route::post('save', [EcotoxCREDEvaluationController::class, 'saveEvaluation'])->name('ecotox.credevaluation.modal.save');
+    });
+    
+    // Quality Target routes
+    Route::prefix('quality')->group(function () {
+        Route::get('search/filter/', [EcotoxQualityController::class, 'filter'])->name('ecotox.quality.search.filter');
+        Route::get('search/search/', [EcotoxQualityController::class, 'search'])->name('ecotox.quality.search.search');
     });
     
 });
