@@ -9,6 +9,7 @@ use App\Models\Ecotox\LowestPNEC;
 use App\Http\Controllers\Controller;
 use App\Models\Ecotox\EcotoxFinal;
 use App\Models\Ecotox\EcotoxSubstanceDistinct;
+use App\Models\Ecotox\EcotoxSubstanceDistinctPnec3;
 
 
 class EcotoxHomeController extends Controller
@@ -66,6 +67,22 @@ class EcotoxHomeController extends Controller
                 session()->flash('failure', 'Query logging error: ' . $e->getMessage());
                 return redirect()->back();
             }
+        }
+    }
+    
+    public function syncNewSubstancesPnec3()
+    {
+        try {
+            // Call the static method from the PNEC3 model
+            $newCount = EcotoxSubstanceDistinctPnec3::syncNewSubstances();
+            
+            // Return success response
+            session()->flash('success', 'PNEC3 distinct substances synced successfully. ' . $newCount . ' new substances added.');
+            return redirect()->back();
+        } catch (\Exception $e) {
+            // Return error response
+            session()->flash('failure', 'PNEC3 sync error: ' . $e->getMessage());
+            return redirect()->back();
         }
     }
     

@@ -29,7 +29,7 @@
           <!-- Bulleted List -->
           <ul class="list-disc list-inside text-gray-700 mb-4">
             <li>the identification of the reliable ecotoxicity studies, based on the CRED (Criteria for Reporting and Evaluating ecotoxicity Data) classification system;</li>              
-            <li>the online derivation of Quality Targets for each matrix and regulatory framework based on selected ‘reliable’ ecotoxicity studies, using a built-in software tool implementing the requirements of the EC guidelines;</li>
+            <li>the online derivation of Quality Targets for each matrix and regulatory framework based on selected 'reliable' ecotoxicity studies, using a built-in software tool implementing the requirements of the EC guidelines;</li>
             <li>the compilation of all existing Quality Targets from different regulatory frameworks;</li>
             <li>the final selection of the Lowest PNEC value for substance prioritisation purposes, agreed upon as a result of Europe-wide expert consultations. </li>
           </ul>
@@ -45,6 +45,24 @@
             {{-- <li>No. of substances with experimental data: <strong>2 197</strong></li> --}}
           </ul>
           
+          <!-- Admin Actions Section -->
+          <div class="mt-8 pt-6 border-t border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Database Management</h3>
+            <div class="flex flex-wrap gap-4">
+              <a href="{{ route('ecotox.unique.search.substances') }}" class="btn-submit">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Sync Ecotox Substances
+              </a>
+              <a href="{{ route('ecotox.unique.search.substances.pnec3') }}" class="btn-submit">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Sync PNEC3 Substances
+              </a>
+              <a href="{{ route('ecotox.countAll') }}" class="btn-submit">
+                <i class="fas fa-calculator mr-2"></i>
+                Update Record Counts
+              </a>
+            </div>
+          </div>
           
         </div>
         

@@ -12,9 +12,11 @@ class EcotoxQualityController extends Controller
     /**
      * Show the search filter form.
      */
-    public function filter()
+    public function filter(Request $request)
     {
-        return view('ecotox.quality.filter');
+        return view('ecotox.quality.filter', [
+            'request' => $request,
+        ]);
     }
     
     /**

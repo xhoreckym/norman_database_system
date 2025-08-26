@@ -224,6 +224,7 @@ Route::prefix('ecotox')->group(function () {
     Route::get('e/countAll', [EcotoxController::class, 'countAll'])->middleware('auth')->name('ecotox.ecotox.countAll');
     Route::get('ee/countAll', [EcotoxHomeController::class, 'countAll'])->middleware('auth')->name('ecotox.countAll');
     Route::get('unique/search/substances', [EcotoxHomeController::class, 'syncNewSubstances'])->name('ecotox.unique.search.substances');
+    Route::get('unique/search/substances/pnec3', [EcotoxHomeController::class, 'syncNewSubstancesPnec3'])->name('ecotox.unique.search.substances.pnec3');
     
     // CRED Evaluation routes
     Route::prefix('credevaluation')->middleware(['auth', 'role:super_admin|admin|ecotox'])->group(function () {

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Susdat\Substance;
 
-class PNEC3 extends Model
+class PNEC2 extends Model
 {
     use HasFactory;
 
@@ -92,7 +92,7 @@ class PNEC3 extends Model
     ];
 
     /**
-     * Get the substance that the PNEC3 record belongs to.
+     * Get the substance that the PNEC2 record belongs to.
      */
     public function substance()
     {
@@ -100,7 +100,7 @@ class PNEC3 extends Model
     }
 
     /**
-     * Get the substance that the PNEC3 record belongs to via substance_id.
+     * Get the substance that the PNEC2 record belongs to via substance_id.
      */
     public function substanceNew()
     {
