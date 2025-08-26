@@ -456,12 +456,12 @@ class EmpodatController extends Controller
         // Get total count
         $empodatsCount = $this->getDatabaseEntityCount('empodat');
         
-        return view('empodat.index', [
+        return view('empodat.index', array_merge([
             'empodats' => $empodats,
             'empodatsCount' => $empodatsCount,
             'query_log_id' => $queryLogId,
             'searchParameters' => $searchParameters,
-        ], $mainRequest);
+        ], $mainRequest));
         
     } catch (\Exception $e) {
         Log::error('Empodat search failed: ' . $e->getMessage(), [
