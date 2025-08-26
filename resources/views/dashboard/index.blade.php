@@ -118,6 +118,25 @@
                   </div>
                 </div>
                 @endforeach
+                
+                <!-- Database Management Section -->
+                <div>
+                  <h4 class="font-semibold text-sm uppercase text-gray-500 mb-3">Database Management</h4>
+                  <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('ecotox.unique.search.substances') }}" class="btn-submit text-xs">
+                      <i class="fas fa-sync-alt mr-1"></i>
+                      Sync Ecotox Substances
+                    </a>
+                    <a href="{{ route('ecotox.unique.search.substances.pnec3') }}" class="btn-submit text-xs">
+                      <i class="fas fa-sync-alt mr-1"></i>
+                      Sync PNEC3 Substances
+                    </a>
+                    <a href="{{ route('ecotox.countAll') }}" class="btn-submit text-xs">
+                      <i class="fas fa-calculator mr-1"></i>
+                      Update Record Counts
+                    </a>
+                  </div>
+                </div>
               </div>
               
               <div class="mt-8 pt-4 border-t border-gray-200">
