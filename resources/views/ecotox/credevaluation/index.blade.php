@@ -141,17 +141,11 @@
                   <th>Evaluate</th>
                   <th>Biotest ID</th>
                   <th>Taxonomic group</th>
-                  <th>Scientific name</th>
-                  <th>Endpoint</th>
-                  <th>Duration</th>
+                  <th>Scientific name|Endpoint|Duration</th>
                   <th>Effect measurement</th>
                   <th>Test type</th>
                   <th>Standard test</th>
-                  <th>Effect based on</th>
-                  <th>pH</th>
-                  <th>Exposure regime</th>
-                  <th>Purity [%]</th>
-                  <th></th>
+                  <th>Effect based on|pH|Exposure regime|Purity [%]</th>
                   <th>Effect value [µg/L]</th>
                   <th>Measured or nominal</th>
                   <th>Reference</th>
@@ -201,17 +195,22 @@
                       @if ($e->common_name)
                         <div class="text-xs text-gray-500">{{ $e->common_name }}</div>
                       @endif
+                      <div class="text-xs text-gray-600 mt-1">
+                        <span class="font-medium">Endpoint:</span><span class="text-teal-800 font-mono"> {{ $e->endpoint ?? 'N/A' }} </span>| 
+                        <span class="font-medium">Duration:</span> <span class="text-teal-800 font-mono"> {{ $e->duration ?? 'N/A' }} </span>
+                      </div>
                     </td>
-                    <td class="p-1 text-center">{{ $e->endpoint ?? 'N/A' }}</td>
-                    <td class="p-1 text-center">{{ $e->duration ?? 'N/A' }}</td>
                     <td class="p-1 text-center">{{ $e->effect_measurement ?? 'N/A' }}</td>
                     <td class="p-1 text-center">{{ $e->test_type ?? 'N/A' }}</td>
                     <td class="p-1 text-center">{{ $e->standard_test ?? 'N/A' }}</td>
-                    <td class="p-1 text-center">{{ $e->effect ?? 'N/A' }}</td>
-                    <td class="p-1 text-center">{{ $e->ph ?? 'N/A' }}</td>
-                    <td class="p-1 text-center">{{ $e->exposure_regime ?? 'N/A' }}</td>
-                    <td class="p-1 text-center">{{ $e->purity ?? 'N/A' }}</td>
-                    <td class="p-1 text-center"></td>
+                    <td class="p-1 text-center">
+                      <div class="text-xs">
+                        <div><span class="font-medium">Effect:</span> <span class="text-teal-800 font-mono"> {{ $e->effect ?? 'N/A' }} </span></div>
+                        <div><span class="font-medium">pH:</span> <span class="text-teal-800 font-mono"> {{ $e->ph ?? 'N/A' }} </span></div>
+                        <div><span class="font-medium">Exposure:</span> <span class="text-teal-800 font-mono"> {{ $e->exposure_regime ?? 'N/A' }} </span></div>
+                        <div><span class="font-medium">Purity:</span> <span class="text-teal-800 font-mono"> {{ $e->purity ?? 'N/A' }}% </span></div>
+                      </div>
+                    </td>
                     <td class="p-1 text-center">
                       @if ($e->concentration_value)
                         <div>{{ $e->concentration_qualifier ?? '' }} {{ number_format($e->concentration_value, 4) }}
