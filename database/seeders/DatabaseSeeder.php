@@ -158,6 +158,9 @@ class DatabaseSeeder extends Seeder
             EcotoxMain3ChangeSeeder::class,
             EcotoxCredEvaluationFinalSeeder::class,
             
+            // Factsheet
+            FactsheetEntitySeeder::class,
+            
         ]);
     }
 }
