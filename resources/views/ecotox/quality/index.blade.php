@@ -123,6 +123,7 @@
                     <th>Remarks</th>
                     <th>Editor</th>
                     <th>Reference ID</th>
+                    <th>CRED Screening Score</th>
                   </tr>
                 </thead>
                 <tbody id="quality-table-body">
@@ -178,6 +179,13 @@
                         @endif
                       </td>
                       <td class="p-1 text-center">{{ $pnec->ecotox_id ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">
+                        @if (isset($pnec->cred_screening_score))
+                          <span class="font-medium">{{ number_format($pnec->cred_screening_score, 2) }}%</span>
+                        @else
+                          <span class="text-gray-400">0.00%</span>
+                        @endif
+                      </td>
                     </tr>
                   @endforeach
                   
@@ -224,6 +232,13 @@
                         @endif
                       </td>
                       <td class="p-1 text-center">{{ $derivation->ecotox_id ?? 'N/A' }}</td>
+                      <td class="p-1 text-center">
+                        @if (isset($derivation->cred_screening_score))
+                          <span class="font-medium">{{ number_format($derivation->cred_screening_score, 2) }}%</span>
+                        @else
+                          <span class="text-gray-400">0.00%</span>
+                        @endif
+                      </td>
                     </tr>
                   @endforeach
                 </tbody>

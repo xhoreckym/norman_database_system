@@ -35,6 +35,7 @@ use Database\Seeders\QualityEmpodatAnalyticalMethodsSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Database\Seeders\SusdatSusdatCategoryJoinSeeder;
 use Database\Seeders\EcotoxMain3ChangeSeeder;
+use Database\Seeders\EcotoxCredEvaluationFinalSeeder;
 use Illuminate\Database\Seeder;
 
 
@@ -155,6 +156,7 @@ class DatabaseSeeder extends Seeder
             EcotoxLowestPNECMainSeeder::class,
             EcotoxPNEC3Seeder::class,
             EcotoxMain3ChangeSeeder::class,
+            EcotoxCredEvaluationFinalSeeder::class,
             
         ]);
     }

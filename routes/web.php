@@ -11,10 +11,8 @@ use App\Http\Controllers\Backend\FileController;
 use App\Http\Controllers\ARBG\ARBGHomeController;
 
 use App\Http\Controllers\ARBG\BacteriaController;
-use App\Http\Controllers\Empodat\StatisticsController as EmpodatStatisticsController;
-
 use App\Http\Controllers\Ecotox\EcotoxController;
-use App\Http\Controllers\Ecotox\EcotoxQualityController;
+
 use App\Http\Controllers\Indoor\IndoorController;
 use App\Http\Controllers\Sars\SarsHomeController;
 use App\Http\Controllers\Backend\GeneralController;
@@ -28,24 +26,27 @@ use App\Http\Controllers\Susdat\SubstanceController;
 use App\Http\Controllers\Bioassay\BioassayController;
 use App\Http\Controllers\DatabaseDirectoryController;
 use App\Http\Controllers\Ecotox\EcotoxHomeController;
-use App\Http\Controllers\Ecotox\EcotoxCREDEvaluationController;
-use App\Http\Controllers\Ecotox\EcotoxCREDEvaluationHomeController;
 use App\Http\Controllers\Ecotox\LowestPNECController;
 use App\Http\Controllers\Indoor\IndoorHomeController;
 use App\Http\Controllers\Empodat\EmpodatHomeController;
 use App\Http\Controllers\Passive\PassiveHomeController;
+use App\Http\Controllers\Ecotox\EcotoxQualityController;
 use App\Http\Controllers\Empodat\UniqueSearchController;
 use App\Http\Controllers\Bioassay\BioassayHomeController;
 use App\Http\Controllers\Dashboard\DashboardMainController;
-use App\Http\Controllers\SLE\SuspectListExchangeHomeController;
 use App\Http\Controllers\SLE\SuspectListExchangeController;
+use App\Http\Controllers\Ecotox\EcotoxCREDEvaluationController;
+use App\Http\Controllers\SLE\SuspectListExchangeHomeController;
 use App\Http\Controllers\Prioritisation\ModellingDanubeController;
 use App\Http\Controllers\Prioritisation\ModellingScarceController;
+use App\Http\Controllers\Ecotox\EcotoxCREDEvaluationHomeController;
 use App\Http\Controllers\Prioritisation\MonitoringDanubeController;
 use App\Http\Controllers\Prioritisation\MonitoringScarceController;
 use App\Http\Controllers\Prioritisation\PrioritisationHomeController;
 use App\Http\Controllers\Empodat\DataCollectionTemplateFileController;
+use App\Http\Controllers\Factsheet\FactsheetController;
 use App\Http\Controllers\ARGB\AntibioticResistanceBacteriaGeneHomeController;
+use App\Http\Controllers\Empodat\StatisticsController as EmpodatStatisticsController;
 
 // Route::get('/', function () {
 //     return redirect()->route('landing.index');
@@ -99,6 +100,19 @@ Route::middleware('auth')->group(function () {
 // Route::prefix('databases')->middleware('auth')->group(function () {
 //     Route::get('/', [DatabaseDirectoryController::class, 'index'])->name('databases.index');
 // });
+
+Route::prefix('factsheets')->group(function () {
+    Route::get('index', [FactsheetController::class, 'index'])->name('factsheets.index');
+    Route::get('home', [App\Http\Controllers\Factsheet\FactsheetHomeController::class, 'index'])->name('factsheets.home.index');
+    Route::get('countAll', [App\Http\Controllers\Factsheet\FactsheetHomeController::class, 'countAll'])->middleware('auth')->name('factsheets.countAll');
+    
+    Route::prefix('search')->group(function () {
+        Route::get('filter/', [FactsheetController::class, 'filter'])->name('factsheets.search.filter');
+        Route::get('search/', [FactsheetController::class, 'search'])->name('factsheets.search.search');
+    });
+    
+    Route::get('show/{id}', [FactsheetController::class, 'show'])->name('factsheets.show');
+});
 
 Route::prefix('susdat')->group(function () {
     Route::get('substances/filter', [SubstanceController::class, 'filter'])->name('substances.filter');

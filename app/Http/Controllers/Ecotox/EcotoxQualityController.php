@@ -90,7 +90,6 @@ class EcotoxQualityController extends Controller
             $now = now();
             $bindings = $resultsObjects->getBindings();
             $sql = vsprintf(str_replace('?', "'%s'", $resultsObjects->toSql()), $bindings);
-            $sql = vsprintf(str_replace('?', "'%s'", $resultsObjects->toSql()), $bindings);
             
             // Try to find the same SQL query in the QueryLog table
             $actual_count = QueryLog::where('query_hash', hash('sha256', $sql))
@@ -140,6 +139,39 @@ class EcotoxQualityController extends Controller
             ->orderBy('der_order', 'asc')
             ->orderBy('der_date', 'desc')
             ->get();
+        
+        // Get CRED evaluation data for both PNEC and Derivation records
+        $pnecEcotoxIds = $resultsObjects->pluck('ecotox_id')->filter()->unique();
+        $derivationEcotoxIds = $derivationObjects->pluck('ecotox_id')->filter()->unique();
+        $allEcotoxIds = $pnecEcotoxIds->merge($derivationEcotoxIds)->unique();
+        
+        $credEvaluations = \App\Models\Ecotox\EcotoxCredEvaluationFinal::whereIn('ecotox_id', $allEcotoxIds)
+            ->get()
+            ->keyBy('ecotox_id');
+        
+        // Add CRED screening scores to PNEC records
+        $resultsObjects->getCollection()->transform(function ($pnec) use ($credEvaluations) {
+            $pnec->cred_screening_score = 0;
+            if ($pnec->ecotox_id && isset($credEvaluations[$pnec->ecotox_id])) {
+                $evaluation = $credEvaluations[$pnec->ecotox_id];
+                if ($evaluation->cred_final_score_total && $evaluation->cred_final_score_total > 0) {
+                    $pnec->cred_screening_score = round(($evaluation->cred_final_score / $evaluation->cred_final_score_total) * 100, 2);
+                }
+            }
+            return $pnec;
+        });
+        
+        // Add CRED screening scores to Derivation records
+        $derivationObjects->transform(function ($derivation) use ($credEvaluations) {
+            $derivation->cred_screening_score = 0;
+            if ($derivation->ecotox_id && isset($credEvaluations[$derivation->ecotox_id])) {
+                $evaluation = $credEvaluations[$derivation->ecotox_id];
+                if ($evaluation->cred_final_score_total && $evaluation->cred_final_score_total > 0) {
+                    $derivation->cred_screening_score = round(($evaluation->cred_final_score / $evaluation->cred_final_score_total) * 100, 2);
+                }
+            }
+            return $derivation;
+        });
         
         // Return the view with results and metadata
         return view('ecotox.quality.index', [

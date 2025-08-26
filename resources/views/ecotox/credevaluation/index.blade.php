@@ -157,6 +157,7 @@
                     <th>Use of study</th>
                     <th>Editor</th>
                   @endif
+                  <th>CRED Screening Score</th>
                 </tr>
               </thead>
               <tbody id="ecotox-table-body">
@@ -242,12 +243,18 @@
                       <td class="p-1 text-center">
                         @if ($e->editorUser)
                           {{ $e->editorUser->name ?? 'N/A' }}
-                        </td>
                         @else
                           N/A
                         @endif
                       </td>
                     @endif
+                    <td class="p-1 text-center">
+                      @if (isset($e->cred_screening_score))
+                        <span class="font-medium">{{ number_format($e->cred_screening_score, 2) }}%</span>
+                      @else
+                        <span class="text-gray-400">0.00%</span>
+                      @endif
+                    </td>
                   </tr>
                 @endforeach
               </tbody>
