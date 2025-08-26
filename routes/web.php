@@ -246,6 +246,7 @@ Route::prefix('ecotox')->group(function () {
     
     // Quality Target routes
     Route::prefix('quality')->group(function () {
+        Route::get('/', [EcotoxQualityController::class, 'index'])->name('ecotox.quality.index');
         Route::get('search/filter/', [EcotoxQualityController::class, 'filter'])->name('ecotox.quality.search.filter');
         Route::get('search/search/', [EcotoxQualityController::class, 'search'])->name('ecotox.quality.search.search');
     });
