@@ -1,7 +1,7 @@
 <div>
     <div id="searchResults" class="mb-4">
         @if(count($selectedSubstances) > 0)
-            <h3 class="text-sm font-medium text-gray-700 mb-2">Selected substance:</h3>
+            <h3 class="text-sm font-medium text-gray-700 mb-2">Selected substance (only one allowed):</h3>
             <div class="flex flex-wrap gap-2">
                 @foreach ($selectedSubstances as $substance)
                     <div class="flex items-center px-4 py-2 rounded-lg bg-lime-50 border border-lime-200 shadow-sm group hover:bg-lime-100 transition duration-150 ease-in-out">
@@ -56,7 +56,7 @@
     <div>
         @if($resultsAvailable == true)
         <div class="mt-2 p-2 bg-lime-50 border-l-4 border-lime-500 text-lime-800 text-sm">
-            <p>Select a substance and click <span class="font-semibold">Select & Search</span> to view its factsheet data.</p>
+            <p><strong>Note:</strong> Only one substance can be selected at a time. Select a substance and click <span class="font-semibold">Select & Search</span> to view its factsheet data.</p>
         </div>
         @endif
         
