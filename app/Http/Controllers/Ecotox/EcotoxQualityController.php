@@ -90,6 +90,7 @@ class EcotoxQualityController extends Controller
             $now = now();
             $bindings = $resultsObjects->getBindings();
             $sql = vsprintf(str_replace('?', "'%s'", $resultsObjects->toSql()), $bindings);
+            $sql = vsprintf(str_replace('?', "'%s'", $resultsObjects->toSql()), $bindings);
             
             // Try to find the same SQL query in the QueryLog table
             $actual_count = QueryLog::where('query_hash', hash('sha256', $sql))
@@ -134,14 +135,170 @@ class EcotoxQualityController extends Controller
                 ->withQueryString();
         }
         
+        // Get derivation data for the same substances
+        $derivationObjects = \App\Models\Ecotox\EcotoxDerivation::whereIn('substance_id', $substances)
+            ->orderBy('der_order', 'asc')
+            ->orderBy('der_date', 'desc')
+            ->get();
+        
         // Return the view with results and metadata
         return view('ecotox.quality.index', [
             'resultsObjects'      => $resultsObjects,
+            'derivationObjects'   => $derivationObjects,
             'matrixHabitatCounts' => $matrixHabitatCounts,
             'resultsObjectsCount' => $resultsObjectsCount,
             'query_log_id'        => QueryLog::orderBy('id', 'desc')->first()->id ?? 0,
             'request'             => $request,
             'searchParameters'    => $searchParameters,
         ], $main_request);
+    }
+
+    /**
+     * Show the PNEC form for comparing PNEC2 and PNEC3 data.
+     */
+    public function showForm(string $id, Request $request)
+    {
+        // Check role-based access
+        if (!Auth::check() || !(Auth::user()->hasRole('super_admin') || Auth::user()->hasRole('admin') || Auth::user()->hasRole('ecotox'))) {
+            abort(403, 'Access denied. Only super_admin, admin, and ecotox roles can access this page.');
+        }
+
+        // Fetch data from PNEC2 and PNEC3 models for the given norman_pnec_id
+        $pnec2 = \App\Models\Ecotox\PNEC2::with(['substance'])
+            ->where('norman_pnec_id', $id)
+            ->first();
+            
+        $pnec3 = \App\Models\Ecotox\PNEC3::with(['substance'])
+            ->where('norman_pnec_id', $id)
+            ->first();
+
+        if (!$pnec2 && !$pnec3) {
+            abort(404, 'PNEC record not found');
+        }
+
+        // Helper function to get value from models
+        $getValue = function($field) use ($pnec2, $pnec3) {
+            return [
+                'pnec2' => $pnec2?->$field ?? 'N/A',
+                'pnec3' => $pnec3?->$field ?? 'N/A'
+            ];
+        };
+
+        // Define the fields to display in the table
+        $tableFields = [
+            'Reference' => [
+                'study_title' => 'Study Title',
+                'authors' => 'Authors',
+                'year' => 'Year',
+                'bibliographic_source' => 'Bibliographic Source',
+                'dossier_available' => 'Dossier Available'
+            ],
+            'Substance' => [
+                'substance_name' => 'Substance Name',
+                'cas' => 'CAS Number',
+                'purity' => 'Purity',
+                'supplier' => 'Supplier'
+            ],
+            'Test Information' => [
+                'test_type' => 'Test Type',
+                'acute_or_chronic' => 'Acute or Chronic',
+                'matrix_habitat' => 'Matrix Habitat',
+                'taxonomic_group' => 'Taxonomic Group',
+                'scientific_name' => 'Scientific Name'
+            ],
+            'Test Conditions' => [
+                'duration' => 'Duration',
+                'exposure_regime' => 'Exposure Regime',
+                'measured_or_nominal' => 'Measured or Nominal',
+                'test_item' => 'Test Item'
+            ],
+            'Results' => [
+                'endpoint' => 'Endpoint',
+                'effect_measurement' => 'Effect Measurement',
+                'value' => 'Value',
+                'concentration_specification' => 'Concentration Specification'
+            ],
+            'Quality' => [
+                'reliability_study' => 'Reliability Study',
+                'reliability_score' => 'Reliability Score',
+                'institution_study' => 'Institution Study',
+                'vote' => 'Vote'
+            ],
+            'Regulatory' => [
+                'legal_status' => 'Legal Status',
+                'protected_asset' => 'Protected Asset',
+                'pnec_type' => 'PNEC Type',
+                'regulatory_context' => 'Regulatory Context'
+            ]
+        ];
+
+        // Build table rows for the view
+        $tableRows = [];
+        $rowId = 0;
+
+        foreach ($tableFields as $sectionName => $fields) {
+            // Add section header
+            $tableRows[] = [
+                'id' => 'header-' . $rowId++,
+                'type' => 'header',
+                'title' => $sectionName . ' Information'
+            ];
+            
+            // Add data rows
+            $index = 0;
+            foreach ($fields as $fieldName => $displayName) {
+                $values = $getValue($fieldName);
+                
+                $tableRows[] = [
+                    'id' => 'data-' . $rowId++,
+                    'type' => 'data',
+                    'key' => $displayName,
+                    'sectionName' => $sectionName,
+                    'columnName' => $fieldName,
+                    'pnec2' => $values['pnec2'],
+                    'pnec3' => $values['pnec3'],
+                    'isEditable' => false, // Set to true for fields that should be editable
+                    'inputType' => 'text',
+                    'dropdownOptions' => ['Yes', 'No', 'Unknown', 'Not applicable'],
+                    'isOdd' => $index % 2 !== 0,
+                    'hasChanges' => false // Set to true if there are changes to track
+                ];
+                $index++;
+            }
+        }
+
+        // Determine which record to use for primary information
+        $primaryRecord = $pnec3 ?? $pnec2;
+        
+        $record = [
+            'norman_pnec_id' => $id,
+            'substance' => $primaryRecord->substance,
+            'matrix_habitat' => $primaryRecord->matrix_habitat ?? 'N/A',
+            'pnec_type' => $primaryRecord->pnec_type ?? 'N/A'
+        ];
+
+        return view('ecotox.quality.pnec-form', [
+            'recordId' => $id,
+            'record' => $record,
+            'tableRows' => $tableRows,
+            'isSuperAdmin' => Auth::check() && Auth::user()->hasRole('super_admin'),
+            'searchParameters' => $request->all(),
+            'returnUrl' => $request->get('returnUrl')
+        ]);
+    }
+
+    /**
+     * Get changes for a specific PNEC record and column.
+     */
+    public function getChanges(string $pnecId, string $columnName)
+    {
+        // Check role-based access
+        if (!Auth::check() || !(Auth::user()->hasRole('super_admin') || Auth::user()->hasRole('admin') || Auth::user()->hasRole('ecotox'))) {
+            abort(403, 'Access denied');
+        }
+
+        // This would need to be implemented based on your change tracking system
+        // For now, returning empty array
+        return response()->json([]);
     }
 }
