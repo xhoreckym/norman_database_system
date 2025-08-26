@@ -60,10 +60,10 @@
         </div>
         @endif
         
-        <div class="max-h-64 overflow-y-auto mt-2 border border-gray-200 rounded-md">
+        <div class="h-full max-h-80 overflow-y-auto mt-2 border border-gray-200 rounded-md">
             @if($results && $results->count() > 0)
             @foreach ($results as $result)
-            <div class="block p-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+            <div class="block p-2 hover:bg-gray-50 bg-white border-b border-gray-100 last:border-b-0">
                 <label class="flex items-center cursor-pointer">
                     <input 
                     wire:model.live="selectedSubstanceIds" 
