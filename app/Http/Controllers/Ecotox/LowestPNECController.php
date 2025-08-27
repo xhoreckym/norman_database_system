@@ -29,140 +29,83 @@ class LowestPNECController extends Controller
         ]);
     }
     
-    /**
-    * Show the form for filtering LowestPNEC records.
-    */
-    public function filter(Request $request)
-    {
-        // Fetch the substance list for filtering
-        $substanceList = Substance::whereIn('id', function($query) {
-            $query->select('substance_id')
-            ->from('ecotox_lowest_pnec')
-            ->whereNotNull('substance_id');
-        })
-        ->orderBy('name')
-        ->pluck('name', 'id')
-        ->toArray();
-        
-        return view('ecotox.lowestpnec.filter', [
-            'request' => $request,
-            'substanceList' => $substanceList,
-        ]);
-    }
+
     
     /**
-    * Search for LowestPNEC records based on filter criteria.
+    * Search for LowestPNEC records based on exp_pred filter.
     */
+    /**
+     * AJAX endpoint for LowestPNEC data with search and filtering
+     */
+    public function getData(Request $request)
+    {
+        $perPage = $request->get('per_page', 25);
+        $sortColumn = $request->get('sort', 'id');
+        $sortDirection = $request->get('direction', 'asc');
+        $search = $request->get('search', '');
+        $expPred = $request->get('exp_pred', '');
+        
+        $query = LowestPNEC::with('substance');
+        
+        // Apply substance name search (only within substances that exist in LowestPNEC table)
+        if (!empty(trim($search))) {
+            $query->whereHas('substance', function($subQuery) use ($search) {
+                $subQuery->where('name', 'ILIKE', '%' . trim($search) . '%');
+            });
+        }
+        
+        // Apply exp_pred filter (experimental vs predicted)
+        // Database values: 1 = Experimental, 2 = Predicted
+        if (!empty($expPred)) {
+            $query->where('lowest_exp_pred', (int) $expPred);
+        }
+        
+        // Apply sorting
+        $allowedSortColumns = ['id', 'sus_id', 'substance_id', 'lowest_exp_pred'];
+        if (in_array($sortColumn, $allowedSortColumns)) {
+            $query->orderBy($sortColumn, $sortDirection);
+        } else {
+            $query->orderBy('id', 'asc');
+        }
+        
+        $results = $query->paginate($perPage);
+        
+        return response()->json($results);
+    }
+
     public function search(Request $request)
     {
-        // Define the input fields to process
-        $searchFields = ['substance_search', 'pnec_type', 'exp_pred'];
-        
-        // Process each field with the same logic
-        foreach ($searchFields as $field) {
-            ${$field} = is_array($request->input($field))
-            ? $request->input($field) 
-            : json_decode($request->input($field), true);
-        }
-        
         $searchParameters = [];
-        
         $resultsObjects = LowestPNEC::with('substance');
         
-        // Apply substance filter
-        if (!empty($substance_search)) {
-            $resultsObjects = $resultsObjects->whereIn('substance_id', $substance_search);
-            $searchParameters['substance_search'] = Substance::whereIn('id', $substance_search)->pluck('name');
-        }
-        
-        // Apply PNEC type filter (1-8 for different PNEC types)
-        if (!empty($pnec_type)) {
-            $resultsObjects = $resultsObjects->where(function($query) use ($pnec_type) {
-                foreach ($pnec_type as $type) {
-                    $query->orWhereNotNull('lowest_pnec_value_' . $type);
-                }
+        // Apply substance name filter
+        if ($request->has('substance_name') && trim($request->substance_name) !== '') {
+            $substanceName = trim($request->substance_name);
+            $resultsObjects = $resultsObjects->whereHas('substance', function($query) use ($substanceName) {
+                $query->where('name', 'ILIKE', '%' . $substanceName . '%');
             });
-            $searchParameters['pnec_type'] = $pnec_type;
+            $searchParameters['Substance Name'] = $substanceName;
         }
         
-        // Apply exp_pred filter
-        if (!empty($exp_pred)) {
-            $resultsObjects = $resultsObjects->whereIn('lowest_exp_pred', $exp_pred);
-            $searchParameters['exp_pred'] = $exp_pred;
+        // Apply exp_pred filter (experimental vs predicted)
+        // Database values: 1 = Experimental, 2 = Predicted
+        if ($request->has('exp_pred') && $request->exp_pred !== '') {
+            $expPredValue = (int) $request->exp_pred;
+            $resultsObjects = $resultsObjects->where('lowest_exp_pred', $expPredValue);
+            $searchParameters['Data Type'] = $expPredValue == 1 ? 'Experimental' : 'Predicted';
         }
         
-        // Apply PNEC value range filter
-        if ($request->has('pnec_min') && $request->pnec_min !== null) {
-            $resultsObjects = $resultsObjects->where(function($query) use ($request) {
-                for ($i = 1; $i <= 8; $i++) {
-                    $query->orWhere('lowest_pnec_value_' . $i, '>=', $request->pnec_min);
-                }
-            });
-            $searchParameters['pnec_min'] = $request->pnec_min;
-        }
-        
-        if ($request->has('pnec_max') && $request->pnec_max !== null) {
-            $resultsObjects = $resultsObjects->where(function($query) use ($request) {
-                for ($i = 1; $i <= 8; $i++) {
-                    $query->orWhere('lowest_pnec_value_' . $i, '<=', $request->pnec_max);
-                }
-            });
-            $searchParameters['pnec_max'] = $request->pnec_max;
-        }
-        
-        $main_request = $request->all();
-        
-        $database_key = 'ecotox';
-        $resultsObjectsCount = DatabaseEntity::where('code', $database_key)->first()->number_of_records ?? 0;
-        
-        if(!$request->has('page')){
-            $now = now();
-            $bindings = $resultsObjects->getBindings();
-            $sql = vsprintf(str_replace('?', "'%s'", $resultsObjects->toSql()), $bindings);
-            // try to find same SQL query in the QueryLog table with same total_count based on the query_hash
-            $actual_count = QueryLog::where('query_hash', hash('sha256', $sql))->where('total_count', $resultsObjectsCount)->value('actual_count');
-            
-            try {
-                QueryLog::insert([
-                    'content'      => json_encode(['request' => $main_request, 'bindings' => $bindings]),
-                    'query'        => $sql,
-                    'user_id'      => auth()->check() ? auth()->id() : null,
-                    'total_count'  => $resultsObjectsCount,
-                    'actual_count' => is_null($actual_count) ? null : $actual_count,
-                    'database_key' => $database_key,
-                    'query_hash'   => hash('sha256', $sql),
-                    'created_at'   => $now,
-                    'updated_at'   => $now,
-                ]);
-            } catch (\Exception $e) {
-                if (Auth::check() && Auth::user()->hasRole('super_admin')) {
-                    session()->flash('failure', 'Query logging error: ' . $e->getMessage());
-                } else {
-                    session()->flash('error', 'An error occurred while processing your request.');
-                }
-            }
-        }
-        
-        if ($request->displayOption == 1) {
-            // use simple pagination
-            $resultsObjects = $resultsObjects->orderBy('id', 'asc')
-            ->simplePaginate(200)
+        // Order and paginate results
+        $resultsObjects = $resultsObjects->orderBy('id', 'asc')
+            ->paginate(50)
             ->withQueryString();
-        } else {
-            // use cursor pagination
-            $resultsObjects = $resultsObjects->orderBy('id', 'asc')
-            ->paginate(200)
-            ->withQueryString();
-        }
         
         return view('ecotox.lowestpnec.index', [
-            'lowestPnecs'        => $resultsObjects,
-            'resultsObjectsCount' => $resultsObjectsCount,
-            'query_log_id'        => QueryLog::orderBy('id', 'desc')->first()->id ?? null,
-            'request'             => $request,
-            'searchParameters'    => $searchParameters,
-            'displayOption'       => $request->displayOption,
-        ], $main_request);
+            'lowestPnecs' => $resultsObjects,
+            'searchParameters' => $searchParameters,
+            'request' => $request,
+            'displayOption' => 0,
+        ]);
     }
     
     /**

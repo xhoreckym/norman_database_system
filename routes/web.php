@@ -222,6 +222,8 @@ Route::prefix('ecotox')->group(function () {
     
     Route::prefix('lowestpnec')->group(function () {
         Route::get('index', [LowestPNECController::class, 'index'])->name('ecotox.lowestpnec.index');
+        Route::get('data', [LowestPNECController::class, 'getData'])->name('ecotox.lowestpnec.data');
+        Route::get('search/', [LowestPNECController::class, 'search'])->name('ecotox.lowestpnec.search');
         Route::get('show/{sus_id}', [LowestPNECController::class, 'show'])->name('ecotox.lowestpnec.show');
         Route::get('countAll', [LowestPNECController::class, 'countAll'])->middleware('auth')->name('ecotox.lowestpnec.countAll');
     });

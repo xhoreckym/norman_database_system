@@ -52,7 +52,7 @@ class LowestPNEC extends Model
         'lowest_pnec_value_6' => 'float',
         'lowest_pnec_value_7' => 'float',
         'lowest_pnec_value_8' => 'float',
-        'lowest_exp_pred' => 'boolean',
+        'lowest_exp_pred' => 'integer',
     ];
 
     /**
