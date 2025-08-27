@@ -286,6 +286,79 @@
             </div>
           @endif
 
+          {{-- PNEC Table --}}
+          @if($lowestPnecObjects->count() > 0)
+            <div class="mt-8" id="pnec-table-container">
+              <h3 class="text-lg font-semibold text-gray-900 mb-4">PNEC Table</h3>
+              <div class="overflow-x-auto">
+                <table class="table-standard" id="pnec-table">
+                  <thead>
+                    <tr class="bg-gray-600 text-white">
+                      <th>#</th>
+                      <th>PNEC Type</th>
+                      <th>Matrix</th>
+                      <th>Country</th>
+                      <th>Institution</th>
+                      <th>Scientific Name</th>
+                      <th>Endpoint|Duration|Effect</th>
+                      <th>AF</th>
+                      <th>PNEC Value</th>
+                      <th>Editor</th>
+                      <th>PNEC ID</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @foreach ($lowestPnecObjects as $pnec)
+                      <tr class="pnec-row @if($pnec->lowest_active == 1) bg-green-100 @elseif ($loop->odd) bg-slate-100 @else bg-slate-200 @endif"
+                          data-matrix="{{ strtolower($pnec->matrix_type ?? 'unknown') }}">
+                        <td class="p-1 text-center">{{ $loop->iteration }}</td>
+                        <td class="p-1 text-center">{{ $pnec->lowest_pnec_type ?? 'N/A' }}</td>
+                        <td class="p-1 text-center">{{ $pnec->matrix_type ?? 'N/A' }}</td>
+                        <td class="p-1 text-center">{{ 'N/A' }}{{-- Country field needs to be mapped --}}</td>
+                        <td class="p-1 text-center">{{ $pnec->lowest_institution ?? 'N/A' }}</td>
+                        <td class="p-1">
+                          <div class="italic">
+                            @if($pnec->substance)
+                              {{ $pnec->substance->name ?? 'N/A' }}
+                            @elseif($pnec->originSubstance)
+                              {{ $pnec->originSubstance->name ?? 'N/A' }}
+                            @else
+                              N/A
+                            @endif
+                          </div>
+                        </td>
+                        <td class="p-1 text-center">
+                          <div class="text-sm">
+                            <div><strong>Endpoint:</strong> {{ $pnec->lowest_test_endpoint ?? 'N/A' }}</div>
+                            {{-- Duration and Effect would need additional fields in the database --}}
+                          </div>
+                        </td>
+                        <td class="p-1 text-center">{{ $pnec->lowest_AF ?? 'N/A' }}</td>
+                        <td class="p-1 text-center">
+                          @if ($pnec->lowest_pnec_value)
+                            <div class="font-medium">{{ number_format($pnec->lowest_pnec_value, 4) }}</div>
+                          @else
+                            <span class="text-gray-400">N/A</span>
+                          @endif
+                        </td>
+                        <td class="p-1 text-center">
+                          @if ($pnec->editor)
+                            {{ $pnec->editor->name ?? $pnec->editor->email ?? 'N/A' }}
+                          @else
+                            N/A
+                          @endif
+                        </td>
+                        <td class="p-1 text-center">{{ $pnec->lowest_id ?? 'N/A' }}</td>
+                        <td class="p-1 text-center">{{ $pnec->formatted_date ?? 'N/A' }}</td>
+                      </tr>
+                    @endforeach
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          @endif
+
         </div>
       </div>
     </div>
@@ -297,13 +370,17 @@
       document.addEventListener('DOMContentLoaded', function() {
         const tabButtons = document.querySelectorAll('.tab-button');
         const tableRows = document.querySelectorAll('.quality-row');
+        const pnecRows = document.querySelectorAll('.pnec-row');
         const noResultsMessage = document.getElementById('no-results-message');
         const tableBody = document.getElementById('quality-table-body');
+        const pnecTableContainer = document.getElementById('pnec-table-container');
 
         // Function to filter table rows based on selected tab
         function filterTable(matrixFilter) {
           let visibleCount = 0;
+          let visiblePnecCount = 0;
 
+          // Filter main results table rows
           tableRows.forEach(row => {
             const rowMatrix = row.dataset.matrix;
             const rowSource = row.dataset.source;
@@ -321,13 +398,39 @@
             }
           });
 
-          // Show/hide no results message
+          // Filter PNEC table rows
+          pnecRows.forEach(row => {
+            const rowMatrix = row.dataset.matrix;
+
+            // Show row if it matches the filter (or if "All" is selected)
+            if (matrixFilter === '') {
+              // Show all rows
+              row.style.display = '';
+              visiblePnecCount++;
+            } else if (rowMatrix === matrixFilter) {
+              row.style.display = '';
+              visiblePnecCount++;
+            } else {
+              row.style.display = 'none';
+            }
+          });
+
+          // Show/hide main results table and no results message
           if (visibleCount === 0) {
             noResultsMessage.classList.remove('hidden');
             tableBody.parentElement.style.display = 'none';
           } else {
             noResultsMessage.classList.add('hidden');
             tableBody.parentElement.style.display = '';
+          }
+
+          // Show/hide PNEC table
+          if (pnecTableContainer) {
+            if (visiblePnecCount === 0) {
+              pnecTableContainer.style.display = 'none';
+            } else {
+              pnecTableContainer.style.display = '';
+            }
           }
         }
 
