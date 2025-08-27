@@ -14,25 +14,26 @@ class FactsheetEntitySeeder extends Seeder
     public function run(): void
     {
         $now = now();
+        FactsheetEntity::truncate();
         $entities = [
             [
                 'name' => 'Chemical identity',
                 'sort_order' => 1,
-                'data' => json_encode(['method_of_presentation' => 'database_table', 'model' => 'App\Models\Susdat\Substance', 'fields' => ['name', 'cas_number', 'stdinchikey', 'prefixed_code']]),
+                'data' => json_encode(['method_of_presentation' => 'database_table', 'model' => 'App\Models\Susdat\Substance', 'fields' => ['prefixed_code', 'name', 'cas_number', 'smiles', 'stdinchikey', 'molecular_formula', 'mass_iso', 'dtxid', 'pubchem_cid']]),
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
             [
                 'name' => 'Major uses',
                 'sort_order' => 2,
-                'data' => json_encode([]),
+                'data' => json_encode(['method_of_presentation' => 'database_table', 'model' => 'App\Models\Susdat\UsepaCategories', 'fields' => ['category_name']]),
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
             [
                 'name' => 'Properties',
                 'sort_order' => 3,
-                'data' => json_encode([]),
+                'data' => json_encode(['method_of_presentation' => 'database_table', 'model' => 'App\Models\Susdat\Usepa', 'fields' => ['usepa_formula', 'usepa_wikipedia', 'usepa_wikipedia_url', 'usepa_Log_Kow_experimental', 'usepa_Log_Kow_predicted', 'usepa_solubility_experimental', 'usepa_solubility_predicted', 'usepa_Koc_min_experimental', 'usepa_Koc_max_experimental', 'usepa_Koc_min_predicted', 'usepa_Koc_max_predicted', 'usepa_Life_experimental', 'usepa_Life_predicted', 'usepa_BCF_experimental', 'usepa_BCF_predicted']]),
                 'created_at' => $now,
                 'updated_at' => $now,
             ],

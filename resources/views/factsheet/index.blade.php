@@ -94,7 +94,55 @@
                     x-transition:leave-end="opacity-0 transform -translate-y-2"
                     class="p-6"
                   >
-                    @if(isset($entity->data['method_of_presentation']))
+                    @if(isset($entity->processed_data))
+                      @if($entity->processed_data['type'] === 'database_table')
+                        {{-- CASE 1: Database table presentation --}}
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                          @if(!empty($entity->processed_data['key_value_data']))
+                            <div class="overflow-x-auto">
+                              <table class="min-w-full divide-y divide-gray-200">
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                  @foreach($entity->processed_data['key_value_data'] as $field => $value)
+                                    <tr class="hover:bg-gray-50">
+                                      <td class="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap bg-gray-50 border-r border-gray-200">
+                                        @php
+                                          $fieldTranslations = [
+                                            'prefixed_code' => 'Norman SusDat ID',
+                                            'name' => 'Name',
+                                            'cas_number' => 'CAS Registry Number',
+                                            'smiles' => 'SMILES',
+                                            'stdinchikey' => 'InChIKey',
+                                            'molecular_formula' => 'Molecular formula',
+                                            'mass_iso' => 'Monoisotopic mass [g/mol]',
+                                            'dtxid' => 'DSSTox Substance ID',
+                                            'pubchem_cid' => 'PubChem CID'
+                                          ];
+                                        @endphp
+                                        {{ $fieldTranslations[$field] ?? ucwords(str_replace(['_', '-'], ' ', $field)) }}
+                                      </td>
+                                      <td class="px-4 py-3 text-sm text-gray-700 font-mono break-all">
+                                        {{ $value ?: 'N/A' }}
+                                      </td>
+                                    </tr>
+                                  @endforeach
+                                </tbody>
+                              </table>
+                            </div>
+                          @else
+                            <div class="text-center py-4">
+                              <p class="text-sm text-gray-600">No data available for this section</p>
+                              <p class="text-xs text-gray-500 mt-1">Model: {{ $entity->processed_data['model'] ?? 'N/A' }}</p>
+                            </div>
+                          @endif
+                        </div>
+                      @elseif($entity->processed_data['type'] === 'text')
+                        {{-- CASE 2: Text presentation --}}
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                          <p class="text-sm text-gray-700 leading-relaxed">{{ $entity->processed_data['content'] }}</p>
+                        </div>
+                      @endif
+                    @elseif(isset($entity->data['method_of_presentation']))
+                      {{-- Fallback for unprocessed data --}}
                       @if($entity->data['method_of_presentation'] === 'database_table')
                         <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
                           <p class="text-sm text-slate-600 mb-2">Database table presentation</p>
@@ -110,7 +158,7 @@
                       @endif
                     @else
                       <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                        <p class="text-sm text-slate-600">Table content will be specified later</p>
+                        <p class="text-sm text-slate-600">Content will be configured later</p>
                       </div>
                     @endif
                   </div>
