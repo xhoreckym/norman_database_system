@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Ecotox;
 
 use App\Models\Ecotox\PNEC3;
+use App\Models\Ecotox\LowestPNECMain;
 use Illuminate\Http\Request;
 use App\Models\Backend\QueryLog;
 use App\Models\Susdat\Substance;
@@ -20,6 +21,8 @@ class EcotoxQualityController extends Controller
     {
         return view('ecotox.quality.index', [
             'resultsObjects' => collect(),
+            'derivationObjects' => collect(),
+            'lowestPnecObjects' => collect(),
             'matrixHabitatCounts' => collect(),
             'request' => $request,
             'searchParameters' => [],
@@ -140,6 +143,13 @@ class EcotoxQualityController extends Controller
             ->orderBy('der_date', 'desc')
             ->get();
         
+        // Get LowestPNECMain data for the same substances (using sus_id which maps to Substance->code)
+        $substanceCodes = Substance::whereIn('id', $substances)->pluck('code');
+        $lowestPnecObjects = LowestPNECMain::with(['substance', 'originSubstance', 'editor'])
+            ->whereIn('sus_id', $substanceCodes)
+            ->orderBy('lowest_id', 'asc')
+            ->get();
+        
         // Get CRED evaluation data for both PNEC and Derivation records
         $pnecEcotoxIds = $resultsObjects->pluck('ecotox_id')->filter()->unique();
         $derivationEcotoxIds = $derivationObjects->pluck('ecotox_id')->filter()->unique();
@@ -177,6 +187,7 @@ class EcotoxQualityController extends Controller
         return view('ecotox.quality.index', [
             'resultsObjects'      => $resultsObjects,
             'derivationObjects'   => $derivationObjects,
+            'lowestPnecObjects'   => $lowestPnecObjects,
             'matrixHabitatCounts' => $matrixHabitatCounts,
             'resultsObjectsCount' => $resultsObjectsCount,
             'query_log_id'        => QueryLog::orderBy('id', 'desc')->first()->id ?? 0,
