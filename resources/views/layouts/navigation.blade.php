@@ -19,26 +19,13 @@
                     </x-nav-link>
                     @endauth
                     
-                    <x-nav-link :href="route('home')" :active="(request()->routeIs('databases.index') || request()->is('landing'))">
+                    <x-nav-link :href="route('home')" :active="(request()->routeIs('home') || request()->routeIs('databases.index') || request()->is('landing') || request()->is('sle/*') || request()->is('arbg/*') || request()->is('indoor/*') || request()->is('passive/*') || request()->is('prioritisation/*') || request()->is('bioassays/*') || request()->is('sars/*') || request()->is('empodat/*') || request()->is('susdat/*') || request()->is('ecotox/*') || request()->is('factsheets/*'))">
                         {{ __('Databases index') }}
                     </x-nav-link>
                     
                     <x-nav-link :href="url('/').'/docs'" :active="request()->routeIs('apidoc')" target="_blank">
                         API Documentation 
                     </x-nav-link>
-                    
-                    <!-- individual navigation links -->
-                    @if(request()->is('susdat/*'))
-                    <x-nav-link :href="route('substances.filter')" :active="request()->is('susdat/*')">
-                        Substance Database
-                    </x-nav-link>
-                    @endif
-                    
-                    @if(request()->is('empodat/*'))
-                    <x-nav-link :href="route('substances.filter')" :active="request()->is('empodat/*')">
-                        Chemical Occurance Data
-                    </x-nav-link>
-                    @endif
                     
                     
                     <!-- end individual navigation links -->
@@ -141,7 +128,7 @@
     
     <!-- Add missing navigation links for mobile -->
     <div class="pt-2 pb-3 space-y-1">
-        <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('databases.index') || request()->is('landing')">
+        <x-responsive-nav-link :href="route('home')" :active="(request()->routeIs('databases.index') || request()->is('landing') || request()->is('sle/*') || request()->is('arbg/*') || request()->is('indoor/*') || request()->is('passive/*') || request()->is('prioritisation/*') || request()->is('bioassays/*') || request()->is('sars/*') || request()->is('empodat/*') || request()->is('susdat/*') || request()->is('ecotox/*') || request()->is('factsheets/*'))">
             {{ __('Databases index') }}
         </x-responsive-nav-link>
         

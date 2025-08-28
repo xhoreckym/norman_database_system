@@ -1,5 +1,15 @@
 @role(['admin', 'super_admin'])
   <div class="bg-white overflow-hidden shadow-md rounded-lg">
+      <!-- Messages section (placeholder for future) -->
+      <div class="space-y-3">
+        <h4 class="font-medium text-gray-700 text-sm uppercase tracking-wide">System Messages</h4>
+        <div class="bg-stone-50 rounded-lg p-4 text-center">
+          <i class="fas fa-envelope-open-text text-2xl text-gray-400 mb-2"></i>
+          <p class="text-gray-600 text-sm">No new messages</p>
+          <p class="text-gray-500 text-xs mt-1">Message system will be added here</p>
+        </div>
+      </div>
+
     <div class="p-4 bg-stone-100 border-b border-stone-200">
       <h3 class="text-lg font-semibold text-gray-800">
         <i class="fas fa-file-alt mr-2 text-gray-600"></i>
@@ -34,6 +44,22 @@
             @endforeach
           </div>
         </div>
+
+        {{-- Check if any database entity has zero templates --}}
+        @php
+          $hasZeroTemplates = $entitiesWithTemplateCounts->contains(function ($entity) {
+              return ($entity->active_templates_count + $entity->inactive_templates_count) == 0;
+          });
+        @endphp
+
+        @if($hasZeroTemplates)
+          <div class="mt-3 bg-red-50 border border-red-200 rounded-lg p-3">
+            <div class="flex items-center">
+              <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+              <span class="text-red-700 text-sm font-medium">DCT Templates are missing</span>
+            </div>
+          </div>
+        @endif
       </div>
 
       <!-- System statistics -->
@@ -55,15 +81,7 @@
         </div>
       </div>
 
-      <!-- Messages section (placeholder for future) -->
-      <div class="space-y-3">
-        <h4 class="font-medium text-gray-700 text-sm uppercase tracking-wide">System Messages</h4>
-        <div class="bg-stone-50 rounded-lg p-4 text-center">
-          <i class="fas fa-envelope-open-text text-2xl text-gray-400 mb-2"></i>
-          <p class="text-gray-600 text-sm">No new messages</p>
-          <p class="text-gray-500 text-xs mt-1">Message system will be added here</p>
-        </div>
-      </div>
+
     </div>
   </div>
 @else
