@@ -4,7 +4,7 @@
   </x-slot>
   
   <div class="py-4">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="max-w-screen-xl mx-auto sm:px-6 lg:px-8">
       @role(['admin', 'super_admin'])
         <!-- 3-column layout for admin/super_admin -->
         <div class="grid lg:grid-cols-3 gap-6">

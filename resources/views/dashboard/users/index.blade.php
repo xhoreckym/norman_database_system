@@ -22,7 +22,7 @@
             <div class="flex space-x-4 flex-1">
               <div class="w-32">
                 <label for="perPage" class="block text-sm font-medium text-gray-700">Show</label>
-                <select id="perPage" x-model="perPage" @change="changePage(1)" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <select id="perPage" x-model="perPage" @change="changePage(1)" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md focus:outline-none focus:ring-slate-500 focus:border-slate-500 sm:text-sm">
                   <option value="10">10</option>
                   <option value="25">25</option>
                   <option value="50">50</option>
@@ -37,7 +37,7 @@
                 x-model="search" 
                 @input="debounceSearch()" 
                 placeholder="Search by name or email..." 
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-slate-500 focus:border-slate-500 sm:text-sm">
               </div>
             </div>
         
@@ -93,6 +93,8 @@
                         <span class="px-2 mr-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800" x-text="project.abbreviation"></span>
                       </template>
                     </td>
+                    <td class="py-2 px-4 text-sm text-gray-600" x-text="formatDateTime(user.created_at)"></td>
+                    <td class="py-2 px-4 text-sm text-gray-600" x-text="formatDateTime(user.updated_at)"></td>
                     <td class="py-2 px-4 text-center">
                       <div class="flex justify-center space-x-2">
                         <a :href="'/backend/users/' + user.id" class="text-blue-600 hover:text-blue-800" title="View">
@@ -176,7 +178,7 @@
         totalPages: 1,
         search: '',
         searchTimeout: null,
-        sortColumn: 'id',
+        sortColumn: 'last_name',
         sortDirection: 'asc',
         
         init() {
@@ -242,6 +244,18 @@
             this.sortDirection = 'asc';
           }
           this.fetchUsers();
+        },
+        
+        formatDateTime(dateString) {
+          if (!dateString) return '-';
+          const date = new Date(dateString);
+          return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
         },
         
         changePage(page) {

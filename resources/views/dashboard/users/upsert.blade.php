@@ -185,13 +185,26 @@
                     @endphp
                     
                     @foreach ($roles as $role)
-                    <label class="inline-flex items-center space-x-2 p-2 border rounded hover:bg-gray-50">
+                    <label class="inline-flex items-center space-x-2 p-2 border rounded {{ $role->name === 'user' ? 'bg-gray-100' : 'hover:bg-gray-50' }}">
                       <input type="checkbox" 
                              name="roles[]" 
                              value="{{ $role->name }}" 
-                             class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                             @if(isset($user) && $user->hasRole($role->name)) checked @endif>
-                      <span class="text-sm">{{ $role->name }}</span>
+                             class="h-4 w-4 text-slate-600 focus:ring-slate-500 border-gray-300 rounded"
+                             @if($role->name === 'user') 
+                               checked disabled 
+                             @elseif(isset($user) && $user->hasRole($role->name)) 
+                               checked 
+                             @endif>
+                      <span class="text-sm {{ $role->name === 'user' ? 'text-gray-600 font-medium' : '' }}">
+                        {{ $role->name }}
+                        @if($role->name === 'user')
+                          <span class="text-xs text-gray-500">(required)</span>
+                        @endif
+                      </span>
+                      @if($role->name === 'user')
+                        <!-- Hidden input to ensure 'user' role is always submitted -->
+                        <input type="hidden" name="roles[]" value="user">
+                      @endif
                     </label>
                     @endforeach
                   </div>

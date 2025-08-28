@@ -36,12 +36,15 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
+        $user = new User([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+        // Set explicit ID to avoid sequence conflict
+        $user->id = User::max('id') + 1;
+        $user->save();
 
         $user->assignRole('user');
 
