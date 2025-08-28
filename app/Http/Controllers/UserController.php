@@ -64,7 +64,7 @@ class UserController extends Controller implements HasMiddleware
     ]);
     
     $query = User::with(['roles', 'projects'])
-    ->withCount('tokens')->orderby('last_name', 'asc');
+    ->withCount('tokens');
     
     // Apply search
     if (!empty($search)) {
@@ -88,9 +88,12 @@ class UserController extends Controller implements HasMiddleware
       ->select('users.*')
       ->orderBy('roles.name', $direction)
       ->groupBy('users.id');
+    } elseif ($sort === 'number_of_api_tokens') {
+      // Handle special case for token count sorting
+      $query->orderBy('tokens_count', $direction);
     } else {
       // Handle all other columns
-      if (in_array($sort, ['id', 'first_name', 'last_name', 'email'])) {
+      if (in_array($sort, ['id', 'first_name', 'last_name', 'email', 'created_at', 'updated_at'])) {
         $query->orderBy($sort, $direction);
       }
     }
@@ -131,18 +134,25 @@ class UserController extends Controller implements HasMiddleware
       'last_name'     => 'required',
       'email'         => 'required',
       'roles'         => 'required',
-      'projects'      => 'required',
+      'projects'      => 'nullable',
     ];
     $request->validate($validation_array);
     $temporary_password = Str::random(12);
     $user = New User();
+    // Set explicit ID to avoid sequence conflict
+    $user->id = User::max('id') + 1;
     $user->first_name = $request['first_name'];
     $user->last_name = $request['last_name'];
     $user->email = $request['email'];
     $user->password = bcrypt($temporary_password);
-    $user->syncRoles($request['roles']);
     try {
       $user->save();
+      // Assign roles after user is saved
+      $roles = $request['roles'] ?? [];
+      if (!in_array('user', $roles)) {
+          $roles[] = 'user';
+      }
+      $user->syncRoles($roles);
       // other operations
       return redirect()->route('users.index')->with('success', 'User updated successfully');
     } catch (\Illuminate\Database\QueryException $e) {
@@ -217,7 +227,7 @@ class UserController extends Controller implements HasMiddleware
         'last_name'     => 'required',
         'email'         => 'required',
         'roles'         => 'required',
-        'projects'      => 'required',
+        'projects'      => 'nullable',
       ];
       $request->validate($validation_array);
       
@@ -225,7 +235,12 @@ class UserController extends Controller implements HasMiddleware
       $user->first_name = $request['first_name'];
       $user->last_name = $request['last_name'];
       $user->email = $request['email'];
-      $user->syncRoles($request['roles']);
+      // Ensure 'user' role is always included and cannot be removed
+      $roles = $request['roles'] ?? [];
+      if (!in_array('user', $roles)) {
+          $roles[] = 'user';
+      }
+      $user->syncRoles($roles);
       $user->projects()->sync($request['projects']);
       try {
         $user->save();
@@ -321,6 +336,8 @@ class UserController extends Controller implements HasMiddleware
         'roles',
         'number_of_api_tokens',
         'projects',
+        'created_at',
+        'updated_at',
       ];
     }
   }

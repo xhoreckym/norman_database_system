@@ -6,15 +6,17 @@
   <x-nav-link-header :href="route('dashboard')" :active="request()->routeIs('dashboard')">
     Main panel
   </x-nav-link-header>
-
+  @role('admin')
   <x-nav-link-header :href="route('templates.index')" :active="request()->routeIs('templates.*')">
     Templates
   </x-nav-link-header>
-
+  @endrole
+  @role('admin')
   <x-nav-link-header :href="route('files.index')" :active="request()->routeIs('files.*')">
     Files
   </x-nav-link-header>
-
+  @endrole
+  
   @role('user_manager')
   <x-nav-link-header :href="route('users.index')" :active="request()->routeIs('users.*')">
     Users
