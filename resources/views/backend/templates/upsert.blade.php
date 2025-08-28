@@ -13,7 +13,7 @@
               {{ isset($isCreate) && $isCreate ? 'Create New Template' : 'Edit Template' }}
             </h2>
             @if(!isset($isCreate) || !$isCreate)
-              <a href="{{ route('templates.show', $template) }}" class="text-indigo-600 hover:text-indigo-800">
+              <a href="{{ route('templates.show', $template) }}" class="link-lime-text">
                 <i class="fa fa-eye mr-1"></i> View Details
               </a>
             @endif
@@ -35,7 +35,7 @@
               <div class="space-y-6">
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa fa-info-circle mr-2 text-blue-600"></i>
+                    <i class="fa fa-file-text mr-2 text-slate-600"></i>
                     Basic Information
                   </h3>
 
@@ -47,7 +47,7 @@
                       name="name" 
                       id="name" 
                       value="{{ old('name', $template->name) }}"
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('name') border-red-500 @enderror"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm @error('name') border-red-500 @enderror"
                       placeholder="Enter template name"
                     >
                     @error('name')
@@ -62,7 +62,7 @@
                       name="description" 
                       id="description" 
                       rows="4" 
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('description') border-red-500 @enderror"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm @error('description') border-red-500 @enderror"
                       placeholder="Describe the purpose and content of this template..."
                     >{{ old('description', $template->description) }}</textarea>
                     @error('description')
@@ -74,7 +74,7 @@
                 <!-- Version and Validity -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa fa-tag mr-2 text-green-600"></i>
+                    <i class="fa fa-code-branch mr-2 text-slate-600"></i>
                     Version & Validity
                   </h3>
 
@@ -87,7 +87,7 @@
                       id="version" 
                       value="{{ old('version', $template->version) }}"
                       placeholder="1.0"
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('version') border-red-500 @enderror"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm @error('version') border-red-500 @enderror"
                     >
                     <p class="mt-1 text-xs text-gray-500">Version identifier for this template</p>
                     @error('version')
@@ -103,7 +103,7 @@
                       name="valid_from" 
                       id="valid_from" 
                       value="{{ old('valid_from', $template->valid_from ? date('Y-m-d', strtotime($template->valid_from)) : '') }}"
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('valid_from') border-red-500 @enderror"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm @error('valid_from') border-red-500 @enderror"
                     >
                     <p class="mt-1 text-xs text-gray-500">Date from which this template becomes valid</p>
                     @error('valid_from')
@@ -115,7 +115,7 @@
                 <!-- Template File -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa fa-upload mr-2 text-purple-600"></i>
+                    <i class="fa fa-file-upload mr-2 text-slate-600"></i>
                     Template File
                   </h3>
 
@@ -131,9 +131,9 @@
                               file:mr-4 file:py-2 file:px-4
                               file:rounded-md file:border-0
                               file:text-sm file:font-semibold
-                              file:bg-indigo-50 file:text-indigo-700
-                              hover:file:bg-indigo-100
-                              focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              file:bg-slate-50 file:text-slate-700
+                              hover:file:bg-slate-100
+                              focus:outline-none focus:ring-2 focus:ring-slate-500"
                         required
                       >
                       <p class="mt-2 text-sm text-gray-500">
@@ -158,7 +158,7 @@
                                 <div class="text-sm text-gray-500">Template file</div>
                               </div>
                             </div>
-                            <a href="{{ route('templates.download', $template) }}" class="text-indigo-600 hover:text-indigo-800" title="Download">
+                            <a href="{{ route('templates.download', $template) }}" class="link-lime-text" title="Download">
                               <i class="fa fa-download text-lg"></i>
                             </a>
                           </div>
@@ -197,7 +197,7 @@
                 <!-- Database Entity -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa fa-database mr-2 text-green-600"></i>
+                    <i class="fa fa-database mr-2 text-slate-600"></i>
                     Database Entity
                   </h3>
                   <div>
@@ -205,7 +205,7 @@
                     <select 
                       name="database_entity_id" 
                       id="database_entity_id" 
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('database_entity_id') border-red-500 @enderror"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm @error('database_entity_id') border-red-500 @enderror"
                     >
                       <option value="">-- No Database Entity --</option>
                       @foreach($databaseEntities as $databaseEntity)
@@ -224,7 +224,7 @@
                 <!-- Template Status -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa fa-toggle-on mr-2 text-blue-600"></i>
+                    <i class="fa fa-power-off mr-2 text-slate-600"></i>
                     Template Status
                   </h3>
                   <div class="flex items-start">
@@ -234,8 +234,8 @@
                         name="is_active" 
                         id="is_active" 
                         value="1"
-                        {{ old('is_active', $template->is_active) ? 'checked' : '' }}
-                        class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        {{ old('is_active', $template->is_active ?? true) ? 'checked' : '' }}
+                        class="h-4 w-4 rounded border-gray-300 text-slate-600 focus:ring-slate-500"
                       >
                     </div>
                     <div class="ml-3 text-sm">
@@ -249,7 +249,7 @@
                 @if(!isset($isCreate) || !$isCreate)
                   <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                      <i class="fa fa-info-circle mr-2 text-gray-600"></i>
+                      <i class="fa fa-chart-line mr-2 text-slate-600"></i>
                       Template Information
                     </h3>
                     <div class="space-y-3 text-sm">
@@ -287,14 +287,14 @@
             <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
               <a 
                 href="{{ route('templates.index') }}" 
-                class="inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
+                class="inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition"
               >
                 <i class="fa fa-times mr-2"></i>
                 Cancel
               </a>
               <button 
                 type="submit" 
-                class="inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
+                class="btn-submit inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md transition"
               >
                 @if(isset($isCreate) && $isCreate)
                   <i class="fa fa-plus mr-2"></i>

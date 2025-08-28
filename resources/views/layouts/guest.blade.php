@@ -7,6 +7,12 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- Favicon -->
+        <link rel="apple-touch-icon" sizes="180x180" href="{{asset('f/apple-touch-icon.png')}}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{asset('f/favicon-32x32.png')}}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{asset('f/favicon-16x16.png')}}">
+        <link rel="manifest" href="{{asset('f/site.webmanifest')}}">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -15,9 +21,9 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
+        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-white">
             <div>
-                <a href="/" class="d-flex justify-content-center">
+                <a href="{{ route('home') }}" class="d-flex justify-content-center hover:opacity-80 transition-opacity duration-200" title="Return to Database">
                     <img src="{{ asset('images/norman-logo.png') }}" alt="logo" class="block h-20 w-auto fill-current text-gray-800 d-flex justify-content-center">
                 </a>    
             </div>

@@ -34,6 +34,7 @@ class DatabaseEntity extends Model
         'number_of_records',
         'parent_id',
         'show_in_dashboard',
+        'has_templates',
     ];
 
     /**
@@ -46,6 +47,7 @@ class DatabaseEntity extends Model
         'number_of_records' => 'integer',
         'parent_id' => 'integer',
         'show_in_dashboard' => 'boolean',
+        'has_templates' => 'boolean',
     ];
 
     /**
