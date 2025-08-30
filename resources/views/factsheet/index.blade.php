@@ -140,6 +140,23 @@
                         <div class="bg-white border border-gray-200 rounded-lg p-4">
                           <p class="text-sm text-gray-700 leading-relaxed">{{ $entity->processed_data['content'] }}</p>
                         </div>
+                      @elseif($entity->processed_data['type'] === 'banner')
+                        {{-- CASE 3: Banner presentation --}}
+                        @php
+                          // Define green color variations based on intensity
+                          $colorClasses = [
+                            'green' => 'bg-green-100 border-l-green-600 text-green-800',
+                            'light-green' => 'bg-green-50 border-l-green-500 text-green-700',
+                            'dark-green' => 'bg-green-200 border-l-green-700 text-green-900',
+                            'emerald' => 'bg-emerald-100 border-l-emerald-600 text-emerald-800',
+                            'teal' => 'bg-teal-100 border-l-teal-600 text-teal-800'
+                          ];
+                          $bannerColor = $entity->processed_data['color'] ?? 'green';
+                          $colorClass = $colorClasses[$bannerColor] ?? $colorClasses['green'];
+                        @endphp
+                        <div class="border-l-4 p-4 {{ $colorClass }} rounded-r-lg">
+                          <p class="text-sm font-medium leading-relaxed">{{ $entity->processed_data['text'] }}</p>
+                        </div>
                       @endif
                     @elseif(isset($entity->data['method_of_presentation']))
                       {{-- Fallback for unprocessed data --}}
@@ -154,6 +171,22 @@
                       @elseif($entity->data['method_of_presentation'] === 'text')
                         <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
                           <p class="text-sm text-slate-600">{{ $entity->data['text'] ?? 'No text content available' }}</p>
+                        </div>
+                      @elseif($entity->data['method_of_presentation'] === 'banner')
+                        {{-- Fallback banner display --}}
+                        @php
+                          $bannerColor = $entity->data['color'] ?? 'green';
+                          $colorClasses = [
+                            'green' => 'bg-green-100 border-l-green-600 text-green-800',
+                            'light-green' => 'bg-green-50 border-l-green-500 text-green-700',
+                            'dark-green' => 'bg-green-200 border-l-green-700 text-green-900',
+                            'emerald' => 'bg-emerald-100 border-l-emerald-600 text-emerald-800',
+                            'teal' => 'bg-teal-100 border-l-teal-600 text-teal-800'
+                          ];
+                          $colorClass = $colorClasses[$bannerColor] ?? $colorClasses['green'];
+                        @endphp
+                        <div class="border-l-4 p-4 {{ $colorClass }} rounded-r-lg">
+                          <p class="text-sm font-medium leading-relaxed">{{ $entity->data['text'] ?? 'No banner text available' }}</p>
                         </div>
                       @endif
                     @else
