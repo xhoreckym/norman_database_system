@@ -61,14 +61,14 @@ class FactsheetEntitySeeder extends Seeder
             [
                 'name' => 'PBT/vPvB & PMT/vPvM (NORMAN)',
                 'sort_order' => 7,
-                'data' => json_encode([]),
+                'data' => json_encode(['method_of_presentation' => 'banner', 'color' => 'green', 'text' => 'This module is currently under development.']),
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
             [
                 'name' => 'CMR & ED (NORMAN)',
                 'sort_order' => 8,
-                'data' => json_encode([]),
+                'data' => json_encode(['method_of_presentation' => 'banner', 'color' => 'green', 'text' => 'This module is currently under development.']),
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
@@ -82,7 +82,7 @@ class FactsheetEntitySeeder extends Seeder
             [
                 'name' => 'Conclusions and recommendations',
                 'sort_order' => 10,
-                'data' => json_encode([]),
+                'data' => json_encode(['method_of_presentation' => 'banner', 'color' => 'green', 'text' => 'This module is currently under development.']),
                 'created_at' => $now,
                 'updated_at' => $now,
             ],

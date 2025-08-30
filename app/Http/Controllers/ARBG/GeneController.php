@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ARBG\DataSampleMatrix;
 use App\Models\ARBG\GeneCoordinate;
+use App\Models\ARBG\DataCountry;
 
 class GeneController extends Controller
 {
@@ -72,16 +73,16 @@ class GeneController extends Controller
     
     public function filter(Request $request)
     {
-        // Get distinct countries from gene records
+        // Get distinct countries from gene records with full country names
         $countryIds = GeneMain::join('arbg_gene_coordinates', 'arbg_gene_main.coordinate_id', '=', 'arbg_gene_coordinates.id')
         ->whereNotNull('arbg_gene_coordinates.country_id')
         ->where('arbg_gene_coordinates.country_id', '!=', '')
         ->distinct()
         ->pluck('arbg_gene_coordinates.country_id');
         
-        $countryList = GeneCoordinate::whereIn('country_id', $countryIds)
-        ->orderBy('country_id')
-        ->pluck('country_id', 'country_id')
+        $countryList = DataCountry::whereIn('abbreviation', $countryIds)
+        ->orderBy('name')
+        ->pluck('name', 'abbreviation')
         ->toArray();
         
         // Get distinct sample matrices using the relationship
@@ -155,8 +156,8 @@ class GeneController extends Controller
             $resultsObjects = $resultsObjects->whereHas('coordinate', function($query) use ($countrySearch) {
                 $query->whereIn('country_id', $countrySearch);
             });
-            $searchParameters['countrySearch'] = GeneCoordinate::whereIn('country_id', $countrySearch)
-            ->distinct()->pluck('country_id');
+            $searchParameters['countrySearch'] = DataCountry::whereIn('abbreviation', $countrySearch)
+            ->pluck('name');
         }
         
         // Filter by sample matrix

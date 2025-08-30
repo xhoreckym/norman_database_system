@@ -72,6 +72,9 @@ class FactsheetController extends Controller
                 } elseif ($entity->data['method_of_presentation'] === 'text') {
                     // CASE 2: Text presentation
                     $entity->processed_data = $this->processTextData($entity);
+                } elseif ($entity->data['method_of_presentation'] === 'banner') {
+                    // CASE 3: Banner presentation
+                    $entity->processed_data = $this->processBannerData($entity);
                 }
             }
         }
@@ -158,6 +161,21 @@ class FactsheetController extends Controller
         return [
             'type' => 'text',
             'content' => $entity->data['text'] ?? 'No text content available'
+        ];
+    }
+
+    /**
+     * Process banner data for CASE 3: method_of_presentation = banner
+     * 
+     * @param FactsheetEntity $entity
+     * @return array
+     */
+    private function processBannerData($entity): array
+    {
+        return [
+            'type' => 'banner',
+            'color' => $entity->data['color'] ?? 'green',
+            'text' => $entity->data['text'] ?? 'No banner text available'
         ];
     }
 
