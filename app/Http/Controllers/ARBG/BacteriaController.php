@@ -85,8 +85,7 @@ class BacteriaController extends Controller
         $countryList = DataCountry::whereIn('abbreviation', $countryIds)
         ->orderBy('name')
         ->pluck('name', 'abbreviation')
-        ->toArray();
-        
+        ->toArray();        
         
         // Get distinct sample matrices
         $sampleMatrixIds = BacteriaMain::whereNotNull('sample_matrix_id')
