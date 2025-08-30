@@ -12,6 +12,7 @@ use App\Models\ARBG\DataSampleMatrix;
 use App\Models\ARBG\BacteriaCoordinate;
 use App\Models\ARBG\BacteriaDataSource;
 use App\Models\ARBG\DataBacterialGroup;
+use App\Models\ARBG\DataCountry;
 
 class BacteriaController extends Controller
 {
@@ -74,20 +75,16 @@ class BacteriaController extends Controller
     public function filter(Request $request)
     {
         
-        // Get distinct countries from bacteria records - correct approach
+        // Get distinct countries from bacteria records with full country names
         $countryIds = BacteriaMain::join('arbg_bacteria_coordinates', 'arbg_bacteria_main.coordinate_id', '=', 'arbg_bacteria_coordinates.id')
         ->whereNotNull('arbg_bacteria_coordinates.country_id')
         ->where('arbg_bacteria_coordinates.country_id', '!=', '')
         ->distinct()
-        ->pluck('arbg_bacteria_coordinates.country_id')
-        ->sort()
-        ->values()
-        ->toArray();
+        ->pluck('arbg_bacteria_coordinates.country_id');
         
-        // Then get countries from the country table if needed
-        $countryList = BacteriaCoordinate::whereIn('country_id', $countryIds)
-        ->orderBy('country_id')
-        ->pluck('country_id', 'country_id')
+        $countryList = DataCountry::whereIn('abbreviation', $countryIds)
+        ->orderBy('name')
+        ->pluck('name', 'abbreviation')
         ->toArray();
         
         
@@ -161,7 +158,8 @@ class BacteriaController extends Controller
                 $query->whereIn('country_id', $countrySearch);
             });
             // dd($countrySearch);
-            $searchParameters['countrySearch'] = BacteriaCoordinate::whereIn('country_id', $countrySearch)->distinct()->pluck('country_id');
+            $searchParameters['countrySearch'] = DataCountry::whereIn('abbreviation', $countrySearch)
+            ->pluck('name');
         }
         
         // Filter by sample matrix
