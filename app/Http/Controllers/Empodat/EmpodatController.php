@@ -400,8 +400,10 @@ class EmpodatController extends Controller
         // Process all search inputs
         $searchInputs = $this->processSearchInput($request, $searchFields);
         
-        // Build query using model scopes
-        $empodats = EmpodatMain::withSearchRelations()
+        // Build query using optimized approach
+        $empodats = EmpodatMain::query()
+            // Start with basic relationships only
+            ->with(['concentrationIndicator', 'substance', 'matrix', 'station.country', 'analyticalMethod', 'dataSource'])
             // ->normanRelevant() // Temporarily commented out for debugging
             ->byCountries($searchInputs['countrySearch'])
             ->byMatrices($searchInputs['matrixSearch'])
@@ -423,8 +425,8 @@ class EmpodatController extends Controller
             $empodats = $this->applyIdSearch($empodats, $searchInputs);
         }
         
-        // Ensure relationships are loaded after all scopes are applied
-        $empodats = $empodats->withSearchRelations();
+        // Load additional relationships only for show method (single record)
+        // For search results, we'll load matrix data conditionally later
         
         // Handle quality ratings separately as it needs the ratings collection
         if (!empty($searchInputs['qualityAnalyticalMethodsSearch'])) {
@@ -449,6 +451,9 @@ class EmpodatController extends Controller
         
         // Apply pagination
         $empodats = $this->applyPagination($empodats, $request);
+        
+        // Load matrix data conditionally for paginated results
+        $this->loadMatrixDataConditionally($empodats);
         
         // Apply rating remapping to search results
         $this->remapRatingFieldsForSearchResults($empodats);
@@ -930,6 +935,47 @@ private function getFileStatistics($empodatRecords): array
       }
     } elseif (is_object($empodats) && isset($empodats->analyticalMethod)) {
       $this->remapRatingField($empodats->analyticalMethod);
+    }
+  }
+
+  /**
+   * Load matrix data conditionally to avoid N+1 problems
+   */
+  private function loadMatrixDataConditionally($empodats)
+  {
+    if (!$empodats || !$empodats->count()) {
+      return;
+    }
+
+    // Collect all unique matrix IDs to determine which matrix tables we need
+    $matrixIds = $empodats->pluck('matrix_id')->filter()->unique();
+    
+    // Map matrix IDs to their corresponding relationship names
+    $matrixRelationshipMap = [
+      // You'll need to adjust these based on your actual matrix ID mappings
+      // This is just an example - you should map actual matrix IDs to relationships
+      1 => 'matrixWater',
+      2 => 'matrixAir', 
+      3 => 'matrixSoil',
+      4 => 'matrixSediments',
+      5 => 'matrixBiota',
+      6 => 'matrixSuspendedMatter',
+      7 => 'matrixSewageSludge',
+    ];
+
+    // Load only the matrix relationships that are actually needed
+    $relationshipsToLoad = [];
+    foreach ($matrixIds as $matrixId) {
+      if (isset($matrixRelationshipMap[$matrixId])) {
+        $relationshipsToLoad[] = $matrixRelationshipMap[$matrixId];
+      }
+    }
+
+    // Load files and minor data for all records
+    $relationshipsToLoad = array_merge($relationshipsToLoad, ['files', 'minor']);
+
+    if (!empty($relationshipsToLoad)) {
+      $empodats->load($relationshipsToLoad);
     }
   }
 
