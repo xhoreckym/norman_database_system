@@ -178,6 +178,51 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     }
     
     /**
+     * Override ID extraction to handle column ambiguity with JOINs
+     */
+    protected function extractIds(QueryLog $queryLog)
+    {
+        $baseQuery = $this->buildBaseQuery();
+        $filteredQuery = $this->applyQueryFilters($baseQuery, $queryLog);
+        
+        // Explicitly select empodat_main.id to avoid ambiguity
+        $filteredQuery->select('empodat_main.id')
+            ->orderBy('empodat_main.id');
+        
+        // Use chunking for memory efficiency
+        $ids = [];
+        $filteredQuery->chunk(1000, function ($records) use (&$ids) {
+            foreach ($records as $record) {
+                $ids[] = $record->id;
+            }
+        });
+        
+        // Return generator for memory efficiency
+        foreach ($ids as $id) {
+            yield $id;
+        }
+    }
+    
+    /**
+     * Override chunked ID extraction to handle column ambiguity  
+     */
+    protected function extractIdsChunked(QueryLog $queryLog)
+    {
+        $baseQuery = $this->buildBaseQuery();
+        $filteredQuery = $this->applyQueryFilters($baseQuery, $queryLog);
+        
+        // Explicitly select empodat_main.id to avoid ambiguity
+        $ids = $filteredQuery->select('empodat_main.id')
+                           ->orderBy('empodat_main.id')
+                           ->pluck('empodat_main.id')
+                           ->toArray();
+        
+        foreach ($ids as $id) {
+            yield $id;
+        }
+    }
+    
+    /**
      * Get records for a batch of IDs with all necessary relationships
      * Optimized to avoid JOIN conflicts with filtered queries
      */

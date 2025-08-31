@@ -203,7 +203,8 @@ class EmpodatMain extends Model
 
         return $query->join('empodat_stations', 'empodat_main.station_id', '=', 'empodat_stations.id')
                     ->whereIn('empodat_stations.country_id', $countryIds)
-                    ->select('empodat_main.*');
+                    ->select('empodat_main.*')
+                    ->distinct();
     }
 
     /**
@@ -325,7 +326,7 @@ class EmpodatMain extends Model
             $query->whereIn('empodat_data_sources.organisation_id', $orgIds);
         }
 
-        return $query->select('empodat_main.*');
+        return $query->select('empodat_main.*')->distinct();
     }
 
     /**
@@ -339,7 +340,8 @@ class EmpodatMain extends Model
 
         return $query->join('empodat_analytical_methods', 'empodat_main.method_id', '=', 'empodat_analytical_methods.id')
                     ->whereIn('empodat_analytical_methods.analytical_method_id', $methodIds)
-                    ->select('empodat_main.*');
+                    ->select('empodat_main.*')
+                    ->distinct();
     }
 
     /**
@@ -362,7 +364,7 @@ class EmpodatMain extends Model
             }
         });
 
-        return $query->select('empodat_main.*');
+        return $query->select('empodat_main.*')->distinct();
     }
 
     public function scopeByFiles($query, $fileIds)
