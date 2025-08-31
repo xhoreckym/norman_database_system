@@ -193,7 +193,7 @@ class EmpodatMain extends Model
     }
 
     /**
-     * Scope to filter by countries through station relationship
+     * Scope to filter by countries through station relationship (optimized with JOIN)
      */
     public function scopeByCountries($query, array $countryIds)
     {
@@ -201,9 +201,9 @@ class EmpodatMain extends Model
             return $query;
         }
 
-        return $query->whereHas('station.country', function ($subQuery) use ($countryIds) {
-            $subQuery->whereIn('id', $countryIds);
-        });
+        return $query->join('empodat_stations', 'empodat_main.station_id', '=', 'empodat_stations.id')
+                    ->whereIn('empodat_stations.country_id', $countryIds)
+                    ->select('empodat_main.*');
     }
 
     /**
@@ -231,13 +231,13 @@ class EmpodatMain extends Model
     }
 
     /**
-     * Scope to filter by NORMAN relevant substances only
+     * Scope to filter by NORMAN relevant substances only (optimized with JOIN)
      */
     public function scopeNormanRelevant($query)
     {
-        return $query->whereHas('substance', function ($subQuery) {
-            $subQuery->where('relevant_to_norman', 1);
-        });
+        return $query->join('susdat_substances as subs_norman', 'empodat_main.substance_id', '=', 'subs_norman.id')
+                    ->where('subs_norman.relevant_to_norman', 1)
+                    ->select('empodat_main.*');
     }
 
     /**
@@ -269,7 +269,7 @@ class EmpodatMain extends Model
     }
 
     /**
-     * Scope to filter by substance categories
+     * Scope to filter by substance categories (optimized with JOIN)
      */
     public function scopeByCategories($query, array $categoryIds)
     {
@@ -277,13 +277,15 @@ class EmpodatMain extends Model
             return $query;
         }
 
-        return $query->whereHas('substance.categories', function ($subQuery) use ($categoryIds) {
-            $subQuery->whereIn('susdat_categories.id', $categoryIds);
-        });
+        return $query->join('susdat_substances', 'empodat_main.substance_id', '=', 'susdat_substances.id')
+                    ->join('susdat_substance_category', 'susdat_substances.id', '=', 'susdat_substance_category.substance_id')
+                    ->whereIn('susdat_substance_category.category_id', $categoryIds)
+                    ->select('empodat_main.*')
+                    ->distinct();
     }
 
     /**
-     * Scope to filter by SLE sources
+     * Scope to filter by SLE sources (optimized with JOIN)
      */
     public function scopeBySources($query, array $sourceIds)
     {
@@ -291,13 +293,15 @@ class EmpodatMain extends Model
             return $query;
         }
 
-        return $query->whereHas('substance.sources', function ($subQuery) use ($sourceIds) {
-            $subQuery->whereIn('sle_sources.id', $sourceIds);
-        });
+        return $query->join('susdat_substances as subs_source', 'empodat_main.substance_id', '=', 'subs_source.id')
+                    ->join('sle_substance_source', 'subs_source.id', '=', 'sle_substance_source.substance_id')
+                    ->whereIn('sle_substance_source.source_id', $sourceIds)
+                    ->select('empodat_main.*')
+                    ->distinct();
     }
 
     /**
-     * Scope to filter by data source properties
+     * Scope to filter by data source properties (optimized with JOIN)
      */
     public function scopeByDataSourceFilters($query, array $typeIds = [], array $labIds = [], array $orgIds = [])
     {
@@ -307,23 +311,25 @@ class EmpodatMain extends Model
             return $query;
         }
 
-        return $query->whereHas('dataSource', function ($subQuery) use ($typeIds, $labIds, $orgIds) {
-            if (!empty($typeIds)) {
-                $subQuery->whereIn('type_data_source_id', $typeIds);
-            }
+        $query = $query->join('empodat_data_sources', 'empodat_main.data_source_id', '=', 'empodat_data_sources.id');
 
-            if (!empty($labIds)) {
-                $subQuery->whereIn('laboratory1_id', $labIds);
-            }
+        if (!empty($typeIds)) {
+            $query->whereIn('empodat_data_sources.type_data_source_id', $typeIds);
+        }
 
-            if (!empty($orgIds)) {
-                $subQuery->whereIn('organisation_id', $orgIds);
-            }
-        });
+        if (!empty($labIds)) {
+            $query->whereIn('empodat_data_sources.laboratory1_id', $labIds);
+        }
+
+        if (!empty($orgIds)) {
+            $query->whereIn('empodat_data_sources.organisation_id', $orgIds);
+        }
+
+        return $query->select('empodat_main.*');
     }
 
     /**
-     * Scope to filter by analytical method
+     * Scope to filter by analytical method (optimized with JOIN)
      */
     public function scopeByAnalyticalMethods($query, array $methodIds)
     {
@@ -331,13 +337,13 @@ class EmpodatMain extends Model
             return $query;
         }
 
-        return $query->whereHas('analyticalMethod', function ($subQuery) use ($methodIds) {
-            $subQuery->whereIn('analytical_method_id', $methodIds);
-        });
+        return $query->join('empodat_analytical_methods', 'empodat_main.method_id', '=', 'empodat_analytical_methods.id')
+                    ->whereIn('empodat_analytical_methods.analytical_method_id', $methodIds)
+                    ->select('empodat_main.*');
     }
 
     /**
-     * Scope to filter by quality ratings
+     * Scope to filter by quality ratings (optimized with JOIN)
      */
     public function scopeByQualityRatings($query, $ratings)
     {
@@ -345,16 +351,18 @@ class EmpodatMain extends Model
             return $query;
         }
 
-        return $query->whereHas('analyticalMethod', function ($subQuery) use ($ratings) {
-            $subQuery->where(function ($ratingQuery) use ($ratings) {
-                foreach ($ratings as $rating) {
-                    $ratingQuery->orWhere(function ($individualRating) use ($rating) {
-                        $individualRating->where('rating', '>=', $rating->min_rating)
-                            ->where('rating', '<', $rating->max_rating);
-                    });
-                }
-            });
+        $query = $query->join('empodat_analytical_methods as eam_rating', 'empodat_main.method_id', '=', 'eam_rating.id');
+        
+        $query->where(function ($ratingQuery) use ($ratings) {
+            foreach ($ratings as $rating) {
+                $ratingQuery->orWhere(function ($individualRating) use ($rating) {
+                    $individualRating->where('eam_rating.rating', '>=', $rating->min_rating)
+                        ->where('eam_rating.rating', '<', $rating->max_rating);
+                });
+            }
         });
+
+        return $query->select('empodat_main.*');
     }
 
     public function scopeByFiles($query, $fileIds)
@@ -368,9 +376,10 @@ class EmpodatMain extends Model
             return $query;
         }
 
-        return $query->whereHas('files', function ($subQuery) use ($fileIds) {
-            $subQuery->whereIn('files.id', $fileIds);
-        });
+        return $query->join('empodat_main_file', 'empodat_main.id', '=', 'empodat_main_file.empodat_main_id')
+                    ->whereIn('empodat_main_file.file_id', $fileIds)
+                    ->select('empodat_main.*')
+                    ->distinct();
     }
 
     /**

@@ -254,10 +254,13 @@ class EmpodatController extends Controller
     }
     // $q = QueryLog::find($query_log_id);
     // dd($query_log_id, $q->query);
+    // Generate filename at dispatch time to avoid timing issues
+    $filename = 'empodat_export_uid_' . Auth::id() . '_' . now()->format('YmdHis') . '.csv';
+    
     // Dispatch the job to the queue
     $user = Auth::user();
     // dd($user->email);
-    EmpodatCsvExportJob::dispatch($query_log_id, $user);
+    EmpodatCsvExportJob::dispatch($query_log_id, $user, $filename);
 
     session()->flash('success', 'The CSV file is being generated. You will receive an email once it is ready for download.');
     return back();
@@ -267,10 +270,39 @@ class EmpodatController extends Controller
   {
     $directory = 'exports/empodat';
     $path = Storage::path("{$directory}/{$filename}");
-    // $path = storage_path("app/exports/empodat/.$filename");
+    
+    // Debug logging for file availability
+    Log::info("Download request for: {$filename}", [
+      'path' => $path,
+      'exists' => file_exists($path),
+      'directory_contents' => Storage::files($directory)
+    ]);
 
     if (!file_exists($path)) {
-      abort(404);
+      // Try to find similar files for debugging
+      $similarFiles = collect(Storage::files($directory))
+        ->filter(function($file) use ($filename) {
+          $fileBasename = basename($file);
+          $requestBasename = basename($filename);
+          // Check if the filename pattern matches (same user and similar timestamp)
+          return str_contains($fileBasename, explode('_', $requestBasename)[3] ?? '') ||
+                 str_contains($fileBasename, explode('_', $requestBasename)[2] ?? '');
+        })
+        ->values();
+      
+      Log::warning("File not found: {$filename}", [
+        'path' => $path,
+        'similar_files' => $similarFiles->toArray(),
+        'user_id' => Auth::id()
+      ]);
+      
+      return response()->json([
+        'error' => 'File not found',
+        'message' => 'The requested CSV file does not exist. It may have expired or failed to generate.',
+        'similar_files' => $similarFiles->map(function($file) {
+          return basename($file);
+        })
+      ], 404);
     }
 
     return response()->download($path, $filename, [
@@ -400,12 +432,11 @@ class EmpodatController extends Controller
         // Process all search inputs
         $searchInputs = $this->processSearchInput($request, $searchFields);
         
-        // Build query using optimized approach
-        $empodats = EmpodatMain::query()
-            // Start with basic relationships only
-            ->with(['concentrationIndicator', 'substance', 'matrix', 'station.country', 'analyticalMethod', 'dataSource'])
-            // ->normanRelevant() // Temporarily commented out for debugging
-            ->byCountries($searchInputs['countrySearch'])
+        // Build query using optimized approach with pre-loading relationships
+        $empodats = EmpodatMain::query();
+        
+        // Apply filters that use JOINs first to optimize query plan
+        $empodats = $empodats->byCountries($searchInputs['countrySearch'])
             ->byMatrices($searchInputs['matrixSearch'])
             ->bySubstances($request->input('substances', []))
             ->byConcentrationIndicators($searchInputs['concentrationIndicatorSearch'])
@@ -419,6 +450,12 @@ class EmpodatController extends Controller
             )
             ->byAnalyticalMethods($searchInputs['analyticalMethodSearch'])
             ->byFiles($searchInputs['fileSearch']); // Simple file search by IDs only
+            
+        // Add NORMAN relevance filter if no specific filters are applied
+        // Commented out to prevent conflicting JOINs for now
+        // if (!$this->hasSpecificFilters($searchInputs)) {
+        //     $empodats = $empodats->normanRelevant();
+        // }
         
         // Apply ID search if provided and user has admin privileges
         if (Auth::check() && (Auth::user()->hasRole('super_admin') || Auth::user()->hasRole('admin'))) {
@@ -451,6 +488,16 @@ class EmpodatController extends Controller
         
         // Apply pagination
         $empodats = $this->applyPagination($empodats, $request);
+        
+        // Eager load all necessary relationships after pagination to avoid N+1 problems
+        $empodats->load([
+            'concentrationIndicator',
+            'substance',
+            'matrix',
+            'station.country',
+            'analyticalMethod',
+            'dataSource'
+        ]);
         
         // Load matrix data conditionally for paginated results
         $this->loadMatrixDataConditionally($empodats);

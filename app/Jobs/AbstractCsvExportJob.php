@@ -22,6 +22,7 @@ abstract class AbstractCsvExportJob implements ShouldQueue
     
     protected $queryLogId;
     protected $user;
+    protected $filename;
     protected $maxExecutionTime = 1800; // 30 minutes
     protected $initialBatchSize = 100; // Start with very small batches for development
     protected $maxBatchSize = 1000; // More conservative max batch size
@@ -91,10 +92,11 @@ abstract class AbstractCsvExportJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct($queryLogId, $user)
+    public function __construct($queryLogId, $user, $filename = null)
     {
         $this->queryLogId = $queryLogId;
         $this->user = $user;
+        $this->filename = $filename; // Use provided filename or generate later
         $this->currentBatchSize = $this->initialBatchSize;
         
         // Set the queue for this job (using onQueue method from Queueable trait)
@@ -339,7 +341,8 @@ abstract class AbstractCsvExportJob implements ShouldQueue
      */
     protected function generateFilename(): string
     {
-        return $this->getDatabaseKey() . '_export_uid_' . $this->user->id . '_' . Carbon::now()->format('YmdHis') . '.csv';
+        // Use pre-generated filename if provided, otherwise generate one
+        return $this->filename ?: ($this->getDatabaseKey() . '_export_uid_' . $this->user->id . '_' . Carbon::now()->format('YmdHis') . '.csv');
     }
     
     /**
