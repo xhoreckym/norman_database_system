@@ -1,4 +1,41 @@
-# Queue Worker Service - High Priority (Small/Fast Jobs)
+services:
+
+  # Laravel Application (PHP-FPM)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile          # Uses your "FROM php:8.2-fpm AS laravel-app"
+    image: laravel-app               # You can name/tag the image if you want
+    container_name: nds-app
+    restart: unless-stopped
+    tty: true
+    # environment:
+    #   SERVICE_NAME: "app"
+    #   SERVICE_TAGS: "dev"
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./_php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - mkassets_docker_network
+
+  # Scheduler Service
+  task-app-schedule:
+    build:
+      context: .
+      dockerfile: scheduler.dockerfile  # Uses your second Dockerfile
+    image: laravel-app-schedule
+    command: ["php", "artisan", "schedule:work"]
+    container_name: nds-app-schedule
+    stop_signal: SIGTERM
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - ./:/var/www
+      - ./_php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - mkassets_docker_network
+  # Queue Worker Service - High Priority (Small/Fast Jobs)
   task-app-queue-default:
     build:
       context: .
@@ -75,3 +112,22 @@
       - ./_php/local.ini:/usr/local/etc/php/conf.d/local.ini
     networks:
       - mkassets_docker_network
+
+        # Nginx Webserver (behind reverse proxy)
+  webserver:
+    image: nginx:alpine
+    container_name: nds-webserver
+    restart: unless-stopped
+    tty: true
+    environment:
+      - VIRTUAL_HOST=nds.mkassets.sk
+      - LETSENCRYPT_HOST=nds.mkassets.sk
+    volumes:
+      - ./:/var/www
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - mkassets_docker_network
+
+networks:
+  mkassets_docker_network:
+    external: true
