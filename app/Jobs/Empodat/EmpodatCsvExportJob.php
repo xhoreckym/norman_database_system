@@ -78,6 +78,7 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     }
     
     /**
+     * 
      * Apply filters from the query log to the base query
      * 
      * This method reconstructs the query filters from the logged query
