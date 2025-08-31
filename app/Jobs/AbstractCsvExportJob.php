@@ -38,6 +38,11 @@ abstract class AbstractCsvExportJob implements ShouldQueue
     public $tries = 3;
     
     /**
+     * The queue this job should be sent to.
+     */
+    public $queue = 'exports';
+    
+    /**
      * Calculate the number of seconds to wait before retrying the job.
      */
     public function backoff(): array

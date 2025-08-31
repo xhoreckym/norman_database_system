@@ -38,17 +38,78 @@ services:
     networks:
       - mkassets_docker_network
 
-  # Queue Worker Service
-  task-app-queue:
+  # Queue Worker Service - High Priority (Small/Fast Jobs)
+  task-app-queue-default:
     build:
       context: .
       dockerfile: scheduler.dockerfile
     image: laravel-app-queue
-    command: ["php", "artisan", "queue:work", "--timeout=7200", "--memory=512", "--sleep=3", "--tries=3"]
-    container_name: nds-app-queue
+    command: ["php", "artisan", "queue:work", "--queue=default,high", "--timeout=300", "--memory=256", "--sleep=1", "--tries=3", "--max-jobs=100", "--rest=5"]
+    container_name: nds-app-queue-default
     stop_signal: SIGTERM
     restart: unless-stopped
     tty: true
+    healthcheck:
+      test: ["CMD", "ps", "aux", "|", "grep", "-v", "grep", "|", "grep", "queue:work"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - ./:/var/www
+      - ./_php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - mkassets_docker_network
+
+  # Queue Worker Service - Large Dataset Exports
+  task-app-queue-exports:
+    build:
+      context: .
+      dockerfile: scheduler.dockerfile
+    image: laravel-app-queue-exports
+    command: ["php", "artisan", "queue:work", "--queue=exports", "--timeout=7200", "--memory=1024", "--sleep=3", "--tries=2", "--max-jobs=1", "--rest=10"]
+    container_name: nds-app-queue-exports
+    stop_signal: SIGTERM
+    restart: unless-stopped
+    tty: true
+    environment:
+      - PHP_MEMORY_LIMIT=1536M
+      - PHP_MAX_EXECUTION_TIME=7200
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "queue:work"]
+      interval: 60s
+      timeout: 30s
+      retries: 2
+      start_period: 60s
+    volumes:
+      - ./:/var/www
+      - ./_php/export-worker.ini:/usr/local/etc/php/conf.d/export-worker.ini
+    networks:
+      - mkassets_docker_network
+
+  # Queue Worker Service - Medium Priority Jobs
+  task-app-queue-medium:
+    build:
+      context: .
+      dockerfile: scheduler.dockerfile
+    image: laravel-app-queue
+    command: ["php", "artisan", "queue:work", "--queue=medium", "--timeout=900", "--memory=512", "--sleep=2", "--tries=3", "--max-jobs=50", "--rest=5"]
+    container_name: nds-app-queue-medium
+    stop_signal: SIGTERM
+    restart: unless-stopped
+    tty: true
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "queue:work"]
+      interval: 45s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
     volumes:
       - ./:/var/www
       - ./_php/local.ini:/usr/local/etc/php/conf.d/local.ini
