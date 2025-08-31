@@ -44,7 +44,7 @@ services:
       context: .
       dockerfile: scheduler.dockerfile
     image: laravel-app-queue
-    command: ["php", "artisan", "queue:listen"]
+    command: ["php", "artisan", "queue:work", "--timeout=7200", "--memory=512", "--sleep=3", "--tries=3"]
     container_name: nds-app-queue
     stop_signal: SIGTERM
     restart: unless-stopped

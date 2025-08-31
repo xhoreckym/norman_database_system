@@ -78,7 +78,7 @@ class FactsheetController extends Controller
                 }
             }
         }
-        
+        // dd($factsheetEntities);
         return view('factsheet.index', compact('substance', 'factsheetEntities'));
     }
 

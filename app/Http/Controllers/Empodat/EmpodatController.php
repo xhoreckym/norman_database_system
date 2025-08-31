@@ -21,7 +21,7 @@ use App\Models\List\SamplingMethod;
 use App\Models\List\TypeDataSource;
 use App\Models\List\TypeMonitoring;
 use App\Http\Controllers\Controller;
-use App\Jobs\Empodat\DownloadCsvJob;
+use App\Jobs\Empodat\EmpodatCsvExportJob;
 use App\Models\Empodat\SearchMatrix;
 use App\Models\List\ValidatedMethod;
 use App\Models\List\AnalyticalMethod;
@@ -257,7 +257,7 @@ class EmpodatController extends Controller
     // Dispatch the job to the queue
     $user = auth()->user();
     // dd($user->email);
-    DownloadCsvJob::dispatch($query_log_id, $user);
+    EmpodatCsvExportJob::dispatch($query_log_id, $user);
 
     session()->flash('success', 'The CSV file is being generated. You will receive an email once it is ready for download.');
     return back();

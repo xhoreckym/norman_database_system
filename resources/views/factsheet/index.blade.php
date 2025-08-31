@@ -52,6 +52,42 @@
             <!-- End of Primary information -->
 
                       <!-- Factsheet Sections -->
+          @php
+            // Comprehensive field translation mapping for all factsheet sections
+            $fieldTranslations = [
+              // Chemical identity section (from Substance model)
+              'prefixed_code' => 'NORMAN SusDat ID',
+              'name' => 'Name',
+              'cas_number' => 'CAS Registry Number',
+              'smiles' => 'SMILES',
+              'stdinchikey' => 'InChIKey',
+              'molecular_formula' => 'Molecular Formula',
+              'mass_iso' => 'Monoisotopic Mass [g/mol]',
+              'dtxid' => 'DSSTox Substance ID',
+              'pubchem_cid' => 'PubChem CID',
+              
+              // Major uses section (from UsepaCategories model)
+              'category_name' => 'Use Category',
+              
+              // Properties section (from Usepa model)
+              'usepa_formula' => 'Formula',
+              'usepa_wikipedia' => 'Wikipedia Entry',
+              'usepa_wikipedia_url' => 'Wikipedia URL',
+              'usepa_Log_Kow_experimental' => 'LogKow experimental - DashBoard',
+              'usepa_Log_Kow_predicted' => 'LogKow predicted - DashBoard',
+              'usepa_solubility_experimental' => 'Solubility experimental (mol/L) - DashBoard',
+              'usepa_solubility_predicted' => 'Solubility predicted (mol/L) - DashBoard',
+              'usepa_Koc_min_experimental' => 'Koc_min_experimental (L/kg) - DashBoard',
+              'usepa_Koc_max_experimental' => 'Koc_max_experimental (L/kg) - DashBoard',
+              'usepa_Koc_min_predicted' => 'Koc_min_predicted (L/kg) - DashBoard',
+              'usepa_Koc_max_predicted' => 'Koc_max_predicted (L/kg) - DashBoard',
+              'usepa_Life_experimental' => 'Biodeg. Half-Life experimental (days) - DashBoard',
+              'usepa_Life_predicted' => 'Biodeg. Half-Life predicted (days) - DashBoard',
+              'usepa_BCF_experimental' => 'BCF experimental - DashBoard',
+              'usepa_BCF_predicted' => 'BCF predicted - DashBoard',
+            ];
+          @endphp
+
           @if(isset($factsheetEntities) && $factsheetEntities->count() > 0)
             <div class="space-y-6">
               @foreach($factsheetEntities as $entity)
@@ -105,19 +141,6 @@
                                   @foreach($entity->processed_data['key_value_data'] as $field => $value)
                                     <tr class="hover:bg-gray-50">
                                       <td class="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap bg-gray-50 border-r border-gray-200">
-                                        @php
-                                          $fieldTranslations = [
-                                            'prefixed_code' => 'Norman SusDat ID',
-                                            'name' => 'Name',
-                                            'cas_number' => 'CAS Registry Number',
-                                            'smiles' => 'SMILES',
-                                            'stdinchikey' => 'InChIKey',
-                                            'molecular_formula' => 'Molecular formula',
-                                            'mass_iso' => 'Monoisotopic mass [g/mol]',
-                                            'dtxid' => 'DSSTox Substance ID',
-                                            'pubchem_cid' => 'PubChem CID'
-                                          ];
-                                        @endphp
                                         {{ $fieldTranslations[$field] ?? ucwords(str_replace(['_', '-'], ' ', $field)) }}
                                       </td>
                                       <td class="px-4 py-3 text-sm text-gray-700 font-mono break-all">
