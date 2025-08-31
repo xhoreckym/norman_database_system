@@ -210,6 +210,12 @@ abstract class AbstractCsvExportJob implements ShouldQueue
         
         // Use the optimized ID extraction method
         $idGenerator = $this->extractIds($queryLog);
+        
+        if (!$idGenerator) {
+            Log::warning("ID generator is null for query log {$queryLog->id}");
+            return 0;
+        }
+        
         $idBatch = [];
         
         foreach ($idGenerator as $id) {

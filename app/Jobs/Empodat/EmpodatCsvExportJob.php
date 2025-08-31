@@ -12,6 +12,11 @@ use App\Models\Empodat\EmpodatMain;
 class EmpodatCsvExportJob extends AbstractCsvExportJob
 {
     /**
+     * The filename for the CSV export
+     */
+    protected $filename;
+    
+    /**
      * Optimized for development - smaller batch sizes for faster processing
      */
     protected $initialBatchSize = 50;
@@ -79,110 +84,94 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     
     /**
      * 
-     * Apply filters from the query log to the base query
+     * Apply filters from the query log to the base query using optimized JOINs
      * 
-     * This method reconstructs the query filters from the logged query
-     * without using regex manipulation
+     * This method reconstructs the query filters using the same optimized approach
+     * as the main search functionality
      */
     protected function applyQueryFilters($baseQuery, QueryLog $queryLog)
     {
         // Parse the content JSON to get the original request parameters
         $content = json_decode($queryLog->content, true);
+        
+        if (!is_array($content)) {
+            Log::warning("Invalid query log content for ID {$queryLog->id}");
+            return $baseQuery;
+        }
+        
         $request = $content['request'] ?? [];
+        
+        if (!is_array($request)) {
+            Log::warning("Invalid request data in query log ID {$queryLog->id}");
+            return $baseQuery;
+        }
         
         // Handle ID range filters (most common case)
         if (!empty($request['id_from']) || !empty($request['id_to'])) {
             if (!empty($request['id_from']) && !empty($request['id_to'])) {
-                $baseQuery->whereBetween('id', [$request['id_from'], $request['id_to']]);
+                $baseQuery->whereBetween('empodat_main.id', [$request['id_from'], $request['id_to']]);
             } elseif (!empty($request['id_from'])) {
-                $baseQuery->where('id', '>=', $request['id_from']);
+                $baseQuery->where('empodat_main.id', '>=', $request['id_from']);
             } elseif (!empty($request['id_to'])) {
-                $baseQuery->where('id', '<=', $request['id_to']);
+                $baseQuery->where('empodat_main.id', '<=', $request['id_to']);
             }
         }
         
-        // Apply the same filters that were used in the original search
-        if (!empty($request['countrySearch'])) {
-            $baseQuery->whereHas('station.country', function ($subQuery) use ($request) {
-                $subQuery->whereIn('id', $request['countrySearch']);
-            });
+        // Use optimized scope methods with JOINs instead of whereHas
+        if (!empty($request['countrySearch']) && is_array($request['countrySearch'])) {
+            $baseQuery->byCountries($request['countrySearch']);
         }
         
-        if (!empty($request['matrixSearch'])) {
-            $baseQuery->whereIn('matrix_id', $request['matrixSearch']);
+        if (!empty($request['matrixSearch']) && is_array($request['matrixSearch'])) {
+            $baseQuery->byMatrices($request['matrixSearch']);
         }
         
-        if (!empty($request['substanceSearch'])) {
-            $baseQuery->whereIn('substance_id', $request['substanceSearch']);
+        if (!empty($request['substances']) && is_array($request['substances'])) {
+            $baseQuery->bySubstances($request['substances']);
         }
         
         if (!empty($request['normanRelevantOnly']) && $request['normanRelevantOnly']) {
-            $baseQuery->whereHas('substance', function ($subQuery) {
-                $subQuery->where('relevant_to_norman', 1);
-            });
+            $baseQuery->normanRelevant();
         }
         
-        if (!empty($request['concentrationIndicatorSearch'])) {
-            $baseQuery->whereIn('concentration_indicator_id', $request['concentrationIndicatorSearch']);
+        if (!empty($request['concentrationIndicatorSearch']) && is_array($request['concentrationIndicatorSearch'])) {
+            $baseQuery->byConcentrationIndicators($request['concentrationIndicatorSearch']);
         }
         
-        if (!empty($request['year_from'])) {
-            $baseQuery->where('sampling_date_year', '>=', $request['year_from']);
+        if (!empty($request['year_from']) || !empty($request['year_to'])) {
+            $baseQuery->byYearRange($request['year_from'], $request['year_to']);
         }
         
-        if (!empty($request['year_to'])) {
-            $baseQuery->where('sampling_date_year', '<=', $request['year_to']);
+        if (!empty($request['categoriesSearch']) && is_array($request['categoriesSearch'])) {
+            $baseQuery->byCategories($request['categoriesSearch']);
         }
         
-        if (!empty($request['categorySearch'])) {
-            $baseQuery->whereHas('substance.categories', function ($subQuery) use ($request) {
-                $subQuery->whereIn('susdat_categories.id', $request['categorySearch']);
-            });
+        if (!empty($request['sourceSearch']) && is_array($request['sourceSearch'])) {
+            $baseQuery->bySources($request['sourceSearch']);
         }
         
-        if (!empty($request['sourceSearch'])) {
-            $baseQuery->whereHas('substance.sources', function ($subQuery) use ($request) {
-                $subQuery->whereIn('sle_sources.id', $request['sourceSearch']);
-            });
+        if ((!empty($request['typeDataSourcesSearch']) && is_array($request['typeDataSourcesSearch'])) || 
+            (!empty($request['dataSourceLaboratorySearch']) && is_array($request['dataSourceLaboratorySearch'])) || 
+            (!empty($request['dataSourceOrganisationSearch']) && is_array($request['dataSourceOrganisationSearch']))) {
+            $baseQuery->byDataSourceFilters(
+                $request['typeDataSourcesSearch'] ?? [],
+                $request['dataSourceLaboratorySearch'] ?? [],
+                $request['dataSourceOrganisationSearch'] ?? []
+            );
         }
         
-        if (!empty($request['typeDataSourceSearch']) || !empty($request['laboratorySearch']) || !empty($request['organisationSearch'])) {
-            $baseQuery->whereHas('dataSource', function ($subQuery) use ($request) {
-                if (!empty($request['typeDataSourceSearch'])) {
-                    $subQuery->whereIn('type_data_source_id', $request['typeDataSourceSearch']);
-                }
-                if (!empty($request['laboratorySearch'])) {
-                    $subQuery->whereIn('laboratory1_id', $request['laboratorySearch']);
-                }
-                if (!empty($request['organisationSearch'])) {
-                    $subQuery->whereIn('organisation_id', $request['organisationSearch']);
-                }
-            });
+        if (!empty($request['analyticalMethodSearch']) && is_array($request['analyticalMethodSearch'])) {
+            $baseQuery->byAnalyticalMethods($request['analyticalMethodSearch']);
         }
         
-        if (!empty($request['analyticalMethodSearch'])) {
-            $baseQuery->whereHas('analyticalMethod', function ($subQuery) use ($request) {
-                $subQuery->whereIn('analytical_method_id', $request['analyticalMethodSearch']);
-            });
+        if (!empty($request['qualityAnalyticalMethodsSearch']) && is_array($request['qualityAnalyticalMethodsSearch'])) {
+            // Get the quality ratings collection like in the main search
+            $ratings = \App\Models\List\QualityEmpodatAnalyticalMethods::whereIn('id', $request['qualityAnalyticalMethodsSearch'])->get();
+            $baseQuery->byQualityRatings($ratings);
         }
         
-        if (!empty($request['qualityRatingSearch'])) {
-            $baseQuery->whereHas('analyticalMethod', function ($subQuery) use ($request) {
-                $subQuery->where(function ($ratingQuery) use ($request) {
-                    foreach ($request['qualityRatingSearch'] as $rating) {
-                        $ratingQuery->orWhere(function ($individualRating) use ($rating) {
-                            $individualRating->where('rating', '>=', $rating['min_rating'])
-                                ->where('rating', '<', $rating['max_rating']);
-                        });
-                    }
-                });
-            });
-        }
-        
-        if (!empty($request['fileSearch'])) {
-            $baseQuery->whereHas('files', function ($subQuery) use ($request) {
-                $subQuery->whereIn('files.id', $request['fileSearch']);
-            });
+        if (!empty($request['fileSearch']) && is_array($request['fileSearch'])) {
+            $baseQuery->byFiles($request['fileSearch']);
         }
         
         return $baseQuery;
@@ -190,7 +179,7 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     
     /**
      * Get records for a batch of IDs with all necessary relationships
-     * Optimized for development with smaller batches
+     * Optimized to avoid JOIN conflicts with filtered queries
      */
     protected function getRecordsBatch(array $idBatch)
     {
@@ -205,10 +194,12 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
             'last_id' => end($orderedIds) ?: null
         ]);
         
+        // Use a separate optimized query for data retrieval to avoid JOIN conflicts
+        // This approach ensures we get all the data we need without interfering with filtering JOINs
         return DB::table('empodat_main')
             ->select(
                 'empodat_main.id',
-                'empodat_main.dct_analysis_id',
+                'empodat_main.dct_analysis_id', 
                 'empodat_main.sampling_date_year',
                 'empodat_main.concentration_value',
                 'empodat_stations.name as station_name',
@@ -227,7 +218,7 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
             ->leftJoin('list_countries', 'empodat_stations.country_id', '=', 'list_countries.id')
             ->whereIn('empodat_main.id', $orderedIds)
             ->orderBy('empodat_main.id')
-            ->get(); // Use get() instead of cursor() for smaller batches
+            ->cursor(); // Use cursor for memory efficiency with larger datasets
     }
     
     /**
