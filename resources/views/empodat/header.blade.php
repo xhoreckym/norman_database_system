@@ -29,6 +29,12 @@
   </x-nav-link-header>
   @endrole
 
+  @auth
+  <x-nav-link-header :href="route('export_downloads.index', ['user_id' => auth()->id()])" :active="request()->is('*export-downloads*')">
+    My Downloads
+  </x-nav-link-header>
+  @endauth
+
   {{-- @if(request()->is('*filter') == true)
   <x-nav-link-header :href="route('substances.index')" :active="request()->is('*search')">
     Full View
