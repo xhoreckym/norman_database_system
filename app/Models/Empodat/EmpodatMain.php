@@ -279,8 +279,8 @@ class EmpodatMain extends Model
         }
 
         return $query->join('susdat_substances', 'empodat_main.substance_id', '=', 'susdat_substances.id')
-                    ->join('susdat_substance_category', 'susdat_substances.id', '=', 'susdat_substance_category.substance_id')
-                    ->whereIn('susdat_substance_category.category_id', $categoryIds)
+                    ->join('susdat_category_substance', 'susdat_substances.id', '=', 'susdat_category_substance.substance_id')
+                    ->whereIn('susdat_category_substance.category_id', $categoryIds)
                     ->select('empodat_main.*')
                     ->distinct();
     }
