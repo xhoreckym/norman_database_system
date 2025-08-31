@@ -47,7 +47,7 @@
               </span>
               
               @if(is_numeric($resultsObjects->total()) && $resultsObjectsCount > 0)
-              <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+              <span class="ml-2 px-2 py-1 bg-slate-100 text-slate-800 rounded-full text-xs font-medium">
                 @if($resultsObjects->total()/$resultsObjectsCount*100 < 0.01)
                 &le; 0.01% of total
                 @else
@@ -60,7 +60,7 @@
           @endif
           
           @auth
-          <div class="py-2 px-2"><a href="{{ route('codsearch.download', ['query_log_id' => $query_log_id]) }}" class="btn-download">Download</a></div>
+          <div class="py-2 px-2"><a href="{{ route('arbg.bacteria.search.download', ['query_log_id' => $query_log_id]) }}" class="btn-submit">Download</a></div>
           @else
           <div class="py-2 px-2 text-gray-400">Downloads are available for registered users only</div>
           @endauth

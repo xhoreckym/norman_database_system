@@ -303,12 +303,18 @@ Route::prefix('arbg')->group(function () {
     Route::prefix('bacteria')->group(function () {
         Route::get('search/filter/', [BacteriaController::class, 'filter'])->name('arbg.bacteria.search.filter');
         Route::get('search/search/', [BacteriaController::class, 'search'])->name('arbg.bacteria.search.search');
+        Route::get('search/downloadjob/{query_log_id}', [BacteriaController::class, 'startDownloadJob'])->name('arbg.bacteria.search.download');
+        Route::get('search/download/{filename}', [BacteriaController::class, 'downloadCsv'])
+            ->name('arbg.bacteria.csv.download');
         Route::get('countAll', [ARBGHomeController::class, 'countAllBacteria'])->middleware('auth')->name('arbg.bacteria.countAll');
     });
     
     Route::prefix('gene')->group(function () {
         Route::get('search/filter/', [GeneController::class, 'filter'])->name('arbg.gene.search.filter');
         Route::get('search/search/', [GeneController::class, 'search'])->name('arbg.gene.search.search');
+        Route::get('search/downloadjob/{query_log_id}', [GeneController::class, 'startDownloadJob'])->name('arbg.gene.search.download');
+        Route::get('search/download/{filename}', [GeneController::class, 'downloadCsv'])
+            ->name('arbg.gene.csv.download');
         Route::get('countAll', [ARBGHomeController::class, 'countAllGene'])->middleware('auth')->name('arbg.gene.countAll');
     });
     

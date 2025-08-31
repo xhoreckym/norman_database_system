@@ -207,15 +207,24 @@ class SarsController extends Controller
       // Build the query from the query log
       $baseQuery = SarsMain::query();
       $content = json_decode($queryLog->content, true);
-      $request = $content['request'] ?? [];
+      $requestData = $content['request'] ?? [];
+      
+      // Process search fields to handle JSON strings properly
+      $countrySearch = is_array($requestData['countrySearch'] ?? null)
+        ? $requestData['countrySearch'] 
+        : json_decode($requestData['countrySearch'] ?? '[]', true);
+        
+      $matrixSearch = is_array($requestData['matrixSearch'] ?? null)
+        ? $requestData['matrixSearch'] 
+        : json_decode($requestData['matrixSearch'] ?? '[]', true);
       
       // Apply the same filters as in the search method
-      if (!empty($request['countrySearch'])) {
-        $baseQuery->whereIn('name_of_country', $request['countrySearch']);
+      if (!empty($countrySearch)) {
+        $baseQuery->whereIn('name_of_country', $countrySearch);
       }
       
-      if (!empty($request['matrixSearch'])) {
-        $baseQuery->whereIn('sample_matrix', $request['matrixSearch']);
+      if (!empty($matrixSearch)) {
+        $baseQuery->whereIn('sample_matrix', $matrixSearch);
       }
       
       // Process records in chunks to manage memory
