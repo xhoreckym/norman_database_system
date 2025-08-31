@@ -7,6 +7,11 @@ use App\Models\Sars\SarsMain;
 use App\Models\DatabaseEntity;
 use App\Models\Backend\QueryLog;
 use App\Http\Controllers\Controller;
+use App\Models\Backend\ExportDownload;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class SarsController extends Controller
 {
@@ -94,7 +99,7 @@ class SarsController extends Controller
         QueryLog::insert([
           'content' => json_encode(['request' => $main_request, 'bindings' => $bindings]),
           'query' => $sql,
-          'user_id' => auth()->check() ? auth()->id() : null,
+          'user_id' => Auth::check() ? Auth::id() : null,
           'total_count' => $sarsObjectsCount,
           'actual_count' => is_null($actual_count) ? null : $actual_count,
           'database_key' => $database_key,
@@ -127,6 +132,220 @@ class SarsController extends Controller
       'request' => $request,
       'searchParameters' => $searchParameters,
     ], $main_request);
+  }
+
+  /**
+   * Start direct CSV download for SARS data (no queue needed due to small dataset)
+   */
+  public function startDownloadJob($query_log_id)
+  {
+    if (!Auth::check()) {
+      session()->flash('error', 'You must be logged in to download the CSV file.');
+      return back();
+    }
+
+    try {
+      // Get the query log record
+      $queryLog = QueryLog::findOrFail($query_log_id);
+      
+      // Generate filename
+      $filename = 'sars_export_uid_' . Auth::id() . '_' . now()->format('YmdHis') . '.csv';
+      
+      // Get request information for logging
+      $ip = request()->ip();
+      $userAgent = request()->userAgent();
+      
+      // Create an export download record for tracking
+      $exportDownload = ExportDownload::create([
+        'user_id' => Auth::id(),
+        'filename' => $filename,
+        'format' => 'csv',
+        'ip_address' => $ip,
+        'user_agent' => $userAgent,
+        'database_key' => 'sars',
+        'status' => 'processing',
+        'started_at' => Carbon::now()
+      ]);
+      
+      // Associate with the query log
+      $exportDownload->queryLogs()->attach($query_log_id);
+
+      // Process the export directly (no queue needed for small dataset)
+      $startTime = microtime(true);
+      $directory = 'exports/sars';
+      
+      // Make sure the directory exists
+      Storage::makeDirectory($directory);
+      
+      $path = Storage::path("{$directory}/{$filename}");
+      $handle = fopen($path, 'w');
+      
+      if (!$handle) {
+        throw new \Exception("Unable to open file for writing: {$path}");
+      }
+      
+      // Write CSV headers
+      $headers = [
+        'ID',
+        'Sampling Date',
+        'Gene 1',
+        'Gene 2', 
+        'Ct Value',
+        'Station Name',
+        'Population Served',
+        'People Positive',
+        'Country',
+        'Sample Matrix',
+        'Data Provider',
+        'Sample From Year',
+        'Sample From Month',
+        'Sample From Day',
+        'Export Date'
+      ];
+      fputcsv($handle, $headers);
+      
+      // Build the query from the query log
+      $baseQuery = SarsMain::query();
+      $content = json_decode($queryLog->content, true);
+      $request = $content['request'] ?? [];
+      
+      // Apply the same filters as in the search method
+      if (!empty($request['countrySearch'])) {
+        $baseQuery->whereIn('name_of_country', $request['countrySearch']);
+      }
+      
+      if (!empty($request['matrixSearch'])) {
+        $baseQuery->whereIn('sample_matrix', $request['matrixSearch']);
+      }
+      
+      // Process records in chunks to manage memory
+      $totalExported = 0;
+      $exportDate = Carbon::now()->format('Y-m-d H:i:s');
+      
+      $baseQuery->chunk(500, function ($records) use ($handle, $exportDate, &$totalExported) {
+        foreach ($records as $record) {
+          $row = [
+            $record->id,
+            $record->sample_from_year . '-' . $record->sample_from_month . '-' . $record->sample_from_day,
+            $record->gene1,
+            $record->gene2,
+            $record->ct,
+            $record->station_name,
+            $record->population_served,
+            $record->people_positive,
+            $record->name_of_country,
+            $record->sample_matrix,
+            $record->data_provider,
+            $record->sample_from_year,
+            $record->sample_from_month,
+            $record->sample_from_day,
+            $exportDate
+          ];
+          fputcsv($handle, $row);
+          $totalExported++;
+        }
+      });
+      
+      fclose($handle);
+      
+      // Get file size and processing time
+      $fileSize = Storage::size("{$directory}/{$filename}");
+      $formattedFileSize = $this->formatBytes($fileSize);
+      $processingTime = round(microtime(true) - $startTime, 2);
+      
+      // Update the export download record with completion metrics
+      $exportDownload->update([
+        'status' => 'completed',
+        'record_count' => $totalExported,
+        'file_size_bytes' => $fileSize,
+        'file_size_formatted' => $formattedFileSize,
+        'processing_time_seconds' => $processingTime,
+        'completed_at' => Carbon::now()
+      ]);
+      
+      Log::info("SARS export complete: {$totalExported} records exported in {$processingTime} seconds. File size: {$formattedFileSize}");
+      
+      // Redirect directly to download since processing is complete
+      return redirect()->route('sars.csv.download', ['filename' => $filename]);
+      
+    } catch (\Exception $e) {
+      Log::error("SARS export failed: " . $e->getMessage());
+      
+      // Update export download record if it exists
+      if (isset($exportDownload)) {
+        $exportDownload->update([
+          'status' => 'failed',
+          'message' => $e->getMessage(),
+          'completed_at' => Carbon::now()
+        ]);
+      }
+      
+      session()->flash('error', 'Export failed: ' . $e->getMessage());
+      return back();
+    }
+  }
+
+  /**
+   * Download the generated CSV file
+   */
+  public function downloadCsv($filename)
+  {
+    $directory = 'exports/sars';
+    $path = Storage::path("{$directory}/{$filename}");
+    
+    // Debug logging for file availability
+    Log::info("Download request for: {$filename}", [
+      'path' => $path,
+      'exists' => file_exists($path),
+      'directory_contents' => Storage::files($directory)
+    ]);
+
+    if (!file_exists($path)) {
+      // Try to find similar files for debugging
+      $similarFiles = collect(Storage::files($directory))
+        ->filter(function($file) use ($filename) {
+          $fileBasename = basename($file);
+          $requestBasename = basename($filename);
+          // Check if the filename pattern matches (same user and similar timestamp)
+          return str_contains($fileBasename, explode('_', $requestBasename)[3] ?? '') ||
+                 str_contains($fileBasename, explode('_', $requestBasename)[2] ?? '');
+        })
+        ->values();
+      
+      Log::warning("File not found: {$filename}", [
+        'path' => $path,
+        'similar_files' => $similarFiles->toArray(),
+        'user_id' => Auth::id()
+      ]);
+      
+      return response()->json([
+        'error' => 'File not found',
+        'message' => 'The requested CSV file does not exist. It may have expired or failed to generate.',
+        'similar_files' => $similarFiles->map(function($file) {
+          return basename($file);
+        })
+      ], 404);
+    }
+
+    return response()->download($path, $filename, [
+      'Content-Type' => 'text/csv',
+    ]);
+  }
+
+  /**
+   * Format bytes to human-readable file size
+   */
+  protected function formatBytes($bytes, $precision = 2): string
+  {
+    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    
+    $bytes = max($bytes, 0);
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+    $pow = min($pow, count($units) - 1);
+    
+    $bytes /= (1 << (10 * $pow));
+    
+    return round($bytes, $precision) . ' ' . $units[$pow];
   }
   
 }
