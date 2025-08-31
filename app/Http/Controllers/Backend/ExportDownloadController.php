@@ -24,6 +24,9 @@ class ExportDownloadController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(25);
 
-        return view('backend.export_downloads.index', compact('exportDownloads', 'userId'));
+        // Get user information for display
+        $user = \App\Models\User::find($userId);
+
+        return view('backend.export_downloads.index', compact('exportDownloads', 'userId', 'user'));
     }
 }

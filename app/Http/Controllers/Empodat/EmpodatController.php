@@ -262,7 +262,7 @@ class EmpodatController extends Controller
     // dd($user->email);
     EmpodatCsvExportJob::dispatch($query_log_id, $user, $filename);
 
-    session()->flash('success', 'The CSV file is being generated. You will receive an email once it is ready for download.');
+    session()->flash('success', 'The CSV file is being generated. You will receive an email once it is ready for download, or check the "My downloads" page for the status.');
     return back();
   }
 

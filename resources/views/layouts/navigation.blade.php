@@ -33,6 +33,13 @@
             </div>
             
             @auth
+            <!-- My Downloads Link -->
+            <div class="hidden sm:flex sm:items-center sm:ms-6">
+                <x-nav-link :href="route('export_downloads.index', ['user_id' => Auth::id()])" :active="request()->routeIs('export_downloads.index')" class="me-4">
+                    {{ __('My downloads') }}
+                </x-nav-link>
+            </div>
+            
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
@@ -98,6 +105,9 @@
     <div class="pt-2 pb-3 space-y-1">
         <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
             {{ __('Dashboard') }}
+        </x-responsive-nav-link>
+        <x-responsive-nav-link :href="route('export_downloads.index', ['user_id' => Auth::id()])" :active="request()->routeIs('export_downloads.index')">
+            {{ __('My downloads') }}
         </x-responsive-nav-link>
     </div>
     

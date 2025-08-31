@@ -1,11 +1,5 @@
 <x-app-layout>
-  <x-slot name="header">
-    <div class="px-4 sm:px-6 lg:px-8">
-      <span class="mr-12 font-bold text-lime-700">
-        Export Downloads
-      </span>
-    </div>
-  </x-slot>
+
 
   <div class="py-4">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -13,9 +7,54 @@
         <div class="p-6 text-gray-900">
           
           <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Export Downloads</h1>
-            @if($exportDownloads->first() && $exportDownloads->first()->user)
-              <p class="text-gray-600 mt-2">Downloads for user: <span class="font-semibold">{{ $exportDownloads->first()->user->name }}</span></p>
+            <h1 class="text-2xl font-bold text-gray-800">My Downloads</h1>
+            @if($user)
+              <div class="mt-3 p-4 bg-gray-50 rounded-lg">
+                <h3 class="text-lg font-medium text-gray-800">User Information</h3>
+                <p class="text-xs text-gray-500 mb-3"><em>All times displayed in Central European Time (CET/CEST)</em></p>
+                <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span class="text-sm font-medium text-gray-600">Name:</span>
+                    <span class="text-sm text-gray-800 ml-2">{{ $user->full_name }}</span>
+                  </div>
+                  <div>
+                    <span class="text-sm font-medium text-gray-600">Email:</span>
+                    <span class="text-sm text-gray-800 ml-2">{{ $user->email }}</span>
+                  </div>
+                  @if($user->organisation)
+                  <div>
+                    <span class="text-sm font-medium text-gray-600">Organisation:</span>
+                    <span class="text-sm text-gray-800 ml-2">{{ $user->organisation }}</span>
+                  </div>
+                  @endif
+                  <div>
+                    <span class="text-sm font-medium text-gray-600">Total Downloads:</span>
+                    <span class="text-sm text-gray-800 ml-2">{{ $exportDownloads->total() }}</span>
+                  </div>
+                  @if($exportDownloads->where('status', 'completed')->count() > 0)
+                  <div>
+                    <span class="text-sm font-medium text-gray-600">Completed Downloads:</span>
+                    <span class="text-sm text-green-600 ml-2 font-medium">{{ $exportDownloads->where('status', 'completed')->count() }}</span>
+                  </div>
+                  @endif
+                  @if($exportDownloads->whereNotNull('file_size_bytes')->sum('file_size_bytes') > 0)
+                  <div>
+                    <span class="text-sm font-medium text-gray-600">Total Downloaded:</span>
+                    <span class="text-sm text-gray-800 ml-2">
+                      @php
+                        $totalBytes = $exportDownloads->whereNotNull('file_size_bytes')->sum('file_size_bytes');
+                        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                        $bytes = max($totalBytes, 0);
+                        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+                        $pow = min($pow, count($units) - 1);
+                        $bytes /= (1 << (10 * $pow));
+                        echo round($bytes, 2) . ' ' . $units[$pow];
+                      @endphp
+                    </span>
+                  </div>
+                  @endif
+                </div>
+              </div>
             @endif
           </div>
 
@@ -29,9 +68,11 @@
                     <th class="py-3 px-4 border-b text-left">Format</th>
                     <th class="py-3 px-4 border-b text-left">Database</th>
                     <th class="py-3 px-4 border-b text-left">Records</th>
+                    <th class="py-3 px-4 border-b text-left">File Size</th>
+                    <th class="py-3 px-4 border-b text-left">Duration</th>
                     <th class="py-3 px-4 border-b text-left">Status</th>
-                    <th class="py-3 px-4 border-b text-left">Created</th>
-                    <th class="py-3 px-4 border-b text-left">IP Address</th>
+                    <th class="py-3 px-4 border-b text-left">Created (CET)</th>
+                    <th class="py-3 px-4 border-b text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -53,6 +94,20 @@
                         @endif
                       </td>
                       <td class="py-3 px-4 text-sm">
+                        @if($download->formatted_file_size)
+                          <span class="text-gray-700 font-medium">{{ $download->formatted_file_size }}</span>
+                        @else
+                          <span class="text-gray-400">-</span>
+                        @endif
+                      </td>
+                      <td class="py-3 px-4 text-sm">
+                        @if($download->duration)
+                          <span class="text-gray-700">{{ $download->duration }}</span>
+                        @else
+                          <span class="text-gray-400">-</span>
+                        @endif
+                      </td>
+                      <td class="py-3 px-4 text-sm">
                         @if($download->status === 'completed')
                           <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Completed</span>
                         @elseif($download->status === 'processing')
@@ -63,8 +118,84 @@
                           <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">{{ ucfirst($download->status) }}</span>
                         @endif
                       </td>
-                      <td class="py-3 px-4 text-sm text-gray-600">{{ $download->created_at }}</td>
-                      <td class="py-3 px-4 text-sm text-gray-500">{{ $download->ip_address ?: '-' }}</td>
+                      <td class="py-3 px-4 text-sm text-gray-600">
+                        <div>{{ $download->created_at }}</div>
+                        @if($download->started_at && $download->completed_at)
+                          <div class="text-xs text-gray-500 mt-1">
+                            Started: {{ $download->started_at }}<br>
+                            Completed: {{ $download->completed_at }}
+                          </div>
+                        @elseif($download->started_at)
+                          <div class="text-xs text-gray-500 mt-1">
+                            Started: {{ $download->started_at }}
+                          </div>
+                        @endif
+                      </td>
+                      <td class="py-3 px-4 text-sm">
+                        @if($download->status === 'completed')
+                          @php
+                            $downloadRoute = '';
+                            try {
+                              switch($download->database_key) {
+                                case 'empodat':
+                                  $downloadRoute = route('csv.download', ['filename' => $download->filename]);
+                                  break;
+                                case 'sars':
+                                  $downloadRoute = route('sars.csv.download', ['filename' => $download->filename]);
+                                  break;
+                                case 'arbg.bacteria':
+                                case 'arbg.gene':
+                                case 'arbg':
+                                  // ARBG modules might use a general download route if implemented
+                                  $downloadRoute = '#'; // TODO: Add ARBG download route when implemented
+                                  break;
+                                case 'ecotox':
+                                case 'ecotox.ecotox':
+                                case 'ecotox.ecotox_pnec3':
+                                  // Ecotox modules might use a general download route if implemented
+                                  $downloadRoute = '#'; // TODO: Add Ecotox download route when implemented
+                                  break;
+                                case 'passive':
+                                case 'indoor':
+                                case 'bioassay':
+                                  // Other modules might use general download routes if implemented
+                                  $downloadRoute = '#'; // TODO: Add download routes when implemented
+                                  break;
+                                default:
+                                  $downloadRoute = '#';
+                              }
+                            } catch (Exception $e) {
+                              $downloadRoute = '#';
+                            }
+                          @endphp
+                          @if($downloadRoute !== '#')
+                            <a href="{{ $downloadRoute }}" class="inline-flex items-center px-3 py-1 bg-slate-600 text-white text-xs font-medium rounded hover:bg-slate-700 transition-colors">
+                              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                              </svg>
+                              Download
+                            </a>
+                          @else
+                            <span class="text-gray-400 text-xs">
+                              @if(in_array($download->database_key, ['arbg.bacteria', 'arbg.gene', 'arbg', 'ecotox', 'ecotox.ecotox', 'ecotox.ecotox_pnec3', 'passive', 'indoor', 'bioassay']))
+                                Download not implemented
+                              @else
+                                No download available
+                              @endif
+                            </span>
+                          @endif
+                        @else
+                          <span class="text-gray-400 text-xs">
+                            @if($download->status === 'processing')
+                              Processing...
+                            @elseif($download->status === 'failed')
+                              Failed
+                            @else
+                              {{ ucfirst($download->status) }}
+                            @endif
+                          </span>
+                        @endif
+                      </td>
                     </tr>
                   @endforeach
                 </tbody>

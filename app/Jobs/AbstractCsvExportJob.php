@@ -71,10 +71,21 @@ abstract class AbstractCsvExportJob implements ShouldQueue
         
         // Update export download record
         if ($filename !== 'unknown') {
-            ExportDownload::where('filename', $filename)->first()?->update([
-                'status' => 'failed',
-                'message' => $exception->getMessage()
-            ]);
+            $exportDownload = ExportDownload::where('filename', $filename)->first();
+            if ($exportDownload) {
+                $updateData = [
+                    'status' => 'failed',
+                    'message' => $exception->getMessage()
+                ];
+                
+                // If we have started_at but no completed_at, set completed_at to now
+                if ($exportDownload->started_at && !$exportDownload->completed_at) {
+                    $updateData['completed_at'] = Carbon::now();
+                    $updateData['processing_time_seconds'] = $exportDownload->started_at->diffInSeconds(Carbon::now());
+                }
+                
+                $exportDownload->update($updateData);
+            }
         }
         
         // Send failure notification email
@@ -130,7 +141,8 @@ abstract class AbstractCsvExportJob implements ShouldQueue
             'ip_address' => $ip,
             'user_agent' => $userAgent,
             'database_key' => $this->getDatabaseKey(),
-            'status' => 'processing'
+            'status' => 'processing',
+            'started_at' => Carbon::now()
         ]);
         
         // Associate with the query log
@@ -175,8 +187,15 @@ abstract class AbstractCsvExportJob implements ShouldQueue
             
             Log::info("{$this->getDatabaseKey()} export complete: {$totalExported} records exported in {$processingTime} seconds. File size: {$formattedFileSize}");
             
-            // Update the export download record
-            $exportDownload->update(['status' => 'completed']);
+            // Update the export download record with completion metrics
+            $exportDownload->update([
+                'status' => 'completed',
+                'record_count' => $totalExported,
+                'file_size_bytes' => $fileSize,
+                'file_size_formatted' => $formattedFileSize,
+                'processing_time_seconds' => $processingTime,
+                'completed_at' => Carbon::now()
+            ]);
             
         } catch (Exception $e) {
             Log::error("{$this->getDatabaseKey()} export failed: " . $e->getMessage() . ' at line ' . $e->getLine() . ' in ' . $e->getFile());
@@ -190,10 +209,18 @@ abstract class AbstractCsvExportJob implements ShouldQueue
             $messageContent['export_failed'] = true;
             $messageContent['error'] = $e->getMessage();
             
-            $exportDownload->update([
+            $updateData = [
                 'status' => 'failed',
-                'message' => $e->getMessage()
-            ]);
+                'message' => $e->getMessage(),
+                'completed_at' => Carbon::now()
+            ];
+            
+            // Calculate processing time if we have started_at
+            if ($exportDownload->started_at) {
+                $updateData['processing_time_seconds'] = $exportDownload->started_at->diffInSeconds(Carbon::now());
+            }
+            
+            $exportDownload->update($updateData);
         }
         
         // Send notification email

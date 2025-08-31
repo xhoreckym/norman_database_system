@@ -95,7 +95,7 @@ services:
     build:
       context: .
       dockerfile: scheduler.dockerfile
-    image: laravel-app-queue
+    image: laravel-app-queue-medium
     command: ["php", "artisan", "queue:work", "--queue=medium", "--timeout=900", "--memory=512", "--sleep=2", "--tries=3", "--max-jobs=50", "--rest=5"]
     container_name: nds-app-queue-medium
     stop_signal: SIGTERM
