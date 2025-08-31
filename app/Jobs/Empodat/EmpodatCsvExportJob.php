@@ -12,10 +12,10 @@ use App\Models\Empodat\EmpodatMain;
 class EmpodatCsvExportJob extends AbstractCsvExportJob
 {
     /**
-     * Optimized for large datasets - use larger initial batch sizes
+     * Optimized for development - smaller batch sizes for faster processing
      */
-    protected $initialBatchSize = 750;
-    protected $maxBatchSize = 2500;
+    protected $initialBatchSize = 50;
+    protected $maxBatchSize = 500;
     
     /**
      * Extended timeout for large datasets
@@ -190,13 +190,20 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     
     /**
      * Get records for a batch of IDs with all necessary relationships
-     * Optimized for large datasets with proper indexing hints
+     * Optimized for development with smaller batches
      */
     protected function getRecordsBatch(array $idBatch)
     {
-        // For very large batches, use ordered retrieval to help with database optimization
+        // For development, use smaller batches with aggressive optimization
         $orderedIds = array_values($idBatch);
         sort($orderedIds);
+        
+        // Log batch processing for debugging
+        Log::info("Processing Empodat batch", [
+            'batch_size' => count($orderedIds),
+            'first_id' => $orderedIds[0] ?? null,
+            'last_id' => end($orderedIds) ?: null
+        ]);
         
         return DB::table('empodat_main')
             ->select(
@@ -219,8 +226,8 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
             ->leftJoin('empodat_stations', 'empodat_main.station_id', '=', 'empodat_stations.id')
             ->leftJoin('list_countries', 'empodat_stations.country_id', '=', 'list_countries.id')
             ->whereIn('empodat_main.id', $orderedIds)
-            ->orderBy('empodat_main.id') // Help database optimize with ordered retrieval
-            ->cursor();
+            ->orderBy('empodat_main.id')
+            ->get(); // Use get() instead of cursor() for smaller batches
     }
     
     /**

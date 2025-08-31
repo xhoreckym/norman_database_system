@@ -23,8 +23,8 @@ abstract class AbstractCsvExportJob implements ShouldQueue
     protected $queryLogId;
     protected $user;
     protected $maxExecutionTime = 1800; // 30 minutes
-    protected $initialBatchSize = 500; // Start with smaller batches
-    protected $maxBatchSize = 2000; // Can grow to larger batches
+    protected $initialBatchSize = 100; // Start with very small batches for development
+    protected $maxBatchSize = 1000; // More conservative max batch size
     protected $currentBatchSize;
     
     /**
@@ -237,20 +237,39 @@ abstract class AbstractCsvExportJob implements ShouldQueue
      */
     protected function extractIds(QueryLog $queryLog)
     {
-        // Use Query Builder instead of regex manipulation
-        $baseQuery = $this->buildBaseQuery();
+        // Get the actual count first to avoid re-execution
+        $content = json_decode($queryLog->content, true);
         
-        // Apply filters from the original query (this is module-specific)
+        // If we have a cached actual_count, use optimized chunked approach
+        if ($queryLog->actual_count && $queryLog->actual_count < 10000) {
+            return $this->extractIdsChunked($queryLog);
+        }
+        
+        // For larger datasets, use streaming approach
+        $baseQuery = $this->buildBaseQuery();
         $filteredQuery = $this->applyQueryFilters($baseQuery, $queryLog);
         
-        // Use cursor for memory-efficient processing and yield IDs one by one
-        $cursor = $filteredQuery
-            ->select('id')
-            ->orderBy('id') // Ensure consistent ordering and help with index usage
-            ->cursor();
-            
-        foreach ($cursor as $record) {
-            yield $record->id;
+        // Use a more efficient approach with chunking
+        $filteredQuery->select('id')
+            ->orderBy('id')
+            ->chunk(1000, function ($records) {
+                foreach ($records as $record) {
+                    yield $record->id;
+                }
+            });
+    }
+    
+    /**
+     * Extract IDs using chunked approach for smaller datasets
+     */
+    protected function extractIdsChunked(QueryLog $queryLog)
+    {
+        $baseQuery = $this->buildBaseQuery();
+        $filteredQuery = $this->applyQueryFilters($baseQuery, $queryLog);
+        
+        $ids = $filteredQuery->pluck('id')->toArray();
+        foreach ($ids as $id) {
+            yield $id;
         }
     }
     

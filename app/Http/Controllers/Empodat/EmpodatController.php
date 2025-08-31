@@ -248,14 +248,14 @@ class EmpodatController extends Controller
   public function startDownloadJob($query_log_id)
   {
 
-    if (!auth()->check()) {
+    if (!Auth::check()) {
       session()->flash('error', 'You must be logged in to download the CSV file.');
       return back();
     }
     // $q = QueryLog::find($query_log_id);
     // dd($query_log_id, $q->query);
     // Dispatch the job to the queue
-    $user = auth()->user();
+    $user = Auth::user();
     // dd($user->email);
     EmpodatCsvExportJob::dispatch($query_log_id, $user);
 
