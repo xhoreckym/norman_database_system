@@ -33,15 +33,13 @@
             </div>
             
             @auth
-            <!-- My Downloads Link -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-nav-link :href="route('export_downloads.index', ['user_id' => Auth::id()])" :active="request()->routeIs('export_downloads.index')" class="me-4">
+            <!-- Settings Dropdown -->
+            <div class="hidden sm:flex sm:items-center sm:ms-6 space-x-4">
+                <!-- My Downloads Link -->
+                <x-nav-link :href="route('export_downloads.index', ['user_id' => Auth::id()])" :active="request()->routeIs('export_downloads.index')">
                     {{ __('My downloads') }}
                 </x-nav-link>
-            </div>
-            
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+                
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
