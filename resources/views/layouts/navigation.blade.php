@@ -20,7 +20,7 @@
                     @endauth
                     
                     <x-nav-link :href="route('home')" :active="(request()->routeIs('home') || request()->routeIs('databases.index') || request()->is('landing') || request()->is('sle/*') || request()->is('arbg/*') || request()->is('indoor/*') || request()->is('passive/*') || request()->is('prioritisation/*') || request()->is('bioassays/*') || request()->is('sars/*') || request()->is('empodat/*') || request()->is('susdat/*') || request()->is('ecotox/*') || request()->is('factsheets/*'))">
-                        {{ __('Databases index') }}
+                        {{ __('Database Modules') }}
                     </x-nav-link>
                     
                     <x-nav-link :href="url('/').'/docs'" :active="request()->routeIs('apidoc')" target="_blank">
@@ -137,7 +137,7 @@
     <!-- Add missing navigation links for mobile -->
     <div class="pt-2 pb-3 space-y-1">
         <x-responsive-nav-link :href="route('home')" :active="(request()->routeIs('databases.index') || request()->is('landing') || request()->is('sle/*') || request()->is('arbg/*') || request()->is('indoor/*') || request()->is('passive/*') || request()->is('prioritisation/*') || request()->is('bioassays/*') || request()->is('sars/*') || request()->is('empodat/*') || request()->is('susdat/*') || request()->is('ecotox/*') || request()->is('factsheets/*'))">
-            {{ __('Databases index') }}
+            {{ __('Database Modules') }}
         </x-responsive-nav-link>
         
         <x-responsive-nav-link :href="url('/').'/docs'" :active="request()->routeIs('apidoc')" target="_blank">
