@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Database\QueryException;
 
 return Application::configure(basePath: dirname(__DIR__))
 ->withRouting(
@@ -28,6 +29,10 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->wantsJson()) { 
                 return response()->json(['message' => 'Object not found'], 404);
             } 
+        });
+        
+        $exceptions->renderable(function (QueryException $e, Request $request) {
+            return response()->view('errors.database-offline', [], 503);
         });
     })->create();
     
