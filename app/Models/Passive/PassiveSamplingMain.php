@@ -154,43 +154,48 @@ class PassiveSamplingMain extends Model
 
     /**
      * Get the other country record associated with the passive sampling record.
+     * Note: PassiveDataCountryOther model does not exist yet
      */
-    public function countryOther()
-    {
-        return $this->belongsTo(PassiveDataCountryOther::class, 'country_other', 'id');
-    }
+    // public function countryOther()
+    // {
+    //     return $this->belongsTo(PassiveDataCountryOther::class, 'country_other', 'id');
+    // }
 
     /**
      * Get the precision coordinates record associated with the passive sampling record.
+     * Note: PassiveDataPrecisionCoordinates model does not exist yet
      */
-    public function precisionCoordinates()
-    {
-        return $this->belongsTo(PassiveDataPrecisionCoordinates::class, 'dpc_id', 'id');
-    }
+    // public function precisionCoordinates()
+    // {
+    //     return $this->belongsTo(PassiveDataPrecisionCoordinates::class, 'dpc_id', 'id');
+    // }
 
     /**
      * Get the proxy pressures record associated with the passive sampling record.
+     * Note: PassiveDataProxyPressures model does not exist yet
      */
-    public function proxyPressures()
-    {
-        return $this->belongsTo(PassiveDataProxyPressures::class, 'dpr_id', 'id');
-    }
+    // public function proxyPressures()
+    // {
+    //     return $this->belongsTo(PassiveDataProxyPressures::class, 'dpr_id', 'id');
+    // }
 
     /**
      * Get the dynamic sampling precision coordinates record associated with the passive sampling record.
+     * Note: PassiveDataPrecisionCoordinates model does not exist yet
      */
-    public function dsPrecisionCoordinates()
-    {
-        return $this->belongsTo(PassiveDataPrecisionCoordinates::class, 'ds_dpc_id', 'id');
-    }
+    // public function dsPrecisionCoordinates()
+    // {
+    //     return $this->belongsTo(PassiveDataPrecisionCoordinates::class, 'ds_dpc_id', 'id');
+    // }
 
     /**
      * Get the dynamic sampling proxy pressures record associated with the passive sampling record.
+     * Note: PassiveDataProxyPressures model does not exist yet
      */
-    public function dsProxyPressures()
-    {
-        return $this->belongsTo(PassiveDataProxyPressures::class, 'ds_dpr_id', 'id');
-    }
+    // public function dsProxyPressures()
+    // {
+    //     return $this->belongsTo(PassiveDataProxyPressures::class, 'ds_dpr_id', 'id');
+    // }
 
     /**
      * Get the matrix record associated with the passive sampling record.
@@ -201,60 +206,75 @@ class PassiveSamplingMain extends Model
     }
 
     /**
-     * Get the type sampling record associated with the passive sampling record.
+     * Get the organisation record associated with the passive sampling record.
      */
-    public function typeSampling()
+    public function organisation()
     {
-        return $this->belongsTo(PassiveDataTypeSampling::class, 'type_sampling_id', 'id');
+        return $this->belongsTo(\App\Models\List\DataSourceOrganisation::class, 'org_id', 'id');
     }
+
+    /**
+     * Get the type sampling record associated with the passive sampling record.
+     * Note: PassiveDataTypeSampling model does not exist yet
+     */
+    // public function typeSampling()
+    // {
+    //     return $this->belongsTo(PassiveDataTypeSampling::class, 'type_sampling_id', 'id');
+    // }
 
     /**
      * Get the passive sampler record associated with the passive sampling record.
+     * Note: PassiveDataPassiveSampler model does not exist yet
      */
-    public function passiveSampler()
-    {
-        return $this->belongsTo(PassiveDataPassiveSampler::class, 'passive_sampler_id', 'id');
-    }
+    // public function passiveSampler()
+    // {
+    //     return $this->belongsTo(PassiveDataPassiveSampler::class, 'passive_sampler_id', 'id');
+    // }
 
     /**
      * Get the sampler type record associated with the passive sampling record.
+     * Note: PassiveDataSamplerType model does not exist yet
      */
-    public function samplerType()
-    {
-        return $this->belongsTo(PassiveDataSamplerType::class, 'sampler_type_id', 'id');
-    }
+    // public function samplerType()
+    // {
+    //     return $this->belongsTo(PassiveDataSamplerType::class, 'sampler_type_id', 'id');
+    // }
 
     /**
      * Get the basin name record associated with the passive sampling record.
+     * Note: PassiveDataBasinName model does not exist yet
      */
-    public function basinName()
-    {
-        return $this->belongsTo(PassiveDataBasinName::class, 'basin_name_id', 'id');
-    }
+    // public function basinName()
+    // {
+    //     return $this->belongsTo(PassiveDataBasinName::class, 'basin_name_id', 'id');
+    // }
 
     /**
      * Get the type data source record associated with the passive sampling record.
+     * Note: PassiveDataTypeDataSource model does not exist yet
      */
-    public function typeDataSource()
-    {
-        return $this->belongsTo(PassiveDataTypeDataSource::class, 'dts_id', 'id');
-    }
+    // public function typeDataSource()
+    // {
+    //     return $this->belongsTo(PassiveDataTypeDataSource::class, 'dts_id', 'id');
+    // }
 
     /**
      * Get the type monitoring record associated with the passive sampling record.
+     * Note: PassiveDataTypeMonitoring model does not exist yet
      */
-    public function typeMonitoring()
-    {
-        return $this->belongsTo(PassiveDataTypeMonitoring::class, 'dtm_id', 'id');
-    }
+    // public function typeMonitoring()
+    // {
+    //     return $this->belongsTo(PassiveDataTypeMonitoring::class, 'dtm_id', 'id');
+    // }
 
     /**
      * Get the concentration record associated with the passive sampling record.
+     * Note: PassiveDataIndConcentration model does not exist yet
      */
-    public function indConcentration()
-    {
-        return $this->belongsTo(PassiveDataIndConcentration::class, 'dic_id', 'id');
-    }
+    // public function indConcentration()
+    // {
+    //     return $this->belongsTo(PassiveDataIndConcentration::class, 'dic_id', 'id');
+    // }
 
     /**
      * Get a formatted sampling date

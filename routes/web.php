@@ -336,6 +336,18 @@ Route::prefix('passive')->group(function () {
     
     Route::get('search/filter/', [PassiveController::class, 'filter'])->name('passive.search.filter');
     Route::get('search/search/', [PassiveController::class, 'search'])->name('passive.search.search');
+    Route::get('search/downloadjob/{query_log_id}', [PassiveController::class, 'startDownloadJob'])->name('passive.search.download');
+    Route::get('search/download/{filename}', [PassiveController::class, 'downloadCsv'])
+    ->name('passive.csv.download');
+    Route::resource('search', PassiveController::class)->names([
+        'index'   => 'passive.search.index',
+        'create'  => 'passive.search.create',
+        'store'   => 'passive.search.store',
+        'show'    => 'passive.search.show',
+        'edit'    => 'passive.search.edit',
+        'update'  => 'passive.search.update',
+        'destroy' => 'passive.search.destroy',
+    ]);
     
     Route::get('passive/countAll', [PassiveHomeController::class, 'countAll'])->middleware('auth')->name('passive.countAll');
     
