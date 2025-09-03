@@ -358,6 +358,14 @@ class SarsController extends Controller
    */
   public function edit($id)
   {
+    if (!auth()->check() || 
+        !(auth()->user()->hasRole('super_admin') || 
+          auth()->user()->hasRole('admin') || 
+          auth()->user()->hasRole('sars'))) {
+      session()->flash('error', 'You do not have permission to edit SARS records.');
+      return redirect()->route('sars.search.search');
+    }
+
     $sars = SarsMain::findOrFail($id);
     
     return view('sars.edit', [
@@ -370,6 +378,14 @@ class SarsController extends Controller
    */
   public function update(Request $request, $id)
   {
+    if (!auth()->check() || 
+        !(auth()->user()->hasRole('super_admin') || 
+          auth()->user()->hasRole('admin') || 
+          auth()->user()->hasRole('sars'))) {
+      session()->flash('error', 'You do not have permission to update SARS records.');
+      return redirect()->route('sars.search.search');
+    }
+
     $sars = SarsMain::findOrFail($id);
     
     // Update the record with the request data

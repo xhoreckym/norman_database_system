@@ -16,14 +16,19 @@
 
                       <div class="mb-6 flex justify-between items-center">
               <h3 class="text-lg font-semibold text-gray-800">Record ID: {{ $sars->id }}</h3>
-              <div class="flex space-x-2">
-                <a href="{{ route('sars.search.edit', $sars->id) }}" class="link-edit">
-                  <i class="fas fa-edit mr-1"></i> Edit
-                </a>
-                <a href="{{ route('sars.search.search') }}" class="link-lime">
-                  <i class="fas fa-arrow-left mr-1"></i> Back to Search
-                </a>
-              </div>
+                    <div class="flex space-x-2">
+        @if (auth()->check() && 
+             (auth()->user()->hasRole('super_admin') || 
+              auth()->user()->hasRole('admin') || 
+              auth()->user()->hasRole('sars')))
+          <a href="{{ route('sars.search.edit', $sars->id) }}" class="link-edit">
+            <i class="fas fa-edit mr-1"></i> Edit
+          </a>
+        @endif
+        <a href="{{ route('sars.search.search') }}" class="link-lime">
+          <i class="fas fa-arrow-left mr-1"></i> Back to Search
+        </a>
+      </div>
             </div>
 
           <div class="overflow-x-auto">

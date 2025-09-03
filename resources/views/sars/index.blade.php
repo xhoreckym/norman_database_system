@@ -103,16 +103,21 @@
             <tbody>
               @foreach ($sarsObjects as $e)
                 <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif ">
-                  <td class="p-1 text-center">
-                    <div class="flex justify-center space-x-1">
-                      <a href="{{ route('sars.search.show', $e->id) }}" class="link-lime" title="View Details">
-                        <i class="fas fa-search"></i>
-                      </a>
-                      <a href="{{ route('sars.search.edit', $e->id) }}" class="link-edit" title="Edit Record">
-                        <i class="fas fa-edit"></i>
-                      </a>
-                    </div>
-                  </td>
+                                     <td class="p-1 text-center">
+                     <div class="flex justify-center space-x-1">
+                       <a href="{{ route('sars.search.show', $e->id) }}" class="link-lime" title="View Details">
+                         <i class="fas fa-search"></i>
+                       </a>
+                       @if (auth()->check() && 
+                            (auth()->user()->hasRole('super_admin') || 
+                             auth()->user()->hasRole('admin') || 
+                             auth()->user()->hasRole('sars')))
+                         <a href="{{ route('sars.search.edit', $e->id) }}" class="link-edit" title="Edit Record">
+                           <i class="fas fa-edit"></i>
+                         </a>
+                       @endif
+                     </div>
+                   </td>
                   <td class="p-1 text-center">
                     <div class="">
                       {{ $e->id }}
