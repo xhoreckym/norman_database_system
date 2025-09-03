@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error - Database Offline</title>
+    <title>Error - 404</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-red-50 min-h-screen flex items-center justify-center">
@@ -11,10 +11,11 @@
         <div class="text-center">
             <div class="text-gray-600 mb-4">
                 <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33" />
                 </svg>
             </div>
-            <h1 class="text-xl font-semibold text-gray-800 mb-2">Error - Database Offline</h1>
+            <h1 class="text-xl font-semibold text-gray-800 mb-2">Error - 404</h1>
+            <p class="text-gray-600 mb-4">Page not found</p>
             <p class="text-gray-600 mb-4">Please contact the administrator</p>
             <a href="{{ route('home') }}" class="btn-submit inline-block px-4 py-2 text-white rounded hover:bg-slate-700 transition-colors">
                 Go Home
