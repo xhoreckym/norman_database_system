@@ -94,7 +94,7 @@
                     </td>
 
                     <td class="py-1 px-2 text-xs">
-                      @include('backend.querylog.moduleBadges', ['moduleKey' => $moduleKey])
+                      <span class="px-2 py-0.5 bg-slate-100 text-slate-800 rounded font-mono">{{ $moduleKey }}</span>
                     </td>
 
                     <td class="py-1 px-2 text-xs">

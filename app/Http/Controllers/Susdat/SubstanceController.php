@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\SLE\SuspectListExchange;
 use App\Models\SLE\SuspectListExchangeSource;
+use App\Models\Backend\QueryLog;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 
 class SubstanceController extends Controller
@@ -337,6 +339,42 @@ class SubstanceController extends Controller
       $substances = $substances->orderBy('susdat_substances.code', 'asc');
     }
 
+    $database_key = 'susdat';
+    $main_request = [
+      'categoriesSearch' => $categoriesSearch,
+      'sourcesSearch' => $sourcesSearch,
+      'substancesSearch' => $substancesSearch,
+      'searchCategory' => $request->input('searchCategory'),
+      'searchSource' => $request->input('searchSource'),
+      'searchSubstance' => $request->input('searchSubstance'),
+      'order_by_column' => $request->input('order_by_column'),
+      'order_by_direction' => $request->input('order_by_direction'),
+    ];
+
+    if(!$request->has('page')){
+      $now = now();
+      $bindings = $substances->getBindings();
+      $sql = vsprintf(str_replace('?', "'%s'", $substances->toSql()), $bindings);
+      // try to find same SQL query in the QueryLog table with same total_count based on the query_hash
+      $actual_count = QueryLog::where('query_hash', hash('sha256', $sql))->where('total_count', $substancesCount)->value('actual_count');
+      
+      try {
+        QueryLog::insert([
+          'content' => json_encode(['request' => $main_request, 'bindings' => $bindings]),
+          'query' => $sql,
+          'user_id' => Auth::check() ? Auth::id() : null,
+          'total_count' => $substancesCount,
+          'actual_count' => is_null($actual_count) ? null : $actual_count,
+          'database_key' => $database_key,
+          'query_hash' => hash('sha256', $sql),
+          'created_at' => $now,
+          'updated_at' => $now,
+        ]);
+      } catch (\Exception $e) {
+        session()->flash('error', 'An error occurred while processing your request.');
+      }
+    }
+
     // Get the IDs before pagination for the source query
     $substanceIds = $substances->pluck('id')->toArray();
     
@@ -398,6 +436,7 @@ class SubstanceController extends Controller
       'columns' => $this->getViewColumns(),
       'substances' => $substances,
       'substancesCount' => $substancesCount,
+      'query_log_id' => QueryLog::orderBy('id', 'desc')->first()->id,
       'request' => $request,
       'sourceIds' => $sourceIds,
       'activeCategoryids' => $categoriesSearch,

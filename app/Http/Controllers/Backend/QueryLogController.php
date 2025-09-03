@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Susdat\Category;
 use App\Models\Backend\QueryLog;
 use App\Models\List\TypeDataSource;
+use App\Models\DatabaseEntity;
 use App\Http\Controllers\Controller;
 use App\Models\List\AnalyticalMethod;
 use App\Models\List\DataSourceLaboratory;
@@ -44,6 +45,17 @@ class QueryLogController extends Controller
         $analyticalMethods          = AnalyticalMethod::all()->pluck('name', 'id');
         $qualityAnalyticalMethods   = QualityEmpodatAnalyticalMethods::all()->pluck('name', 'id');
 
+        // Get all database entities for module filtering
+        $databaseEntities = DatabaseEntity::where('show_in_dashboard', true)
+            ->orderBy('name')
+            ->get();
+
+        // Build modules array for dropdown
+        $modules = ['' => 'All'];
+        foreach ($databaseEntities as $entity) {
+            $modules[$entity->code] = $entity->name;
+        }
+
         // $queries = QueryLog::with('users')->orderBy('id', 'desc')->paginate(20);
         // get max id from query log
         $maxId = QueryLog::max('id');
@@ -76,16 +88,7 @@ class QueryLogController extends Controller
             'analyticalMethods' => $analyticalMethods,
             'qualityAnalyticalMethods' => $qualityAnalyticalMethods,
             'activeModule' => $activeModule,
-            'modules' => [
-                '' => 'All',
-                'empodat' => 'Empodat',
-                'ecotox' => 'Ecotox',
-                'passive' => 'Passive',
-                'indoor' => 'Indoor',
-                'bioassay' => 'Bioassay',
-                'arbg' => 'ARBG',
-                'sars' => 'SARS',
-            ],
+            'modules' => $modules,
         ]);
     }
 
