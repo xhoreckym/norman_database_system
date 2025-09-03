@@ -342,6 +342,45 @@ class SarsController extends Controller
   }
 
   /**
+   * Display the specified resource.
+   */
+  public function show($id)
+  {
+    $sars = SarsMain::findOrFail($id);
+    
+    return view('sars.show', [
+      'sars' => $sars,
+    ]);
+  }
+
+  /**
+   * Show the form for editing the specified resource.
+   */
+  public function edit($id)
+  {
+    $sars = SarsMain::findOrFail($id);
+    
+    return view('sars.edit', [
+      'sars' => $sars,
+    ]);
+  }
+
+  /**
+   * Update the specified resource in storage.
+   */
+  public function update(Request $request, $id)
+  {
+    $sars = SarsMain::findOrFail($id);
+    
+    // Update the record with the request data
+    $sars->update($request->all());
+    
+    session()->flash('success', 'SARS record updated successfully.');
+    
+    return redirect()->route('sars.search.show', $sars->id);
+  }
+
+  /**
    * Format bytes to human-readable file size
    */
   protected function formatBytes($bytes, $precision = 2): string
