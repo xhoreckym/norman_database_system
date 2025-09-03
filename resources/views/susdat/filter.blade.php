@@ -17,7 +17,7 @@
                 <div class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">
                   Search Category:
                 </div>
-                <form name="searchAccordingToCategoryForm" id="searchAccordingToCategoryForm" action="{{route('substances.search')}}" method="GET" onsubmit="return validateCategorySelection()">
+                <form name="searchAccordingToCategoryForm" id="searchAccordingToCategoryForm" action="{{route('substances.search.search')}}" method="GET" onsubmit="return validateCategorySelection()">
                   <input type="hidden" value="1" name="searchCategory">
                   <input type="hidden" value="1" name="search">
                   
@@ -54,7 +54,8 @@
                 <div class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">
                   Search according to source:
                 </div>
-                <form name="searchAccordingToSourceForm" id="searchAccordingToSourceForm" action="{{route('substances.search')}}" method="GET">
+                
+                <form name="searchAccordingToSourceForm" id="searchAccordingToSourceForm" action="{{route('substances.search.search')}}" method="GET">
                   <input type="hidden" value="1" name="searchSource">
                   <div class="w-full">
                     @include('_t.form-apline-multiselect', [

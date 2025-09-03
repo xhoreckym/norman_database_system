@@ -14,7 +14,7 @@
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     @auth
-                    <x-nav-link :href="route('dashboard')" :active="(request()->is('dashboard*'))">
+                    <x-nav-link :href="route('dashboard')" :active="(request()->is('dashboard*') || request()->routeIs('dashboard') || request()->is('backend*'))">
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     @endauth

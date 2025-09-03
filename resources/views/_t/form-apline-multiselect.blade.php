@@ -3,7 +3,7 @@
 $active_ids = json_decode($active_ids, true);
 @endphp
 @endif
-
+{{-- {{ dd($list) }} --}}
 {{-- @if (is_null($active_ids))
 @php
 $active_ids = [];
@@ -19,9 +19,9 @@ $active_ids = [];
             items: [
         @foreach ($list as $key => $value)
         @if(is_array($value))
-        { label: '{!! preg_replace("/[\'\"&\\\\<>]/", "", $value) !!}', value: '{{$value['id']}}' @if (in_array($value['id'], $active_ids)) , selected: true @endif},
+        { label: '{{ preg_replace("/[^a-zA-Z0-9\-]/", "", $value) }}', value: '{{$value['id']}}' @if (in_array($value['id'], $active_ids)) , selected: true @endif},
         @else
-        { label: '{!! preg_replace("/[\'\"&\\\\<>]/", "", $value) !!}', value: '{{$key}}'@if (in_array($key, $active_ids)) , selected: true @endif},
+        { label: '{{ preg_replace("/[^a-zA-Z0-9\-]/", "", $value) }}', value: '{{$key}}'@if (in_array($key, $active_ids)) , selected: true @endif},
         @endif
         @endforeach
         ],

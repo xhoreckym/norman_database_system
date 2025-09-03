@@ -88,7 +88,7 @@ class DashboardMainController extends Controller
             ],
             [
                 'name' => 'Substances',
-                'route' => 'substances.filter',
+                'route' => 'substances.search.filter',
                 'icon' => 'fas fa-flask',
                 'color' => 'red',
             ],

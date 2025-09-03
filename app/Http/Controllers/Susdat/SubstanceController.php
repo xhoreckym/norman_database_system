@@ -43,13 +43,90 @@ class SubstanceController extends Controller
   /**
    * Display a listing of the resource.
    */
-
   public function index()
   {
-    //
-    // $substances = Substance::cursorPaginate(100);
+    $substances = Substance::select([
+      'id',
+      'code',
+      'name',
+      'cas_number',
+      'smiles',
+      'stdinchikey',
+      'dtxid',
+      'pubchem_cid',
+      'chemspider_id',
+      'molecular_formula',
+      'mass_iso',
+      'deleted_at',
+    ])
+    ->orderBy('code', 'asc')
+    ->paginate(100);
 
-    return redirect()->route('substances.search');
+    // Get category IDs for the paginated substances
+    $substanceIds = $substances->pluck('id')->toArray();
+    $categoryIds = [];
+    
+    if (!empty($substanceIds)) {
+      $categoryIds = DB::table('susdat_category_substance')
+        ->whereIn('substance_id', $substanceIds)
+        ->select([
+          'substance_id AS id',
+        ])
+        ->selectRaw("STRING_AGG(category_id::text, '|' ORDER BY category_id) AS category_ids")
+        ->groupBy('substance_id')
+        ->get()
+        ->keyBy('id')
+        ->toArray();
+    }
+
+    // Get source IDs for the paginated substances
+    $sourceIds = [];
+    
+    if (!empty($substanceIds)) {
+      $sourceIds = DB::table('susdat_source_substance')
+        ->whereIn('substance_id', $substanceIds)
+        ->select([
+          'substance_id AS id',
+        ])
+        ->selectRaw("STRING_AGG(source_id::text, '|' ORDER BY source_id) AS source_ids")
+        ->groupBy('substance_id')
+        ->get()
+        ->keyBy('id')
+        ->toArray();
+    }
+
+    // Add category_ids to substances
+    foreach ($substances as $substance) {
+      $substance->category_ids = $categoryIds[$substance->id]->category_ids ?? null;
+    }
+
+    // Get categories and sources for display
+    $categories = Category::select('id', 'name', 'abbreviation')->get()->keyBy('id');
+    $sources = SuspectListExchangeSource::select('id', 'code', 'name')->get()->keyBy('id');
+    $sourceList = [];
+    foreach ($sources as $s) {
+      $sourceList[$s->id] = $s->code . ' - ' . $s->name;
+    }
+
+    return view('susdat.index', [
+      'columns' => $this->getViewColumns(),
+      'substances' => $substances,
+      'substancesCount' => Substance::count(),
+      'request' => new Request(),
+      'sourceIds' => $sourceIds,
+      'activeCategoryids' => [],
+      'activeSourceids' => [],
+      'sources' => $sources,
+      'sourceList' => $sourceList,
+      'categories' => $categories,
+      'categoriesList' => $categories->pluck('name', 'id')->toArray(),
+      'orderByDirection' => $this->orderByList(),
+      'filter' => [
+        'order_by_direction' => 0,
+        'order_by_column' => 1,
+      ],
+      'searchParameters' => [],
+    ]);
   }
 
   /**
@@ -73,8 +150,6 @@ class SubstanceController extends Controller
    */
   public function show($id)
   {
-    //
-    // dd(Substance::findOrFail($id));
     return view('susdat.show', [
       'substance' => Substance::findOrFail($id)
     ]);
@@ -85,11 +160,9 @@ class SubstanceController extends Controller
    */
   public function edit(string $id)
   {
-    //
     $substance = Substance::findOrFail($id);
     $editables = $this->getEditableColumns();
     
-    // dd($substance);
     $categories = Category::orderBy('name', 'asc')->get();
     $sources = SuspectListExchangeSource::orderBy('id', 'asc')->get();
     $sourceList = [];
@@ -110,8 +183,6 @@ class SubstanceController extends Controller
    */
   public function update(Request $request, string $id)
   {
-    //
-
     $substance = Substance::findOrFail($id);
     $editables = $this->getEditableColumns();
 
@@ -124,7 +195,6 @@ class SubstanceController extends Controller
         }
       }
     }
-
 
     try {
       $s = $substance->save();
@@ -144,9 +214,11 @@ class SubstanceController extends Controller
     //
   }
 
-  public function filter()
+  /**
+   * Show the filter form
+   */
+  public function filter(Request $request)
   {
-    //
     $categories = Category::orderBy('name', 'asc')->get();
     $sources = SuspectListExchangeSource::orderBy('id', 'asc')->get();
     $sourceList = [];
@@ -155,15 +227,18 @@ class SubstanceController extends Controller
     }
 
     return view('susdat.filter', [
+      'request' => $request,
       'categories' => $categories,
       'sources' => $sources,
       'sourceList' => $sourceList
     ]);
   }
 
+  /**
+   * Process the search and display results
+   */
   public function search(Request $request)
   {
-
     $substancesCount = Substance::count();
 
     // get all categories and sources by id
@@ -173,21 +248,20 @@ class SubstanceController extends Controller
     if (is_array($request->input('categoriesSearch'))) {
       $categoriesSearch = $request->input('categoriesSearch');
     } else {
-      $categoriesSearch = json_decode($request->input('categoriesSearch'));
+      $categoriesSearch = json_decode($request->input('categoriesSearch')) ?? [];
     }
 
     if (is_array($request->input('sourcesSearch'))) {
       $sourcesSearch = $request->input('sourcesSearch');
     } else {
-      $sourcesSearch = json_decode($request->input('sourcesSearch'));
+      $sourcesSearch = json_decode($request->input('sourcesSearch')) ?? [];
     }
 
     if (is_array($request->input('substancesSearch'))) {
       $substancesSearch = $request->input('substancesSearch');
     } else {
-      $substancesSearch = json_decode($request->input('substancesSearch'));
+      $substancesSearch = json_decode($request->input('substancesSearch')) ?? [];
     }
-    // dd($substancesSearch);
 
     $columns = [
       'id',
@@ -204,73 +278,120 @@ class SubstanceController extends Controller
       'deleted_at',
     ];
 
-    $subquery = DB::table('susdat_substances')
-      ->select($columns)
-      ->leftJoin('susdat_category_substance', 'susdat_substances.id', '=', 'susdat_category_substance.substance_id')
-      ->leftJoin('susdat_source_substance', 'susdat_substances.id', '=', 'susdat_source_substance.substance_id');
-    if ($request->input('searchCategory') == 1) {
-      $subquery = $subquery->whereIn('susdat_category_substance.category_id', $categoriesSearch);
-      $subquery = $subquery->whereIn('susdat_source_substance.source_id', $allSources);
-      $sourcesSearch = $allSources;
-    } elseif ($request->input('searchSource') == 1) {
-      $subquery = $subquery->whereIn('susdat_category_substance.category_id', $allCategories);
-      $subquery = $subquery->whereIn('susdat_source_substance.source_id', $sourcesSearch);
+    // Build the main query with category filtering
+    $substances = DB::table('susdat_substances')
+      ->select($columns);
+    
+    // Apply search filters
+    if ($request->input('searchCategory') == 1 && !empty($categoriesSearch)) {
+      $substances = $substances->whereIn('id', function($query) use ($categoriesSearch) {
+        $query->select('substance_id')
+          ->from('susdat_category_substance')
+          ->whereIn('category_id', $categoriesSearch);
+      });
+    } elseif ($request->input('searchSource') == 1 && !empty($sourcesSearch)) {
+      $substances = $substances->whereIn('id', function($query) use ($sourcesSearch) {
+        $query->select('substance_id')
+          ->from('susdat_source_substance')
+          ->whereIn('source_id', $sourcesSearch);
+      });
+    } elseif ($request->input('searchSubstance') == 1 && !empty($substancesSearch)) {
+      $substances = $substances->whereIn('id', $substancesSearch);
       $categoriesSearch = $allCategories;
-    } elseif ($request->input('searchSubstance') == 1) {
-      $subquery = $subquery->whereIn('susdat_substances.id', $substancesSearch);
-      // 
-      $categoriesSearch = $allCategories;
       $sourcesSearch = $allSources;
-    } else {
-      // $subquery = $subquery->whereIn('susdat_category_substance.category_id', $allCategories);
-      // $subquery = $subquery->whereIn('susdat_source_substance.source_id', $allSources);
     }
 
-    $subquery = $subquery->groupBy('susdat_substances.id')->orderBy('susdat_substances.id', 'asc');
+    // Add category aggregation using a subquery to avoid duplicates
+    $substances = $substances->addSelect(DB::raw("(
+      SELECT STRING_AGG(category_id::text, '|' ORDER BY category_id)
+      FROM susdat_category_substance
+      WHERE substance_id = susdat_substances.id
+    ) AS category_ids"));
 
-    // dd($substancesSearch, $subquery->toSql(), $subquery->get());
-    $substances = DB::table(DB::raw('(' . $subquery->toSql() . ') as t'))
-      ->mergeBindings($subquery)
-      ->leftJoin('susdat_category_substance', 't.id', '=', 'susdat_category_substance.substance_id')
-      ->select($columns)
-      ->selectRaw(("STRING_AGG(susdat_category_substance.category_id::text, '|' ORDER BY susdat_category_substance.category_id) AS category_ids"))
-      ->groupBy($columns);
-
-    // dd($substancesSearch, $subquery->toSql(), $substances->get());
-
+    // Apply ordering
     if (!is_null($request->input('order_by_column')) && !is_null($request->input('order_by_direction'))) {
-      $substances = $substances->orderBy('t.' . $columns[$request->input('order_by_column')], $this->orderByList($request->input('order_by_direction')));
+      // Map view column index to database column name
+      $viewColumns = $this->getViewColumns();
+      $columnIndex = $request->input('order_by_column');
+      $columnName = $viewColumns[$columnIndex] ?? 'NORMAN SusDat ID';
+      
+      // Map display column names to database column names
+      $columnMapping = [
+        '' => 'id', // Empty header maps to id for icons column
+        'NORMAN SusDat ID' => 'code',
+        'name' => 'name',
+        'cas_number' => 'cas_number',
+        'smiles' => 'smiles',
+        'stdinchikey' => 'stdinchikey',
+        'dtxid' => 'dtxid',
+        'pubchem_cid' => 'pubchem_cid',
+        'chemspider_id' => 'chemspider_id',
+        'molecular_formula' => 'molecular_formula',
+        'mass_iso' => 'mass_iso',
+      ];
+      
+      $dbColumn = $columnMapping[$columnName] ?? 'code';
+      $direction = $this->orderByList((int)$request->input('order_by_direction')) ?? 'asc';
+      $substances = $substances->orderBy('susdat_substances.' . $dbColumn, $direction);
     } else {
-      $substances = $substances->orderBy('t.id', 'desc');
+      $substances = $substances->orderBy('susdat_substances.code', 'asc');
     }
 
-    $substances = $substances->paginate(30)->withQueryString();
+    // Get the IDs before pagination for the source query
+    $substanceIds = $substances->pluck('id')->toArray();
+    
+    $substances = $substances->paginate(30);
 
+    // Get source IDs for the paginated substances
+    $sourceIds = [];
+    if (!empty($substanceIds)) {
+      $sourceIds = DB::table('susdat_substances')
+        ->whereIn('id', $substanceIds)
+        ->select([
+          'id',
+        ])
+        ->selectRaw("(
+          SELECT STRING_AGG(source_id::text, '|' ORDER BY source_id)
+          FROM susdat_source_substance
+          WHERE substance_id = susdat_substances.id
+        ) AS source_ids")
+        ->get()
+        ->keyBy('id')
+        ->toArray();
+    }
 
-    $sourceIds = Substance::leftJoin('susdat_source_substance', 'susdat_source_substance.substance_id', '=', 'susdat_substances.id')
-      ->whereIn('susdat_source_substance.substance_id', $substances->pluck('id'))
-      ->select([
-        'susdat_source_substance.substance_id AS id',
-      ])
-      ->selectRaw(("STRING_AGG(susdat_source_substance.source_id::text, '|' ORDER BY susdat_source_substance.source_id) AS source_ids"))
-      ->groupBy('substance_id')
-      ->get()->keyBy('id')->toArray();
-
-    $filter['order_by_direction'] = $this->orderByList($request->input('order_by_direction')) ?? null;
-    $filter['order_by_column'] = $columns[$request->input('order_by_column')] ?? null;
-
+    // Prepare filter parameters
+    $filter['order_by_direction'] = (int)$request->input('order_by_direction') ?? 0;
+    $filter['order_by_column'] = $request->input('order_by_column') ?? 1;
 
     // prepare list for multiple selects
     $sources = SuspectListExchangeSource::select('id', 'code', 'name')->get()->keyBy('id');
     $categories = Category::select('id', 'name', 'abbreviation')->get()->keyBy('id');
     $sourcesList = [];
     $categoriesList = [];
+    $sourceList = [];
     foreach ($sources as $s) {
       $sourceList[$s->id] = $s->code . ' - ' . $s->name;
     }
 
     foreach ($categories as $s) {
       $categoriesList[$s->id] = $s->name;
+    }
+
+    // Build search parameters for display
+    $searchParameters = [];
+    if (!empty($categoriesSearch)) {
+      $searchParameters['Categories'] = collect($categoriesSearch)->map(function($id) use ($categories) {
+        return $categories[$id]->name ?? 'Unknown Category';
+      })->toArray();
+    }
+    if (!empty($sourcesSearch)) {
+      $searchParameters['Sources'] = collect($sourcesSearch)->map(function($id) use ($sources) {
+        return $sources[$id]->code . ' - ' . $sources[$id]->name ?? 'Unknown Source';
+      })->toArray();
+    }
+    if (!empty($substancesSearch)) {
+      $searchParameters['Substances'] = $substancesSearch;
     }
 
     return view('susdat.index', [
@@ -287,6 +408,7 @@ class SubstanceController extends Controller
       'categoriesList' => $categoriesList,
       'orderByDirection' => $this->orderByList(),
       'filter' => $filter,
+      'searchParameters' => $searchParameters,
     ]);
   }
 
@@ -335,8 +457,8 @@ class SubstanceController extends Controller
   private function getViewColumns()
   {
     return [
-      'id',
-      'code',
+      '', // Empty header for icons column
+      'NORMAN SusDat ID',
       'name',
       'cas_number',
       'smiles',
@@ -348,7 +470,6 @@ class SubstanceController extends Controller
       'mass_iso',
     ];
   }
+
+
 }
-  
-  
-  // SELECT suspect_list_exchanges.substance_id, STRING_AGG(suspect_list_exchange_sources.code, ',' ORDER BY source_id) AS source_ids FROM suspect_list_exchanges JOIN suspect_list_exchange_sources ON suspect_list_exchange_sources.id = suspect_list_exchanges.source_id WHERE substance_id IS NOT NULL GROUP BY substance_id

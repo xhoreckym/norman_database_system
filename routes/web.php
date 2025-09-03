@@ -116,8 +116,8 @@ Route::prefix('factsheets')->group(function () {
 });
 
 Route::prefix('susdat')->group(function () {
-    Route::get('substances/filter', [SubstanceController::class, 'filter'])->name('substances.filter');
-    Route::get('substances/search', [SubstanceController::class, 'search'])->name('substances.search');
+    Route::get('substances/search/filter/', [SubstanceController::class, 'filter'])->name('substances.search.filter');
+    Route::get('substances/search/search/', [SubstanceController::class, 'search'])->name('substances.search.search');
     Route::get('duplicates/filter/', [DuplicateController::class, 'filter'])->name('duplicates.filter');
     
     Route::get('duplicates/records/{pivot}/{pivot_value}', [DuplicateController::class, 'records'])->name('duplicates.records');

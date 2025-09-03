@@ -8,11 +8,50 @@
       <div class="bg-white shadow-lg sm:rounded-lg">
         <div class="p-6 text-gray-900">
           
+          {{-- Results Summary --}}
+          <div class="text-gray-600 flex border-l-2 border-white mb-4">
+            <div class="py-2">
+              Number of matched records:
+            </div>
+            <div class="py-2 mx-1 font-bold">
+              {{ number_format($substances->total(), 0, ".", " ") }}
+            </div>
+            <div class="py-2">
+              of <span>{{ number_format($substancesCount, 0, " ", " ") }}
+                @if (is_numeric($substances->total()))
+                  @if ($substances->total()/$substancesCount*100 < 0.01)
+                    which is &le; 0.01% of total records.
+                  @else
+                    which is {{ number_format($substances->total()/$substancesCount*100, 3, ".", " ") }}% of total records.
+                  @endif
+                @endif
+              </span>
+            </div>
+          </div>
+          
+          {{-- Search Parameters Display --}}
+          @if(!empty($searchParameters))
+            <div class="text-gray-600 flex border-l-2 border-white mb-4">
+              Search parameters:&nbsp;<span class="font-semibold">
+                @foreach ($searchParameters as $key => $value)
+                  {{ $key }}: 
+                  @if (is_array($value) || $value instanceof \Illuminate\Support\Collection)
+                    @foreach ($value as $item)
+                      {{ $item }}@if(!$loop->last), @endif
+                    @endforeach
+                  @else
+                    {{ $value }}
+                  @endif @if(!$loop->last); @endif
+                @endforeach
+              </span>
+            </div>
+          @endif
+          
           {{-- Search/Filter Section --}}
           @if(isset($request))
             <div class="mb-6">
               <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <form action="{{route('substances.search')}}" method="GET">
+                <form action="{{route('substances.search.search')}}" method="GET">
                   
                   <div class="flex flex-wrap gap-4 items-end">
                     {{-- Search Type Specific Controls --}}
@@ -49,7 +88,7 @@
                     
                     {{-- Ordering Controls --}}
                     <div class="flex gap-3">
-                      <div>
+                      <div class="min-w-48">
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                           Order by:
                         </label>
@@ -61,7 +100,7 @@
                         ])
                       </div>
                       
-                      <div>
+                      <div class="min-w-24">
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                           Direction:
                         </label>
@@ -83,7 +122,7 @@
                         <span>Apply Filter</span>
                       </button>
                       
-                      <a href="{{route('substances.filter')}}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                      <a href="{{route('substances.search.filter')}}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>

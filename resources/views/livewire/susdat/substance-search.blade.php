@@ -1,5 +1,5 @@
 <div>
-  <form name="searchSpecificSubstanceForm" id="searchSpecificSubstanceForm" action="{{route('substances.search')}}" method="GET">
+  <form name="searchSpecificSubstanceForm" id="searchSpecificSubstanceForm" action="{{route('substances.search.search')}}" method="GET">
     <input type="hidden" value="1" name="searchSubstance">
     <input type="text" wire:model.live.debounce.300ms="search" name="searchSubstanceString" id="searchSubstanceString" class="w-full px-4 py-2 border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition duration-200 ease-in-out">
     <div class="mt-4">
