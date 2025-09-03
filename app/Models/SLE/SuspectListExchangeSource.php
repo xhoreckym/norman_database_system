@@ -19,4 +19,17 @@ class SuspectListExchangeSource extends Model
     // {
     //     return $this->attributes['code']. '-'. $this->attributes['name'];
     // }
+
+    /**
+     * Get sanitized name for safe display in JavaScript and Blade templates
+     * Strips newlines, quotes, apostrophes, and other dangerous characters
+     */
+    public function getSanitizedNameAttribute()
+    {
+        if (!$this->name) {
+            return '';
+        }
+        
+        return preg_replace('/[\r\n\t\'"`<>]/', '', trim($this->name));
+    }
 }

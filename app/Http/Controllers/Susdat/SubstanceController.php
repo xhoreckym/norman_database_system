@@ -83,7 +83,7 @@ class SubstanceController extends Controller
         $sources = SuspectListExchangeSource::select('id', 'code', 'name')->get()->keyBy('id');
         $sourceList = [];
         foreach ($sources as $s) {
-            $sourceList[$s->id] = $s->code . ' - ' . $s->name;
+            $sourceList[$s->id] = $s->code . ' - ' . $s->sanitized_name;
         }
 
         return view('susdat.index', [
@@ -145,7 +145,7 @@ class SubstanceController extends Controller
         $sources = SuspectListExchangeSource::orderBy('id', 'asc')->get();
         $sourceList = [];
         foreach ($sources as $s) {
-            $sourceList[$s->id] = $s->code . ' - ' . $s->name;
+            $sourceList[$s->id] = $s->code . ' - ' . $s->sanitized_name;
         }
         return view('susdat.edit', [
             'substance' => $substance,
@@ -203,7 +203,7 @@ class SubstanceController extends Controller
         $sources = SuspectListExchangeSource::orderBy('id', 'asc')->get();
         $sourceList = [];
         foreach ($sources as $s) {
-            $sourceList[$s->id] = $s->code . ' - ' . $s->name;
+            $sourceList[$s->id] = $s->code . ' - ' . $s->sanitized_name;
         }
 
         return view('susdat.filter', [
@@ -250,7 +250,7 @@ class SubstanceController extends Controller
             });
         } elseif ($request->input('searchSource') == 1 && !empty($sourcesSearch)) {
             $substances->whereHas('sources', function ($query) use ($sourcesSearch) {
-                $query->whereIn('sle_sources.id', $sourcesSearch);
+              $query->whereIn('source_id', $sourcesSearch);
             });
         } elseif ($request->input('searchSubstance') == 1 && !empty($substancesSearch)) {
             $substances->whereIn('id', $substancesSearch);
@@ -349,7 +349,7 @@ class SubstanceController extends Controller
 
         $sourceList = [];
         foreach ($sources as $s) {
-            $sourceList[$s->id] = $s->code . ' - ' . $s->name;
+            $sourceList[$s->id] = $s->code . ' - ' . $s->sanitized_name;
         }
 
         $categoriesList = $categories->pluck('name', 'id')->toArray();
