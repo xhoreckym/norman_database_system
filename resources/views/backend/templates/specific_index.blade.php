@@ -58,7 +58,10 @@
                     <th class="py-2 px-4 text-left">Version</th>
                     <th class="py-2 px-4 text-left">Valid From</th>
                     <th class="py-2 px-4 text-left">File Type</th>
-                    <th class="py-2 px-4 text-left">Created By</th>
+                    <th class="py-2 px-4 text-left">File Size</th>
+                    @if(auth()->check() && auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                      <th class="py-2 px-4 text-left">Created By</th>
+                    @endif
                     <th class="py-2 px-4 text-center">Actions</th>
                   </tr>
                 </thead>
@@ -73,14 +76,23 @@
                       <td class="py-2 px-4">{{ $template->valid_from ? date('Y-m-d', strtotime($template->valid_from)) : 'N/A' }}</td>
                       <td class="py-2 px-4">
                         @if($template->file_path)
-                          <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full font-medium">
+                          <span class="px-2 py-1 text-xs bg-slate-100 text-slate-800 rounded-full font-medium">
                             {{ strtoupper(pathinfo($template->file_path, PATHINFO_EXTENSION)) }}
                           </span>
                         @else
                           N/A
                         @endif
                       </td>
-                      <td class="py-2 px-4">{{ $template->creator->name ?? 'N/A' }}</td>
+                      <td class="py-2 px-4">
+                        @if($template->filesize)
+                          {{ number_format($template->filesize / 1024, 1) }} KB
+                        @else
+                          N/A
+                        @endif
+                      </td>
+                      @if(auth()->check() && auth()->user()->hasAnyRole(['super_admin', 'admin']))
+                        <td class="py-2 px-4">{{ $template->creator->name ?? 'N/A' }}</td>
+                      @endif
                       <td class="py-2 px-4 text-center">
                         <a href="{{ route('templates.download', $template) }}" 
                            class="inline-flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">

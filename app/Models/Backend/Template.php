@@ -31,6 +31,7 @@ class Template extends Model
         'version',
         'database_entity_id',
         'file_path',
+        'filesize',
         'is_active',
         'valid_from',
         'created_by',
@@ -44,6 +45,7 @@ class Template extends Model
      */
     protected $casts = [
         'database_entity_id' => 'integer',
+        'filesize' => 'integer',
         'is_active' => 'boolean',
         'created_by' => 'integer',
         'updated_by' => 'integer',
