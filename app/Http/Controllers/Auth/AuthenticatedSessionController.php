@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Backend\UserLoginRetention;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +28,24 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        // Log the user login
+        $user = Auth::user();
+        if ($user) {
+            $metaData = [
+                'user_agent' => $request->userAgent(),
+                'country' => null, // Implement IP geolocation service if needed
+                'referer' => $request->header('referer'),
+                'session_id' => $request->session()->getId(),
+            ];
+
+            UserLoginRetention::create([
+                'user_id' => $user->id,
+                'ip_address' => $request->ip(),
+                'login_datetime' => now(),
+                'meta_data' => $metaData,
+            ]);
+        }
 
         return redirect()->intended(route('home', absolute: false));
     }

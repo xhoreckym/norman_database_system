@@ -47,6 +47,7 @@ use App\Http\Controllers\Empodat\DataCollectionTemplateFileController;
 use App\Http\Controllers\Factsheet\FactsheetController;
 use App\Http\Controllers\ARGB\AntibioticResistanceBacteriaGeneHomeController;
 use App\Http\Controllers\Empodat\StatisticsController as EmpodatStatisticsController;
+use App\Http\Controllers\Backend\UserLoginRetentionController;
 
 // Route::get('/', function () {
 //     return redirect()->route('landing.index');
@@ -79,6 +80,12 @@ Route::prefix('backend')->middleware('auth')->group(function () {
     
     Route::resource('general_route', GeneralController::class);
     Route::resource('querylog', QueryLogController::class)->middleware('auth');
+    
+    // User Login Retention routes
+    Route::prefix('user-login-retention')->middleware('role:super_admin')->group(function () {
+        Route::get('filter', [UserLoginRetentionController::class, 'filter'])->name('backend.user-login-retention.filter');
+        Route::get('search', [UserLoginRetentionController::class, 'search'])->name('backend.user-login-retention.search');
+    });
 });
 
 Route::prefix('backend')->group(function () {

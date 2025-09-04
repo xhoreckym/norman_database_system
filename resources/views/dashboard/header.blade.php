@@ -32,4 +32,10 @@
   <x-nav-link-header :href="route('apiresources.index')" :active="request()->routeIs('apiresources.*')">
       API Tokens
   </x-nav-link-header>
+
+  @role('super_admin')
+  <x-nav-link-header :href="route('backend.user-login-retention.filter')" :active="request()->is('*user-login-retention*')">
+    User Login Retention
+  </x-nav-link-header>
+  @endrole
 </div>
