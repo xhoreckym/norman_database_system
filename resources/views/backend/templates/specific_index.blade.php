@@ -83,15 +83,9 @@
                           N/A
                         @endif
                       </td>
-                      <td class="py-2 px-4">
-                        @if($template->filesize)
-                          {{ number_format($template->filesize / 1024, 1) }} KB
-                        @else
-                          N/A
-                        @endif
-                      </td>
+                      <td class="py-2 px-4">{{ $template->formatted_filesize }}</td>
                       @if(auth()->check() && auth()->user()->hasAnyRole(['super_admin', 'admin']))
-                        <td class="py-2 px-4">{{ $template->creator->name ?? 'N/A' }}</td>
+                        <td class="py-2 px-4">{{ $template->creator->full_name ?? 'N/A' }}</td>
                       @endif
                       <td class="py-2 px-4 text-center">
                         <a href="{{ route('templates.download', $template) }}" 

@@ -85,6 +85,7 @@ class TemplateController extends Controller
             $fileName = time() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs('templates', $fileName, 'public');
             $template->file_path = $filePath;
+            $template->filesize = $file->getSize();
         }
 
         $template->save();
@@ -167,6 +168,7 @@ class TemplateController extends Controller
             $fileName = time() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs('templates', $fileName, 'public');
             $template->file_path = $filePath;
+            $template->filesize = $file->getSize();
         }
 
         $template->save();

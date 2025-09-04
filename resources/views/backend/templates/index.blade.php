@@ -41,13 +41,7 @@
                     </td>
                     <td class="py-2 px-4">{{ $template->version ?? 'N/A' }}</td>
                     <td class="py-2 px-4">{{ $template->databaseEntity->name ?? 'N/A' }}</td>
-                    <td class="py-2 px-4">
-                      @if($template->filesize)
-                        {{ number_format($template->filesize / 1024, 1) }} KB
-                      @else
-                        N/A
-                      @endif
-                    </td>
+                    <td class="py-2 px-4">{{ $template->formatted_filesize }}</td>
                     <td class="py-2 px-4">
                       @if($template->is_active)
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -65,7 +59,7 @@
                       @else
                         N/A
                       @endif
-                    <td class="py-2 px-4">{{ $template->creator->name ?? 'N/A' }}</td>
+                    <td class="py-2 px-4">{{ $template->creator->full_name ?? 'N/A' }}</td>
                     <td class="py-2 px-4">{{ $template->created_at ? $template->created_at->format('Y-m-d H:i') : 'N/A' }}</td>
                     <td class="py-2 px-4 text-center">
                       <div class="flex justify-center space-x-2">

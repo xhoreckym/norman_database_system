@@ -83,4 +83,24 @@ class Template extends Model
     {
         return $this->hasMany(File::class);
     }
+
+    /**
+     * Get the formatted filesize.
+     */
+    public function getFormattedFilesizeAttribute(): string
+    {
+        if (!$this->filesize) {
+            return 'N/A';
+        }
+
+        $bytes = $this->filesize;
+        
+        if ($bytes >= 1048576) { // 1MB = 1024 * 1024
+            return number_format($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) { // 1KB = 1024
+            return number_format($bytes / 1024, 2) . ' kB';
+        } else {
+            return $bytes . ' B';
+        }
+    }
 }
