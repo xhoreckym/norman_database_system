@@ -41,11 +41,12 @@
           <ul class="list-disc list-inside text-gray-700 mb-4">
             <li>No. of substances with Lowest PNEC: <strong>93 579</strong></li>
             <li>No. of substances with verified(*) Lowest PNEC: <strong>3 290</strong></li>
-            <li>No. of experimental endpoint values: <strong>81 430</strong></li>
-            {{-- <li>No. of substances with experimental data: <strong>2 197</strong></li> --}}
+            <li>No. of experimental endpoint values: <strong>81 430</strong></li> 
+            <li>No. of substances with experimental data: <strong>2 197</strong></li>
           </ul>
-          
-
+          <p class="text-gray-700 leading-relaxed mb-4">
+            (*) Experimental and predicted Lowest PNECs, which were voted by NORMAN ecotoxicology experts are addressed as 'verified'.
+          </p>
           
         </div>
         

@@ -9,6 +9,13 @@
         
         <div class="p-6 text-gray-900">
           
+          <!-- Introductory text -->
+          <div class="mb-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <p class="text-gray-700 leading-relaxed">
+              NORMAN SusDat is a "living database" compiling information provided by NORMAN network members and external contributors via the NORMAN Suspect List Exchange (<a href="https://www.norman-network.com/nds/SLE" target="_blank" class="link-lime-text hover:underline">NORMAN-SLE</a>). NORMAN SusDat merges the many chemical lists on the SLE into a common format and includes all data suitable for screening purposes, along with selected identifiers and predicted values as a service for NORMAN members and beyond. SusDat is undergoing constant development and improvement to expand the coverage, together with contributors and cheminformatics experts. The original lists on the <a href="https://www.norman-network.com/nds/SLE" target="_blank" class="link-lime-text hover:underline">NORMAN-SLE</a> should be consulted to verify chemical information if necessary (see Source column). Comments and contributions are welcome - please email us at <a href="mailto:suspects@normandata.eu" class="link-lime-text hover:underline">suspects@normandata.eu</a>.
+            </p>
+          </div>
+          
           <!-- Main Search form -->
           <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 xl:gap-8">
             
