@@ -12,6 +12,29 @@
             <h2 class="text-xl font-semibold text-gray-800 mr-4">Lowest PNEC Database</h2>
           </div>
           
+          <!-- Informative Text -->
+          <div class="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <div class="text-sm text-gray-700 space-y-3">
+              <p>
+                Environmental Quality Standards (EQS) or Predicted No-Effect Concentrations (PNEC) are sometimes available from different EU Member States or chemical regulations (e.g. PPP, BPD or REACH). 
+                The Lowest PNEC shown here are agreed by NORMAN experts to be used preliminary for prioritisation purposes. If the measured environmental concentrations (MEC) in the NDS exceed a Lowest 
+                PNEC which is not robust, a review is required to determine whether a regulatory concern exists. The lowest PNECs are preferably based on experimental eco-toxicity data, but in case of no or 
+                insufficient empirical endpoints, QSAR predictions were used to estimate a provisional P-PNEC value to allow for a first screening.
+              </p>
+              <p>
+                Most of the Lowest PNECs were derived for freshwater. Unless there is an experimental value for other matrices, the following calculations were used for derivation of the Lowest PNECs in:
+              </p>
+              <ul class="ml-6 space-y-1 list-disc">
+                <li><strong>Marine water</strong> – Lowest PNECfw/10</li>
+                <li><strong>Sediments</strong> – Lowest PNECfw*2.6*(0.615+0.019*Koc)</li>
+                <li><strong>Biota (fish)</strong> – PNECfw*BCF</li>
+                <li><strong>Marine biota (fish)</strong> – PNECfw*BCF/10</li>
+                <li><strong>Biota (mollusc)</strong> – PNECfw*BCF/4</li>
+                <li><strong>Marine biota (mollusc)</strong> – PNECfw*BCF/10/4</li>
+              </ul>
+            </div>
+          </div>
+          
           <!-- Search and Filter Controls -->
           <div class="mb-6 flex justify-between items-start">
             <div class="flex space-x-4 flex-1">
@@ -44,6 +67,28 @@
                   <option value="2">Predicted Only</option>
                 </select>
               </div>
+            </div>
+            
+            <!-- Download Button -->
+            <div class="ml-4 flex flex-col justify-end">
+              <div class="h-5"></div> <!-- Spacer to align with other controls -->
+              @auth
+              <form method="POST" action="{{ route('ecotox.lowestpnec.csv.export') }}">
+                @csrf
+                <input type="hidden" name="search" x-model="search">
+                <input type="hidden" name="exp_pred" x-model="expPred">
+                <button type="submit" class="btn-submit inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  Download CSV
+                </button>
+              </form>
+              @else
+              <div class="text-xs text-gray-500 text-center">
+                <a href="{{ route('login') }}" class="link-lime-text">Login</a> to download
+              </div>
+              @endauth
             </div>
           </div>
           

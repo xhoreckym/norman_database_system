@@ -234,6 +234,8 @@ Route::prefix('ecotox')->group(function () {
         Route::get('search/', [LowestPNECController::class, 'search'])->name('ecotox.lowestpnec.search');
         Route::get('show/{sus_id}', [LowestPNECController::class, 'show'])->name('ecotox.lowestpnec.show');
         Route::get('countAll', [LowestPNECController::class, 'countAll'])->middleware('auth')->name('ecotox.lowestpnec.countAll');
+        Route::post('csv/export', [LowestPNECController::class, 'startDownloadJob'])->middleware('auth')->name('ecotox.lowestpnec.csv.export');
+        Route::get('csv/download/{filename}', [LowestPNECController::class, 'downloadCsv'])->name('ecotox.lowestpnec.csv.download');
     });
     
     Route::prefix('data')->group(function () {

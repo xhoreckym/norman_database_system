@@ -10,7 +10,11 @@ use App\Models\Ecotox\PNEC3;
 use App\Models\Susdat\Substance;
 use App\Models\DatabaseEntity;
 use App\Models\Backend\QueryLog;
+use App\Models\Backend\ExportDownload;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class LowestPNECController extends Controller
 {
@@ -145,6 +149,213 @@ class LowestPNECController extends Controller
         }
         
         return response()->json($responseData);
+    }
+    
+    /**
+     * Start direct CSV download for LowestPNEC data (no queue needed due to manageable dataset)
+     */
+    public function startDownloadJob(Request $request)
+    {
+        if (!Auth::check()) {
+            session()->flash('error', 'You must be logged in to download the CSV file.');
+            return back();
+        }
+
+        try {
+            // Generate filename
+            $filename = 'lowestpnec_export_uid_' . Auth::id() . '_' . now()->format('YmdHis') . '.csv';
+            
+            // Get request information for logging
+            $ip = request()->ip();
+            $userAgent = request()->userAgent();
+            
+            // Create an export download record for tracking
+            $exportDownload = ExportDownload::create([
+                'user_id' => Auth::id(),
+                'filename' => $filename,
+                'format' => 'csv',
+                'ip_address' => $ip,
+                'user_agent' => $userAgent,
+                'database_key' => 'ecotox.pnec',
+                'status' => 'processing',
+                'started_at' => Carbon::now()
+            ]);
+
+            // Process the export directly (no queue needed for manageable dataset)
+            $startTime = microtime(true);
+            $directory = 'exports/lowestpnec';
+            
+            // Make sure the directory exists
+            Storage::makeDirectory($directory);
+            
+            $path = Storage::path("{$directory}/{$filename}");
+            $handle = fopen($path, 'w');
+            
+            if (!$handle) {
+                throw new \Exception("Unable to open file for writing: {$path}");
+            }
+            
+            // Write CSV headers
+            $headers = [
+                'ID',
+                'Norman SusDat ID',
+                'Substance Name',
+                'Freshwater PNEC [µg/l]',
+                'Marine water PNEC [µg/l]',
+                'Sediments PNEC [µg/kg dw]',
+                'Biota (fish) PNEC [µg/kg ww]',
+                'Marine biota (fish) PNEC [µg/kg ww]',
+                'Biota (mollusc) PNEC [µg/kg ww]',
+                'Marine biota (mollusc) PNEC [µg/kg ww]',
+                'Biota (WFD) PNEC [µg/kg ww]',
+                'Data Type',
+                'Export Date'
+            ];
+            fputcsv($handle, $headers);
+            
+            // Build the query with same filters as getData method
+            $baseQuery = LowestPNEC::with('substance');
+            
+            // Apply search filters from request
+            $search = $request->get('search', '');
+            $expPred = $request->get('exp_pred', '');
+            
+            if (!empty(trim($search))) {
+                $baseQuery->whereHas('substance', function($subQuery) use ($search) {
+                    $subQuery->where('name', 'ILIKE', '%' . trim($search) . '%');
+                });
+            }
+            
+            if (!empty($expPred)) {
+                $baseQuery->where('lowest_exp_pred', (int) $expPred);
+            }
+            
+            // Process records in chunks to manage memory
+            $totalExported = 0;
+            $exportDate = Carbon::now()->format('Y-m-d H:i:s');
+            
+            $baseQuery->orderBy('id', 'asc')->chunk(500, function ($records) use ($handle, $exportDate, &$totalExported) {
+                foreach ($records as $record) {
+                    $row = [
+                        $record->id,
+                        $record->substance ? $record->substance->prefixed_code : 'Unknown',
+                        $record->substance ? $record->substance->name : 'Unknown',
+                        $record->lowest_pnec_value_1,
+                        $record->lowest_pnec_value_2,
+                        $record->lowest_pnec_value_3,
+                        $record->lowest_pnec_value_4,
+                        $record->lowest_pnec_value_5,
+                        $record->lowest_pnec_value_6,
+                        $record->lowest_pnec_value_7,
+                        $record->lowest_pnec_value_8,
+                        $record->lowest_exp_pred == 1 ? 'Experimental' : 'Predicted',
+                        $exportDate
+                    ];
+                    fputcsv($handle, $row);
+                    $totalExported++;
+                }
+            });
+            
+            fclose($handle);
+            
+            // Get file size and processing time
+            $fileSize = Storage::size("{$directory}/{$filename}");
+            $formattedFileSize = $this->formatBytes($fileSize);
+            $processingTime = round(microtime(true) - $startTime, 2);
+            
+            // Update the export download record with completion metrics
+            $exportDownload->update([
+                'status' => 'completed',
+                'record_count' => $totalExported,
+                'file_size_bytes' => $fileSize,
+                'file_size_formatted' => $formattedFileSize,
+                'processing_time_seconds' => $processingTime,
+                'completed_at' => Carbon::now()
+            ]);
+            
+            Log::info("LowestPNEC export complete: {$totalExported} records exported in {$processingTime} seconds. File size: {$formattedFileSize}");
+            
+            // Redirect directly to download since processing is complete
+            return redirect()->route('ecotox.lowestpnec.csv.download', ['filename' => $filename]);
+            
+        } catch (\Exception $e) {
+            Log::error("LowestPNEC export failed: " . $e->getMessage());
+            
+            // Update export download record if it exists
+            if (isset($exportDownload)) {
+                $exportDownload->update([
+                    'status' => 'failed',
+                    'message' => $e->getMessage(),
+                    'completed_at' => Carbon::now()
+                ]);
+            }
+            
+            session()->flash('error', 'Export failed: ' . $e->getMessage());
+            return back();
+        }
+    }
+
+    /**
+     * Download the generated CSV file
+     */
+    public function downloadCsv($filename)
+    {
+        $directory = 'exports/lowestpnec';
+        $path = Storage::path("{$directory}/{$filename}");
+        
+        // Debug logging for file availability
+        Log::info("Download request for: {$filename}", [
+            'path' => $path,
+            'exists' => file_exists($path),
+            'directory_contents' => Storage::files($directory)
+        ]);
+
+        if (!file_exists($path)) {
+            // Try to find similar files for debugging
+            $similarFiles = collect(Storage::files($directory))
+                ->filter(function($file) use ($filename) {
+                    $fileBasename = basename($file);
+                    $requestBasename = basename($filename);
+                    // Check if the filename pattern matches (same user and similar timestamp)
+                    return str_contains($fileBasename, explode('_', $requestBasename)[3] ?? '') ||
+                           str_contains($fileBasename, explode('_', $requestBasename)[2] ?? '');
+                })
+                ->values();
+            
+            Log::warning("File not found: {$filename}", [
+                'path' => $path,
+                'similar_files' => $similarFiles->toArray(),
+                'user_id' => Auth::id()
+            ]);
+            
+            return response()->json([
+                'error' => 'File not found',
+                'message' => 'The requested CSV file does not exist. It may have expired or failed to generate.',
+                'similar_files' => $similarFiles->map(function($file) {
+                    return basename($file);
+                })
+            ], 404);
+        }
+
+        return response()->download($path, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+    /**
+     * Format bytes to human-readable file size
+     */
+    protected function formatBytes($bytes, $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        
+        $bytes /= (1 << (10 * $pow));
+        
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
     
     public function countAll(){
