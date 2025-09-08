@@ -32,6 +32,10 @@
                 <li><strong>Biota (mollusc)</strong> – PNECfw*BCF/4</li>
                 <li><strong>Marine biota (mollusc)</strong> – PNECfw*BCF/10/4</li>
               </ul>
+              <p>
+                All of the above mentioned PNECs refer to long-term exposure. A short overview on the methodology to derive the different PNECs can be downloaded <b><a href="docs/Fact-sheet-EQS-Derivation.pdf" target="_blank" class="link-lime-text">here</a></b>.
+              
+              </p>
             </div>
           </div>
           
