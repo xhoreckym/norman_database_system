@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Susdat\Substance;
 use App\Models\Factsheet\FactsheetEntity;
+use App\Models\Ecotox\LowestPNEC;
+use App\Models\Ecotox\LowestPNECMain;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -75,6 +77,9 @@ class FactsheetController extends Controller
                 } elseif ($entity->data['method_of_presentation'] === 'banner') {
                     // CASE 3: Banner presentation
                     $entity->processed_data = $this->processBannerData($entity);
+                } elseif ($entity->data['method_of_presentation'] === 'controller_method') {
+                    // CASE 4: Controller method presentation
+                    $entity->processed_data = $this->processControllerMethodData($entity, $substance);
                 }
             }
         }
@@ -177,6 +182,148 @@ class FactsheetController extends Controller
             'color' => $entity->data['color'] ?? 'green',
             'text' => $entity->data['text'] ?? 'No banner text available'
         ];
+    }
+
+    /**
+     * Process controller method data for CASE 4: method_of_presentation = controller_method
+     * 
+     * @param FactsheetEntity $entity
+     * @param Substance $substance
+     * @return array
+     */
+    private function processControllerMethodData($entity, $substance): array
+    {
+        $processedData = [
+            'type' => 'database_table',
+            'key_value_data' => []
+        ];
+
+        $method = $entity->data['method'] ?? null;
+
+        if ($method && method_exists($this, $method)) {
+            try {
+                $methodData = $this->$method($substance);
+                $processedData['key_value_data'] = $methodData;
+            } catch (\Exception $e) {
+                Log::error("Error calling controller method {$method}: " . $e->getMessage());
+                $processedData['key_value_data'] = ['error' => 'Error loading data'];
+            }
+        } else {
+            $processedData['key_value_data'] = ['error' => 'Controller method not found or not specified'];
+        }
+
+        return $processedData;
+    }
+
+    /**
+     * Get ecotoxicity data for the given substance
+     * Matches legacy system format from ecotox.lowestpnec table
+     * 
+     * @param Substance $substance
+     * @return array
+     */
+    private function getEcotoxicityData($substance): array
+    {
+        $data = [];
+
+        try {
+            // Convert substance code to numeric sus_id (legacy system uses numeric part of code)
+            $susId = intval($substance->code);
+            
+            // Get freshwater PNEC record (matrix = 1, active = 1) - matches legacy SQL
+            $freshwaterPnec = LowestPNECMain::where('sus_id', $susId)
+                ->where('lowest_matrix', 1)
+                ->where('lowest_active', 1)
+                ->first();
+
+            if ($freshwaterPnec) {
+                // Parse test endpoint for species and endpoint 
+                // Format can be: species\nendpoint|other OR <i>species</i><br>|endpoint|other
+                $species = 'n.r.';
+                $endpoint = '';
+                
+                if ($freshwaterPnec->lowest_test_endpoint) {
+                    $testEndpoint = $freshwaterPnec->lowest_test_endpoint;
+                    
+                    // Handle HTML format: <i>species</i><br>|endpoint|other
+                    if (strpos($testEndpoint, '<br>') !== false) {
+                        $array1 = explode('<br>', $testEndpoint);
+                        if (count($array1) > 0) {
+                            // Clean HTML tags from species
+                            $species = strip_tags(trim($array1[0])) ?: 'n.r.';
+                            if (count($array1) > 1) {
+                                $array2 = explode('|', $array1[1]);
+                                $endpoint = isset($array2[1]) ? trim($array2[1]) : '';
+                                $endpoint = $endpoint === 'n.r.' ? '' : $endpoint;
+                            }
+                        }
+                    } else {
+                        // Handle plain text format: species\nendpoint|other
+                        $array1 = explode("\n", $testEndpoint);
+                        if (count($array1) > 0) {
+                            $species = trim($array1[0]) ?: 'n.r.';
+                            if (count($array1) > 1) {
+                                $array2 = explode('|', $array1[1]);
+                                $endpoint = trim($array2[0]) ?? '';
+                            }
+                        }
+                    }
+                }
+
+                // Get PNEC values for all matrix types (using legacy getLowestPNEC equivalent)
+                $lowestPnecValues = $this->getLowestPNECByMatrix($susId);
+
+                // Main freshwater data
+                $data['lowest_pnec_fresh_water'] = $lowestPnecValues[1] ? number_format($lowestPnecValues[1], 2) : 'n.r.';
+                $data['experimental_predicted'] = $freshwaterPnec->lowest_derivation_method ?: 'n.r.';
+                $data['species'] = $species;
+                $data['af'] = $freshwaterPnec->lowest_AF ?: '0';
+                $data['endpoint'] = $endpoint ?: '';
+                $data['reference'] = $freshwaterPnec->lowest_base_id ?: '';
+                
+                // Other matrix types
+                $data['lowest_pnec_marine_water'] = $lowestPnecValues[2] ? number_format($lowestPnecValues[2], 3) : 'n.r.';
+                $data['lowest_pnec_sediment'] = $lowestPnecValues[3] ? number_format($lowestPnecValues[3], 1) : 'n.r.';
+                $data['lowest_pnec_biota'] = $lowestPnecValues[4] ? number_format($lowestPnecValues[4], 0) : 'n.r.';
+            } else {
+                // No freshwater PNEC data available
+                $data['message'] = 'No ecotoxicity data available for this substance';
+            }
+        } catch (\Exception $e) {
+            Log::error('Error retrieving ecotoxicity data: ' . $e->getMessage());
+            $data['error'] = 'Error loading ecotoxicity data';
+        }
+
+        return $data;
+    }
+
+    /**
+     * Get lowest PNEC values by matrix type (equivalent to legacy getLowestPNEC function)
+     * This uses the aggregated LowestPNEC table, not the individual LowestPNECMain records
+     * 
+     * @param int $susId
+     * @return array Matrix type => PNEC value
+     */
+    private function getLowestPNECByMatrix($susId): array
+    {
+        $pnecValues = [
+            1 => null, // freshwater
+            2 => null, // marine water  
+            3 => null, // sediments
+            4 => null, // biota
+        ];
+
+        // Get aggregated PNEC values from LowestPNEC table (matches legacy getLowestPNEC function)
+        $pnecRecord = LowestPNEC::where('sus_id', $susId)->first();
+        
+        if ($pnecRecord) {
+            $pnecValues[1] = $pnecRecord->lowest_pnec_value_1; // freshwater
+            $pnecValues[2] = $pnecRecord->lowest_pnec_value_2; // marine water
+            $pnecValues[3] = $pnecRecord->lowest_pnec_value_3; // sediments  
+            $pnecValues[4] = $pnecRecord->lowest_pnec_value_4; // biota
+        }
+
+        return $pnecValues;
     }
 
 }

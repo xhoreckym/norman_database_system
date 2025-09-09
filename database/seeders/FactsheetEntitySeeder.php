@@ -54,7 +54,7 @@ class FactsheetEntitySeeder extends Seeder
             [
                 'name' => '(Eco)toxicity',
                 'sort_order' => 6,
-                'data' => json_encode([]),
+                'data' => json_encode(['method_of_presentation' => 'controller_method', 'method' => 'getEcotoxicityData']),
                 'created_at' => $now,
                 'updated_at' => $now,
             ],

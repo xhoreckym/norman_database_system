@@ -85,6 +85,19 @@
               'usepa_Life_predicted' => 'Biodeg. Half-Life predicted (days) - DashBoard',
               'usepa_BCF_experimental' => 'BCF experimental - DashBoard',
               'usepa_BCF_predicted' => 'BCF predicted - DashBoard',
+              
+              // Ecotoxicity section (from LowestPNECMain model - legacy format)
+              'lowest_pnec_fresh_water' => 'Lowest PNEC fresh water (μg/L)',
+              'experimental_predicted' => 'Experimental / predicted',
+              'species' => 'Species',
+              'af' => 'AF',
+              'endpoint' => 'Endpoint',
+              'reference' => 'Reference',
+              'lowest_pnec_marine_water' => 'Lowest PNEC marine water (μg/L)',
+              'lowest_pnec_sediment' => 'Lowest PNEC sediment (μg/kg dw)',
+              'lowest_pnec_biota' => 'Lowest PNEC biota (μg/kg ww)',
+              'message' => 'Information',
+              'error' => 'Error',
             ];
           @endphp
 
