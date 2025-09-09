@@ -18,11 +18,36 @@
                     {{ $substance->name ?? 'Substance Factsheet' }} 
                   </h1>
                 </div>
-                <div class="mb-4">
-                  <a href="{{ route('factsheets.search.filter') }}"
-                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
-                    ← New Search
-                  </a>
+                <div class="mb-4 space-y-2">
+                  <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('factsheets.search.filter') }}"
+                      class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                      ← New Search
+                    </a>
+                    
+                    @if(isset($hasStatistics) && $hasStatistics)
+                      @auth
+                        <a href="{{ route('factsheets.statistics.raw-json', $substance->id) }}" target="_blank"
+                          class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                          <i class="fas fa-code mr-1"></i>
+                          View Raw Statistics JSON
+                        </a>
+                      @endauth
+                    @endif
+                  </div>
+                  
+                  @if(isset($hasStatistics) && !$hasStatistics)
+                    @auth
+                      <form action="{{ route('factsheets.statistics.generate-for-substance') }}" method="POST" class="inline">
+                        @csrf
+                        <input type="hidden" name="substance_id" value="{{ $substance->id }}">
+                        <button type="submit" class="btn-submit text-sm">
+                          <i class="fas fa-chart-bar mr-1"></i>
+                          Generate Chemical Occurrence Statistics
+                        </button>
+                      </form>
+                    @endauth
+                  @endif
                 </div>
               </div>
               <div class="col-span-2">
@@ -98,6 +123,17 @@
               'lowest_pnec_biota' => 'Lowest PNEC biota (μg/kg ww)',
               'message' => 'Information',
               'error' => 'Error',
+              
+              // Environmental occurrence section (from FactsheetStatistic - country_year data)
+              'total_countries' => 'Total Countries with Data',
+              'year_range' => 'Year Range',
+              'total_records' => 'Total Records',
+              'top_country_1' => 'Top Country #1',
+              'top_country_2' => 'Top Country #2',
+              'top_country_3' => 'Top Country #3',
+              'top_country_4' => 'Top Country #4',
+              'top_country_5' => 'Top Country #5',
+              'statistics_generated' => 'Statistics Generated',
             ];
           @endphp
 
@@ -192,6 +228,161 @@
                         @endphp
                         <div class="border-l-4 p-4 {{ $colorClass }} rounded-r-lg">
                           <p class="text-sm font-medium leading-relaxed">{{ $entity->processed_data['text'] }}</p>
+                        </div>
+                      @elseif($entity->processed_data['type'] === 'table')
+                        {{-- CASE 4: Table presentation for country-year data --}}
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                          {{-- Summary information --}}
+                          @if(isset($entity->processed_data['summary']))
+                            <div class="mb-4 p-3 bg-slate-50 rounded-lg">
+                              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                  <span class="font-medium text-slate-700">Total Countries:</span>
+                                  <span class="text-slate-900">{{ $entity->processed_data['summary']['total_countries'] ?? 0 }}</span>
+                                </div>
+                                <div>
+                                  <span class="font-medium text-slate-700">Total Records:</span>
+                                  <span class="text-slate-900">{{ number_format($entity->processed_data['summary']['total_records'] ?? 0) }}</span>
+                                </div>
+                                <div>
+                                  <span class="font-medium text-slate-700">Year Range:</span>
+                                  <span class="text-slate-900">{{ $entity->processed_data['summary']['year_range'] ?? 'N/A' }}</span>
+                                </div>
+                                <div>
+                                  <span class="font-medium text-slate-700">Generated:</span>
+                                  <span class="text-slate-900">{{ $entity->processed_data['summary']['generated_at'] ?? 'N/A' }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          @endif
+                          
+                          {{-- Country-Year Table --}}
+                          @if(isset($entity->processed_data['table_data']) && count($entity->processed_data['table_data']) > 0)
+                            <div class="overflow-x-auto">
+                              <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                  <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50">
+                                      Country
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Total Records
+                                    </th>
+                                    @if(isset($entity->processed_data['years']))
+                                      @foreach($entity->processed_data['years'] as $year)
+                                        <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                          {{ $year }}
+                                        </th>
+                                      @endforeach
+                                    @endif
+                                  </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                  @foreach($entity->processed_data['table_data'] as $row)
+                                    <tr class="hover:bg-gray-50">
+                                      <td class="px-4 py-3 text-sm font-medium text-gray-900 whitespace-nowrap sticky left-0 bg-white">
+                                        {{ $row['country'] }}
+                                      </td>
+                                      <td class="px-4 py-3 text-sm text-gray-700 font-mono">
+                                        {{ number_format($row['total_records']) }}
+                                      </td>
+                                      @if(isset($entity->processed_data['years']))
+                                        @foreach($entity->processed_data['years'] as $year)
+                                          <td class="px-3 py-3 text-sm text-center text-gray-700 font-mono">
+                                            @php
+                                              $count = $row['years'][$year] ?? 0;
+                                            @endphp
+                                            @if($count > 0)
+                                              <span class="inline-block px-2 py-1 text-xs bg-slate-100 rounded">{{ $count }}</span>
+                                            @else
+                                              <span class="text-gray-400">-</span>
+                                            @endif
+                                          </td>
+                                        @endforeach
+                                      @endif
+                                    </tr>
+                                  @endforeach
+                                </tbody>
+                              </table>
+                            </div>
+                          @else
+                            <div class="text-center py-4">
+                              <p class="text-sm text-gray-600">No country-year data available</p>
+                            </div>
+                          @endif
+                        </div>
+                      @elseif($entity->processed_data['type'] === 'matrix_table')
+                        {{-- CASE 5: Matrix Table presentation --}}
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                          {{-- Summary information --}}
+                          @if(isset($entity->processed_data['summary']))
+                            <div class="mb-4 p-3 bg-slate-50 rounded-lg">
+                              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <span class="font-medium text-slate-700">Total Matrices:</span>
+                                  <span class="text-slate-900">{{ $entity->processed_data['summary']['total_matrices'] ?? 0 }}</span>
+                                </div>
+                                <div>
+                                  <span class="font-medium text-slate-700">Total Records:</span>
+                                  <span class="text-slate-900">{{ number_format($entity->processed_data['summary']['total_records'] ?? 0) }}</span>
+                                </div>
+                                <div>
+                                  <span class="font-medium text-slate-700">Generated:</span>
+                                  <span class="text-slate-900">{{ $entity->processed_data['summary']['generated_at'] ?? 'N/A' }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          @endif
+                          
+                          {{-- Matrix Table --}}
+                          @if(isset($entity->processed_data['matrix_data']) && count($entity->processed_data['matrix_data']) > 0)
+                            <div class="overflow-x-auto">
+                              <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                  <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Matrix
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Hierarchy Path
+                                    </th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Total Records
+                                    </th>
+                                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Level
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                  @foreach($entity->processed_data['matrix_data'] as $matrix)
+                                    <tr class="hover:bg-gray-50">
+                                      <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                                        {{ $matrix['matrix_name'] }}
+                                      </td>
+                                      <td class="px-4 py-3 text-sm text-gray-700">
+                                        <span class="font-mono text-xs">{{ $matrix['hierarchy_path'] }}</span>
+                                      </td>
+                                      <td class="px-4 py-3 text-sm text-center text-gray-700 font-mono">
+                                        <span class="inline-block px-2 py-1 text-xs bg-slate-100 rounded">
+                                          {{ number_format($matrix['record_count']) }}
+                                        </span>
+                                      </td>
+                                      <td class="px-4 py-3 text-sm text-center text-gray-700">
+                                        <span class="flex w-6 h-6 text-xs bg-slate-200 rounded-full items-center justify-center">
+                                          {{ $matrix['hierarchy_level'] }}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  @endforeach
+                                </tbody>
+                              </table>
+                            </div>
+                          @else
+                            <div class="text-center py-4">
+                              <p class="text-sm text-gray-600">No matrix data available</p>
+                            </div>
+                          @endif
                         </div>
                       @endif
                     @elseif(isset($entity->data['method_of_presentation']))

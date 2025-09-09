@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Susdat\Substance;
 use App\Models\Factsheet\FactsheetEntity;
+use App\Models\Factsheet\FactsheetStatistic;
 use App\Models\Ecotox\LowestPNEC;
 use App\Models\Ecotox\LowestPNECMain;
 use Illuminate\Support\Facades\DB;
@@ -83,8 +84,18 @@ class FactsheetController extends Controller
                 }
             }
         }
+        
+        // Check if statistics exist for this substance
+        $hasStatistics = FactsheetStatistic::where('substance_id', $substance->id)->exists();
+        $statisticsData = null;
+        
+        if ($hasStatistics) {
+            $statisticsRecord = FactsheetStatistic::where('substance_id', $substance->id)->first();
+            $statisticsData = $statisticsRecord ? $statisticsRecord->meta_data : null;
+        }
+        
         // dd($factsheetEntities);
-        return view('factsheet.index', compact('substance', 'factsheetEntities'));
+        return view('factsheet.index', compact('substance', 'factsheetEntities', 'hasStatistics', 'statisticsData'));
     }
 
     /**
@@ -203,6 +214,35 @@ class FactsheetController extends Controller
         if ($method && method_exists($this, $method)) {
             try {
                 $methodData = $this->$method($substance);
+                
+                // Check if the method returned a special type (like banner or table)
+                if (is_array($methodData) && isset($methodData['type'])) {
+                    if ($methodData['type'] === 'banner') {
+                        // Return banner data directly
+                        return [
+                            'type' => 'banner',
+                            'color' => $methodData['color'] ?? 'light-green',
+                            'text' => $methodData['text'] ?? 'No data available'
+                        ];
+                    } elseif ($methodData['type'] === 'table') {
+                        // Return table data directly
+                        return [
+                            'type' => 'table',
+                            'table_data' => $methodData['table_data'] ?? [],
+                            'years' => $methodData['years'] ?? [],
+                            'summary' => $methodData['summary'] ?? []
+                        ];
+                    } elseif ($methodData['type'] === 'matrix_table') {
+                        // Return matrix table data directly
+                        return [
+                            'type' => 'matrix_table',
+                            'matrix_data' => $methodData['matrix_data'] ?? [],
+                            'summary' => $methodData['summary'] ?? []
+                        ];
+                    }
+                }
+                
+                // Regular key-value data
                 $processedData['key_value_data'] = $methodData;
             } catch (\Exception $e) {
                 Log::error("Error calling controller method {$method}: " . $e->getMessage());
@@ -324,6 +364,154 @@ class FactsheetController extends Controller
         }
 
         return $pnecValues;
+    }
+
+    /**
+     * Get environmental occurrence data detailed for the given substance
+     * This method is called from factsheet entities with method_of_presentation = controller_method
+     * 
+     * @param Substance $substance
+     * @return array
+     */
+    private function getEnvironmentalOccurrenceDataDetailed($substance): array
+    {
+        try {
+            // Check if statistics exist for this substance
+            $statisticsRecord = FactsheetStatistic::where('substance_id', $substance->id)->first();
+            
+            if (!$statisticsRecord || !$statisticsRecord->meta_data) {
+                // No statistics available - return banner message
+                return [
+                    'type' => 'banner',
+                    'color' => 'light-green',
+                    'text' => "No records for {$substance->name} found in Chemical Occurrence Database"
+                ];
+            }
+
+            $statisticsData = $statisticsRecord->meta_data;
+            
+            // Check if country_year data exists
+            if (isset($statisticsData['country_year']) && isset($statisticsData['country_year']['data'])) {
+                $countryYearData = $statisticsData['country_year']['data'];
+                $yearRange = $statisticsData['country_year']['year_range'] ?? [];
+                
+                // Get all unique years from the data and sort them
+                $allYears = [];
+                foreach ($countryYearData as $country => $yearData) {
+                    $allYears = array_merge($allYears, array_keys($yearData));
+                }
+                $allYears = array_unique($allYears);
+                sort($allYears);
+                
+                // Calculate country totals and sort by total records (descending)
+                $countryTotals = [];
+                foreach ($countryYearData as $country => $yearData) {
+                    $countryTotals[$country] = array_sum($yearData);
+                }
+                arsort($countryTotals);
+                
+                // Prepare table data
+                $tableData = [];
+                foreach ($countryTotals as $country => $totalRecords) {
+                    $row = [
+                        'country' => $country,
+                        'total_records' => $totalRecords,
+                        'years' => []
+                    ];
+                    
+                    // Add data for each year
+                    foreach ($allYears as $year) {
+                        $row['years'][$year] = $countryYearData[$country][$year] ?? 0;
+                    }
+                    
+                    $tableData[] = $row;
+                }
+                
+                return [
+                    'type' => 'table',
+                    'table_data' => $tableData,
+                    'years' => $allYears,
+                    'summary' => [
+                        'total_countries' => count($countryYearData),
+                        'total_records' => $statisticsData['total_records'] ?? 0,
+                        'year_range' => ($yearRange['min_year'] ?? 'N/A') . ' - ' . ($yearRange['max_year'] ?? 'N/A'),
+                        'generated_at' => isset($statisticsData['generated_at']) ? 
+                            \Carbon\Carbon::parse($statisticsData['generated_at'])->format('M d, Y H:i') : 'N/A'
+                    ]
+                ];
+            } else {
+                return [
+                    'type' => 'banner',
+                    'color' => 'light-green', 
+                    'text' => "No country-year data available for {$substance->name} in Chemical Occurrence Database"
+                ];
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Error retrieving environmental occurrence data: ' . $e->getMessage());
+            return [
+                'error' => 'Error loading environmental occurrence data'
+            ];
+        }
+    }
+
+    /**
+     * Get environmental occurrence matrix data for the given substance
+     * This method is called from factsheet entities with method_of_presentation = controller_method
+     * 
+     * @param Substance $substance
+     * @return array
+     */
+    private function getEnvironmentalOccurrenceMatrixData($substance): array
+    {
+        try {
+            // Check if statistics exist for this substance
+            $statisticsRecord = FactsheetStatistic::where('substance_id', $substance->id)->first();
+            
+            if (!$statisticsRecord || !$statisticsRecord->meta_data) {
+                // No statistics available - return banner message
+                return [
+                    'type' => 'banner',
+                    'color' => 'light-green',
+                    'text' => "No matrix data for {$substance->name} found in Chemical Occurrence Database"
+                ];
+            }
+
+            $statisticsData = $statisticsRecord->meta_data;
+            
+            // Check if matrix data exists
+            if (isset($statisticsData['matrix']) && isset($statisticsData['matrix']['data'])) {
+                $matrixData = $statisticsData['matrix']['data'];
+                
+                // Sort by record count (descending) to show most common matrices first
+                usort($matrixData, function ($a, $b) {
+                    return $b['record_count'] - $a['record_count'];
+                });
+                
+                return [
+                    'type' => 'matrix_table',
+                    'matrix_data' => $matrixData,
+                    'summary' => [
+                        'total_matrices' => count($matrixData),
+                        'total_records' => $statisticsData['total_records'] ?? 0,
+                        'generated_at' => isset($statisticsData['generated_at']) ? 
+                            \Carbon\Carbon::parse($statisticsData['generated_at'])->format('M d, Y H:i') : 'N/A'
+                    ]
+                ];
+            } else {
+                return [
+                    'type' => 'banner',
+                    'color' => 'light-green', 
+                    'text' => "No matrix data available for {$substance->name} in Chemical Occurrence Database"
+                ];
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Error retrieving environmental occurrence matrix data: ' . $e->getMessage());
+            return [
+                'error' => 'Error loading environmental occurrence matrix data'
+            ];
+        }
     }
 
 }

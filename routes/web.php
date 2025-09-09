@@ -45,6 +45,7 @@ use App\Http\Controllers\Prioritisation\MonitoringScarceController;
 use App\Http\Controllers\Prioritisation\PrioritisationHomeController;
 use App\Http\Controllers\Empodat\DataCollectionTemplateFileController;
 use App\Http\Controllers\Factsheet\FactsheetController;
+use App\Http\Controllers\Factsheet\FactsheetStatisticsController;
 use App\Http\Controllers\ARGB\AntibioticResistanceBacteriaGeneHomeController;
 use App\Http\Controllers\Empodat\StatisticsController as EmpodatStatisticsController;
 use App\Http\Controllers\Backend\UserLoginRetentionController;
@@ -120,6 +121,13 @@ Route::prefix('factsheets')->group(function () {
     });
     
     Route::get('show/{id}', [FactsheetController::class, 'show'])->name('factsheets.show');
+    
+    // Factsheet Statistics Routes
+    Route::prefix('statistics')->middleware('auth')->group(function () {
+        Route::post('populate-all', [FactsheetStatisticsController::class, 'populateAll'])->name('factsheets.statistics.populate-all');
+        Route::post('generate-for-substance', [FactsheetStatisticsController::class, 'generateForSubstance'])->name('factsheets.statistics.generate-for-substance');
+        Route::get('raw-json/{substance_id}', [FactsheetStatisticsController::class, 'showRawJson'])->name('factsheets.statistics.raw-json');
+    });
 });
 
 Route::prefix('susdat')->group(function () {

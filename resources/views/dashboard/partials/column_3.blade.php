@@ -40,6 +40,13 @@
               <i class="fas fa-calculator mr-1"></i>
               Update Record Counts
             </a>
+            <form action="{{ route('factsheets.statistics.populate-all') }}" method="POST" class="inline">
+              @csrf
+              <button type="submit" class="btn-submit text-xs">
+                <i class="fas fa-chart-bar mr-1"></i>
+                Populate Factsheet Statistics
+              </button>
+            </form>
           </div>
         </div>
       </div>
