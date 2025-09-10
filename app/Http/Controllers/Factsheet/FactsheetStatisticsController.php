@@ -55,6 +55,7 @@ class FactsheetStatisticsController extends Controller
                 ];
             }
 
+            
             // Insert new records
             FactsheetStatistic::insert($records);
 
