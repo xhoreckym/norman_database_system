@@ -85,14 +85,10 @@ class FactsheetController extends Controller
             }
         }
         
-        // Check if statistics exist for this substance
-        $hasStatistics = FactsheetStatistic::where('substance_id', $substance->id)->exists();
-        $statisticsData = null;
-        
-        if ($hasStatistics) {
-            $statisticsRecord = FactsheetStatistic::where('substance_id', $substance->id)->first();
-            $statisticsData = $statisticsRecord ? $statisticsRecord->meta_data : null;
-        }
+        // Check if statistics record exists for this substance (even if meta_data is null)
+        $statisticsRecord = FactsheetStatistic::where('substance_id', $substance->id)->first();
+        $hasStatistics = $statisticsRecord !== null;
+        $statisticsData = $statisticsRecord ? $statisticsRecord->meta_data : null;
         
         // dd($factsheetEntities);
         return view('factsheet.index', compact('substance', 'factsheetEntities', 'hasStatistics', 'statisticsData'));

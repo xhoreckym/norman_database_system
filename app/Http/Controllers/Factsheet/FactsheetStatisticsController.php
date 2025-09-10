@@ -15,35 +15,56 @@ use App\Http\Controllers\Controller;
 class FactsheetStatisticsController extends Controller
 {
     /**
-     * Populate factsheet statistics for all unique substances in EmpodatMain
+     * Populate factsheet statistics records for all unique substances in EmpodatMain with NULL meta_data
      */
     public function populateAll()
     {
-        // Get all unique substance IDs from EmpodatMain
-        $uniqueSubstanceIds = EmpodatMain::distinct()
-            ->whereNotNull('substance_id')
-            ->pluck('substance_id')
-            ->toArray();
+        try {
+            // Get all unique substance IDs from EmpodatMain
+            $uniqueSubstanceIds = EmpodatMain::distinct()
+                ->whereNotNull('substance_id')
+                ->pluck('substance_id')
+                ->toArray();
 
-        $processed = 0;
-        $errors = 0;
-
-        foreach ($uniqueSubstanceIds as $substanceId) {
-            try {
-                $this->generateStatisticsForSubstance($substanceId);
-                $processed++;
-            } catch (\Exception $e) {
-                $errors++;
-                Log::error("Failed to generate statistics for substance ID {$substanceId}: " . $e->getMessage());
+            if (empty($uniqueSubstanceIds)) {
+                return back()->with('error', 'No substances found to process.');
             }
-        }
 
-        $message = "Processed {$processed} substances successfully";
-        if ($errors > 0) {
-            $message .= " with {$errors} errors. Check logs for details.";
-        }
+            // Get substance IDs that already have factsheet statistics records
+            $existingSubstanceIds = FactsheetStatistic::whereIn('substance_id', $uniqueSubstanceIds)
+                ->pluck('substance_id')
+                ->toArray();
 
-        return back()->with('success', $message);
+            // Filter out substances that already have records
+            $newSubstanceIds = array_diff($uniqueSubstanceIds, $existingSubstanceIds);
+
+            if (empty($newSubstanceIds)) {
+                return back()->with('info', 'All substances already have factsheet statistic records.');
+            }
+
+            // Create records with NULL meta_data for new substances only
+            $records = [];
+            $now = now();
+            
+            foreach ($newSubstanceIds as $substanceId) {
+                $records[] = [
+                    'substance_id' => $substanceId,
+                    'meta_data' => null,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ];
+            }
+
+            // Insert new records
+            FactsheetStatistic::insert($records);
+
+            $processed = count($newSubstanceIds);
+            return back()->with('success', "Successfully created {$processed} factsheet statistic records with NULL meta_data.");
+
+        } catch (\Exception $e) {
+            Log::error("Failed to populate factsheet statistics: " . $e->getMessage());
+            return back()->with('error', 'Failed to populate statistics records. Check logs for details.');
+        }
     }
 
     /**

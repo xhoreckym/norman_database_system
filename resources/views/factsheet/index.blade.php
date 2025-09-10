@@ -32,21 +32,55 @@
                           <i class="fas fa-code mr-1"></i>
                           View Raw Statistics JSON
                         </a>
+                        
+                        {{-- Generate/Re-generate Statistics Button --}}
+                        @php
+                          $hasStatisticsData = isset($statisticsData) && $statisticsData !== null;
+                          $isAdmin = auth()->user()->hasRole(['admin', 'super_admin']);
+                        @endphp
+                        
+                        @if($hasStatisticsData)
+                          {{-- Statistics data exists --}}
+                          @if($isAdmin)
+                            {{-- Admin/Super Admin can re-generate --}}
+                            <form action="{{ route('factsheets.statistics.generate-for-substance') }}" method="POST" class="inline">
+                              @csrf
+                              <input type="hidden" name="substance_id" value="{{ $substance->id }}">
+                              <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                                <i class="fas fa-sync-alt mr-1"></i>
+                                Re-generate Statistics
+                              </button>
+                            </form>
+                          @else
+                            {{-- Regular users see disabled button --}}
+                            <button disabled class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 border border-gray-300 rounded-md cursor-not-allowed">
+                              <i class="fas fa-chart-bar mr-1"></i>
+                              Generate Statistics
+                            </button>
+                          @endif
+                        @else
+                          {{-- No statistics data - all authenticated users can generate --}}
+                          <form action="{{ route('factsheets.statistics.generate-for-substance') }}" method="POST" class="inline">
+                            @csrf
+                            <input type="hidden" name="substance_id" value="{{ $substance->id }}">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-800 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                              <i class="fas fa-chart-bar mr-1"></i>
+                              Generate Statistics
+                            </button>
+                          </form>
+                        @endif
                       @endauth
                     @endif
                   </div>
                   
-                  @if(isset($hasStatistics) && !$hasStatistics)
-                    @auth
-                      <form action="{{ route('factsheets.statistics.generate-for-substance') }}" method="POST" class="inline">
-                        @csrf
-                        <input type="hidden" name="substance_id" value="{{ $substance->id }}">
-                        <button type="submit" class="btn-submit text-sm">
-                          <i class="fas fa-chart-bar mr-1"></i>
-                          Generate Chemical Occurrence Statistics
-                        </button>
-                      </form>
-                    @endauth
+                  {{-- Message when substance exists but no statistics data --}}
+                  @if(isset($hasStatistics) && $hasStatistics && (!isset($statisticsData) || $statisticsData === null))
+                    <div class="mt-2">
+                      <div class="inline-flex items-center px-3 py-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Statistics data from Chemical Occurrence Database were not fetched yet. Please try again later.
+                      </div>
+                    </div>
                   @endif
                 </div>
               </div>
