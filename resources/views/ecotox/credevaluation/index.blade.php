@@ -146,6 +146,7 @@
                   <th>Test type</th>
                   <th>Standard test</th>
                   <th>Effect based on|pH|Exposure regime|Purity [%]</th>
+                  <th></th>
                   <th>Effect value [µg/L]</th>
                   <th>Measured or nominal</th>
                   <th>Reference</th>
@@ -212,10 +213,10 @@
                         <div><span class="font-medium">Purity:</span> <span class="text-teal-800 font-mono"> {{ $e->purity ?? 'N/A' }}% </span></div>
                       </div>
                     </td>
+                    <td class="p-1 text-center">{{ $e->concentration_qualifier ?? 'N/A' }}</td>
                     <td class="p-1 text-center">
                       @if ($e->concentration_value)
-                        <div>{{ $e->concentration_qualifier ?? '' }} {{ number_format($e->concentration_value, 4) }}
-                        </div>
+                        <div>{{ number_format($e->concentration_value, 4) }}</div>
                         @if ($e->unit_concentration)
                           <div class="text-xs text-gray-500">{{ $e->unit_concentration }}</div>
                         @endif
