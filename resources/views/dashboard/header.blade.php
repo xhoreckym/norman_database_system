@@ -13,7 +13,7 @@
   @endrole
   @role('admin')
   <x-nav-link-header :href="route('files.index')" :active="request()->routeIs('files.*')">
-    Files
+    Uploaded DCT Files
   </x-nav-link-header>
   @endrole
   

@@ -102,7 +102,7 @@
                     </td>
                     <td class="py-3 px-4">
                       @if($file->project)
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                           {{ $file->project->name }}
                         </span>
                       @else
@@ -153,7 +153,7 @@
                     </td>
                     <td class="py-3 px-4 text-center">
                       <div class="flex justify-center space-x-2">
-                        <a href="{{ route('files.show', $file) }}" class="text-blue-600 hover:text-blue-800 p-1" title="View Details">
+                        <a href="{{ route('files.show', $file) }}" class="text-gray-600 hover:text-gray-800 p-1" title="View Details">
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -165,16 +165,12 @@
                           </svg>
                         </a>
                         @if($file->file_path && $file->existsOnDisk())
-                          <a href="{{ route('files.download', $file) }}" class="text-green-600 hover:text-green-800 p-1" title="Download">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
+                          <a href="{{ route('files.download', $file) }}" class="btn-submit text-xs px-2 py-1" title="Download">
+                            Download
                           </a>
                         @else
-                          <span class="text-gray-400 p-1" title="File not available">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
-                            </svg>
+                          <span class="text-gray-400 text-xs px-2 py-1" title="File not available">
+                            Download Not Available
                           </span>
                         @endif
                         {{-- <form action="{{ route('files.destroy', $file) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this file? This action can be reversed from the deleted files section.');">
@@ -219,7 +215,7 @@
                     Clear Filters
                   </a>
                 @endif
-                <a href="{{ route('files.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                <a href="{{ route('files.create') }}" class="btn-create">
                   Upload New File
                 </a>
               </div>

@@ -30,13 +30,13 @@
                 <a href="{{ route('files.edit', $file) }}" class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition">
                   <i class="fa fa-edit mr-1"></i> Edit
                 </a>
-                @if($file->file_path && $file->existsOnDisk())
-                  <a href="{{ route('files.download', $file) }}" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">
+                @if($file->file_path)
+                  <a href="{{ route('files.download', $file) }}" class="btn-submit">
                     <i class="fa fa-download mr-1"></i> Download
                   </a>
                 @else
                   <span class="px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed">
-                    <i class="fa fa-times mr-1"></i> File Missing
+                    <i class="fa fa-times mr-1"></i> No File Path
                   </span>
                 @endif
                 {{-- <form action="{{ route('files.destroy', $file) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this file? This action can be reversed.');">
@@ -50,7 +50,7 @@
                 <form action="{{ route('files.restore', $file) }}" method="POST" class="inline">
                   @csrf
                   @method('PATCH')
-                  <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                  <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
                     <i class="fa fa-undo mr-1"></i> Restore
                   </button>
                 </form>
@@ -72,7 +72,7 @@
               <!-- Basic Information -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 class="font-semibold text-lg text-gray-800 mb-4 flex items-center">
-                  <i class="fa fa-info-circle mr-2 text-blue-600"></i>
+                  <i class="fa fa-info-circle mr-2 text-gray-600"></i>
                   Basic Information
                 </h3>
                 
@@ -138,23 +138,14 @@
               </div>
               
               <!-- Related Records -->
-              @if($file->empodatRecords->count() > 0)
+              @if($empodatRecordsCount > 0)
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <h3 class="font-semibold text-lg text-gray-800 mb-3 flex items-center">
                     <i class="fa fa-link mr-2 text-purple-600"></i>
                     Related Empodat Records
                   </h3>
                   <div class="text-sm">
-                    <p class="mb-2">There are <strong>{{ number_format($file->empodatRecords->count()) }}</strong> empodat records linked to this file.</p>
-                    @if($file->empodatRecords->count() <= 10)
-                      <ul class="list-disc list-inside space-y-1">
-                        @foreach($file->empodatRecords->take(10) as $record)
-                          <li>Record #{{ $record->id }}</li>
-                        @endforeach
-                      </ul>
-                    @else
-                      <p class="text-gray-600">Too many records to display individually.</p>
-                    @endif
+                    <p class="mb-2">There are <strong>{{ number_format($empodatRecordsCount) }}</strong> empodat records linked to this file.</p>
                   </div>
                 </div>
               @endif
@@ -165,7 +156,7 @@
               <!-- Project Association -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 class="font-semibold text-lg text-gray-800 mb-3 flex items-center">
-                  <i class="fa fa-project-diagram mr-2 text-blue-600"></i>
+                  <i class="fa fa-project-diagram mr-2 text-gray-600"></i>
                   Project
                 </h3>
                 @if($file->project)
@@ -282,10 +273,10 @@
                   </div>
                   
                   <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-600">File on Disk:</span>
-                    @if($file->existsOnDisk())
+                    <span class="text-sm text-gray-600">File Path:</span>
+                    @if($file->file_path)
                       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <i class="fa fa-check mr-1"></i> Available
+                        <i class="fa fa-check mr-1"></i> Set
                       </span>
                     @else
                       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
@@ -297,7 +288,7 @@
                   @if($file->is_image)
                     <div class="flex items-center justify-between">
                       <span class="text-sm text-gray-600">File Type:</span>
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                         <i class="fa fa-image mr-1"></i> Image
                       </span>
                     </div>
@@ -323,7 +314,7 @@
           
           <!-- Back Button -->
           <div class="mt-8 pt-6 border-t border-gray-200">
-            <a href="{{ route('files.index') }}" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 transition">
+            <a href="{{ route('files.index') }}" class="link-lime-text">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>

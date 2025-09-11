@@ -9,6 +9,7 @@ use App\Models\Backend\Project;
 use App\Models\DatabaseEntity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -112,9 +113,15 @@ class FileController extends Controller
      */
     public function show(File $file)
     {
-        $file->load(['template', 'databaseEntity', 'uploader', 'project', 'empodatRecords']);
+        // Load only essential relationships without heavy queries
+        $file->load(['template', 'databaseEntity', 'uploader', 'project']);
         
-        return view('backend.files.show', compact('file'));
+        // Pre-calculate the records count using direct pivot table query for performance
+        $empodatRecordsCount = DB::table('empodat_main_file')
+            ->where('file_id', $file->id)
+            ->count();
+        
+        return view('backend.files.show', compact('file', 'empodatRecordsCount'));
     }
 
     /**

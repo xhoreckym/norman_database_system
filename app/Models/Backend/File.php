@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 use App\Models\Empodat\EmpodatMain;
 use App\Models\DatabaseEntity;
 use App\Models\User;
@@ -270,8 +271,7 @@ class File extends Model
             return false;
         }
         
-        $fullPath = storage_path('app/' . $this->file_path);
-        return file_exists($fullPath);
+        return \Illuminate\Support\Facades\Storage::disk('public')->exists($this->file_path);
     }
 
     /**
@@ -300,5 +300,18 @@ class File extends Model
         }
         
         return route('files.download', $this->id);
+    }
+
+    /**
+     * Get the count of empodat records associated with this file.
+     * Uses direct pivot table query for better performance.
+     * 
+     * @return int
+     */
+    public function getEmpodatRecordsCountAttribute()
+    {
+        return DB::table('empodat_main_file')
+            ->where('file_id', $this->id)
+            ->count();
     }
 }
