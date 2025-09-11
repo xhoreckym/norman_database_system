@@ -154,7 +154,7 @@
                   <tr class="hover:bg-slate-300 transition" :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'">
                     <td class="p-1 text-center text-xs">
                       <div x-text="pnec.substance ? pnec.substance.prefixed_code : 'Unknown'"></div>
-                      <a href="#" @click.prevent="openModal(pnec.sus_id)" class="link-lime-text">
+                      <a :href="'{{ route('ecotox.lowestpnec.show', '') }}/' + pnec.sus_id" class="link-lime-text">
                         <i class="fas fa-search"></i>
                       </a>
                     </td>
@@ -235,8 +235,6 @@
             </div>
           </div>
           
-          <!-- The Modal (hidden by default) -->
-          @include('ecotox.lowestpnec.modal-show')
           
         </div>
       </div>
@@ -258,8 +256,6 @@
         searchTimeout: null,
         sortColumn: 'id',
         sortDirection: 'asc',
-        showModal: false,
-        record: null,
         
         init() {
           console.log('Initializing LowestPNEC table');
@@ -337,23 +333,6 @@
           }
           this.currentPage = page;
           this.fetchPnecs();
-        },
-        
-        async openModal(recordId) {
-          // Fetch record data from our route
-          const response = await fetch(
-            "{{ route('ecotox.lowestpnec.show', ':id') }}"
-            .replace(':id', recordId)
-          );                 
-          this.record = await response.json();
-          
-          // Show the modal
-          this.showModal = true;
-        },
-        
-        closeModal() {
-          this.showModal = false;
-          this.record = null;
         },
         
         get paginationButtons() {

@@ -113,42 +113,39 @@ class LowestPNECController extends Controller
     }
     
     /**
-    * Display the specified resource as JSON.
+    * Display the specified resource.
     */
-    public function show($id)
+    public function show($sus_id)
     {
-        $lowestPnec = LowestPNEC::with('substance')->findOrFail($id);
+        // Find the LowestPNEC record by sus_id
+        $lowestPnec = LowestPNEC::where('sus_id', $sus_id)->firstOrFail();
+        
+        // Get the substance - try substance_id first, then sus_id (both correspond to substance ID)
+        $substance = null;
+        if ($lowestPnec->substance_id) {
+            $substance = Substance::find($lowestPnec->substance_id);
+        }
+        if (!$substance) {
+            $substance = Substance::find($sus_id);
+        }
         
         // Find the related LowestPNECMain record if exists
         $lowestPnecMain = LowestPNECMain::with(['substance', 'editor'])
-        ->where('sus_id', $lowestPnec->sus_id)
-        ->first();
+            ->where('sus_id', $sus_id)
+            ->first();
         
-        // Prepare the response data
-        $responseData = $lowestPnec->toArray();
-        
-        // Add the main record data if available
-        if ($lowestPnecMain) {
-            $responseData['main_record'] = $lowestPnecMain->toArray();
-            
-            // If editor info is available, include it
-            if ($lowestPnecMain->editor) {
-                $responseData['editor'] = [
-                    'id' => $lowestPnecMain->editor->id,
-                    'name' => $lowestPnecMain->editor->name,
-                ];
-            }
-            
-            // Look up PNEC3 record if we have the base_id
-            if ($lowestPnecMain->lowest_base_id) {
-                $pnec3 = PNEC3::where('norman_pnec_id', $lowestPnecMain->lowest_base_id)->first();
-                if ($pnec3) {
-                    $responseData['pnec3'] = $pnec3->toArray();
-                }
-            }
+        // Look up PNEC3 record if we have the base_id
+        $pnec3 = null;
+        if ($lowestPnecMain && $lowestPnecMain->lowest_base_id) {
+            $pnec3 = PNEC3::where('norman_pnec_id', $lowestPnecMain->lowest_base_id)->first();
         }
         
-        return response()->json($responseData);
+        return view('ecotox.lowestpnec.show', [
+            'lowestPnec' => $lowestPnec,
+            'lowestPnecMain' => $lowestPnecMain,
+            'pnec3' => $pnec3,
+            'substance' => $substance
+        ]);
     }
     
     /**
