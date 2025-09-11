@@ -27,6 +27,10 @@
                 <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="stdinchikey">
                 <span class="ml-2">StdInChIKey</span>
             </label>
+            <label class="inline-flex items-center ml-6">
+                <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="code">
+                <span class="ml-2">NORMAN SusDat ID</span>
+            </label>
         </div>
     </div>
     <span class="text-gray-600 text-sm">the search is limited to 30 substances</span>
@@ -37,12 +41,25 @@
         @endif
         @foreach ($results as $result)
         <div class="block p-1">
-            <span>
+            <label class="flex items-center cursor-pointer">
                 <input wire:model="selectedSubstanceIds" type="checkbox" name="substancesSearch[]" value="{{$result->id}}">
-            </span>
-            <span class="ml-1">
-                {{$result->name}} <span class="text-sm"> ({{$result->cas_number}} | {{$result->stdinchikey}})</span>
-            </span>
+                <div class="ml-2 flex-grow">
+                    <div class="font-medium">{{$result->name}}</div>
+                    <div class="text-sm text-gray-500">
+                        @if($result->cas_number)
+                            CAS: {{ $result->cas_number }}
+                        @endif
+                        @if($result->code)
+                            @if($result->cas_number) | @endif
+                            NORMAN SusDat ID: NS{{ $result->code }}
+                        @endif
+                        @if($result->stdinchikey)
+                            @if($result->cas_number || $result->code) | @endif
+                            {{ $result->stdinchikey }}
+                        @endif
+                    </div>
+                </div>
+            </label>
         </div>
         @endforeach
         @if($resultsAvailable == true)

@@ -45,6 +45,10 @@
                 <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="stdinchikey">
                 <span class="ml-2">StdInChIKey</span>
             </label>
+            <label class="inline-flex items-center ml-6">
+                <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="code">
+                <span class="ml-2">NORMAN SusDat ID</span>
+            </label>
         </div>
     </div>
     
@@ -81,6 +85,10 @@
                             @if($result->stdinchikey)
                                 @if($result->cas_number) | @endif
                                 InChIKey: {{ $result->stdinchikey }}
+                            @endif
+                            @if($result->code)
+                                @if($result->cas_number || $result->stdinchikey) | @endif
+                                NORMAN ID: NS{{ $result->code }}
                             @endif
                         </div>
                     </div>

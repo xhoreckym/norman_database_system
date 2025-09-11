@@ -83,7 +83,19 @@
                         >
                         <div class="ml-2 flex-grow">
                             <div class="font-medium">{{ $result->name }}</div>
-                            <div class="text-sm text-gray-500">CAS: {{ $result->cas_number }} | NORMAN SusDat ID: NS{{ $result->code }} | {{ $result->stdinchikey }}</div>
+                            <div class="text-sm text-gray-500">
+                                @if($result->cas_number)
+                                    CAS: {{ $result->cas_number }}
+                                @endif
+                                @if($result->code)
+                                    @if($result->cas_number) | @endif
+                                    NORMAN SusDat ID: NS{{ $result->code }}
+                                @endif
+                                @if($result->stdinchikey)
+                                    @if($result->cas_number || $result->code) | @endif
+                                    {{ $result->stdinchikey }}
+                                @endif
+                            </div>
                         </div>
                         @if(isset($result->ecotox_record_count))
                         <span class="ml-2 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">{{ $result->ecotox_record_count }} records</span>

@@ -45,6 +45,13 @@ class SubstanceSearch extends Component
                 $query = $query->where('name', 'ilike', '%' . $this->search . '%');
             } elseif($this->searchType == 'stdinchikey') {
                 $query = $query->where('stdinchikey', 'ilike', $this->search . '%');
+            } elseif($this->searchType == 'code') {
+                // Strip "NS" prefix if present and search by code
+                $searchCode = $this->search;
+                if(strtoupper(substr($searchCode, 0, 2)) === 'NS') {
+                    $searchCode = substr($searchCode, 2);
+                }
+                $query = $query->where('code', 'ilike', '%' . $searchCode . '%');
             }
             
             // Order by name and limit results

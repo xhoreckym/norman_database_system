@@ -27,6 +27,10 @@
                 <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="stdinchikey">
                 <span class="ml-2">StdInChIKey</span>
             </label>
+            <label class="inline-flex items-center ml-6">
+                <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="code">
+                <span class="ml-2">NORMAN SusDat ID</span>
+            </label>
         </div>
     </div>
     <span class="text-gray-600 text-sm">the search is limited to 30 substances</span>
@@ -41,7 +45,7 @@
                 <input wire:model="selectedSubstanceIds" type="checkbox" name="substancesSearch[]" value="{{$result->id}}">
             </span>
             <span class="ml-1">
-                {{$result->name}} <span class="text-sm"> ({{$result->cas_number}} | {{$result->stdinchikey}})</span>
+                {{$result->name}} <span class="text-sm"> ({{$result->cas_number}} | {{$result->stdinchikey}} | NS{{$result->code}})</span>
             </span>
         </div>
         @endforeach
