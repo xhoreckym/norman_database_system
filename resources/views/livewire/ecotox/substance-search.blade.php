@@ -9,7 +9,7 @@
                         
                         <div class="flex flex-col">
                             <span class="font-medium text-lime-800">{{ $substance['name'] }}</span>
-                            <span class="text-xs text-lime-600">CAS: {{ $substance['cas_number'] }}</span>
+                            <span class="text-xs text-lime-600">CAS: {{ $substance['cas_number'] }} | NORMAN SusDat ID: NS{{ $substance['code'] ?? '' }}</span>
                         </div>
                         
                         @if(isset($substance['ecotox_record_count']))
@@ -52,6 +52,10 @@
                     <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="stdinchikey">
                     <span class="ml-2">StdInChIKey</span>
                 </label>
+                <label class="inline-flex items-center ml-6">
+                    <input wire:model.live.debounce.100ms="searchType" type="radio" name="searchType" value="norman_susdat_id">
+                    <span class="ml-2">NORMAN SusDat ID</span>
+                </label>
             </div>
         </div>
         <div class="flex flex-col md:flex-row justify-between text-sm text-gray-600 mt-2">
@@ -79,7 +83,7 @@
                         >
                         <div class="ml-2 flex-grow">
                             <div class="font-medium">{{ $result->name }}</div>
-                            <div class="text-sm text-gray-500">{{ $result->cas_number }} | {{ $result->stdinchikey }}</div>
+                            <div class="text-sm text-gray-500">CAS: {{ $result->cas_number }} | NORMAN SusDat ID: NS{{ $result->code }} | {{ $result->stdinchikey }}</div>
                         </div>
                         @if(isset($result->ecotox_record_count))
                         <span class="ml-2 bg-green-100 px-2 py-1 rounded-full text-xs font-medium">{{ $result->ecotox_record_count }} records</span>

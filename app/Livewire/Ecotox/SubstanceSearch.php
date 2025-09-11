@@ -46,6 +46,13 @@ class SubstanceSearch extends Component
                 $query = $query->where('name', 'ilike', '%' . $this->search . '%');
             } elseif($this->searchType == 'stdinchikey') {
                 $query = $query->where('stdinchikey', 'ilike', $this->search);
+            } elseif($this->searchType == 'norman_susdat_id') {
+                // Strip "NS" prefix if present and search by code field
+                $searchCode = $this->search;
+                if (strtoupper(substr($searchCode, 0, 2)) === 'NS') {
+                    $searchCode = substr($searchCode, 2);
+                }
+                $query = $query->where('code', 'ilike', '%' . $searchCode . '%');
             }
             
             // Add additional info about record count
@@ -92,6 +99,7 @@ class SubstanceSearch extends Component
                     'id' => $substance->id,
                     'name' => $substance->name,
                     'cas_number' => $substance->cas_number,
+                    'code' => $substance->code,
                     'stdinchikey' => $substance->stdinchikey,
                     'ecotox_record_count' => $recordCount
                 ]];
