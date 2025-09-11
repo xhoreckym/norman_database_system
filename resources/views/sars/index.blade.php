@@ -91,8 +91,8 @@
                 <th></th>
                 <th>ID</th>
                 <th>Sampling date</th>
-                <th>Gene copy</th>
-                <th>Gene copy</th>
+                <th>Gene copy [number/mL of sample]</th>
+                <th>Gene copy [number/ng of RNA]</th>
                 <th>Ct #</th>
                 <th>Sampling site</th>
                 <th>Population served</th>
