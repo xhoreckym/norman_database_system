@@ -31,19 +31,26 @@
           
           {{-- Search Parameters Display --}}
           @if(!empty($searchParameters))
-            <div class="text-gray-600 flex border-l-2 border-white mb-4">
-              Search parameters:&nbsp;<span class="font-semibold">
+            <div class="text-gray-600 border-l-2 border-white mb-4 p-3 bg-gray-50 rounded-r-lg">
+              <div class="font-medium text-gray-700 mb-2">Search parameters:</div>
+              <div class="space-y-2">
                 @foreach ($searchParameters as $key => $value)
-                  {{ $key }}: 
-                  @if (is_array($value) || $value instanceof \Illuminate\Support\Collection)
-                    @foreach ($value as $item)
-                      {{ $item }}@if(!$loop->last), @endif
-                    @endforeach
-                  @else
-                    {{ $value }}
-                  @endif @if(!$loop->last); @endif
+                  <div class="flex flex-wrap items-start" data-search-parameter="{{ strtolower($key) }}">
+                    <span class="font-semibold text-gray-800 mr-2">{{ $key }}:</span>
+                    <div class="flex-1">
+                      @if (is_array($value) || $value instanceof \Illuminate\Support\Collection)
+                        <span data-parameter-items>
+                          @foreach ($value as $item)
+                            <span data-parameter-item class="inline-block bg-white border border-gray-200 rounded px-2 py-1 text-xs mr-1 mb-1 text-gray-700">{{ $item }}</span>
+                          @endforeach
+                        </span>
+                      @else
+                        <span class="inline-block bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-700">{{ $value }}</span>
+                      @endif
+                    </div>
+                  </div>
                 @endforeach
-              </span>
+              </div>
             </div>
           @endif
           

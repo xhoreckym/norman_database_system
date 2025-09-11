@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Susdat\Category;
 use App\Models\Susdat\Substance;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Controller;
 use App\Models\SLE\SuspectListExchange;
 use App\Models\SLE\SuspectListExchangeSource;
@@ -220,7 +221,7 @@ class SubstanceController extends Controller
     public function search(Request $request)
     {
         // Cache the total count for the request lifecycle
-        $substancesCount = \Cache::remember('substances_total_count', 300, function () {
+        $substancesCount = Cache::remember('substances_total_count', 300, function () {
             return Substance::count();
         });
 
@@ -232,11 +233,11 @@ class SubstanceController extends Controller
         $substancesSearch = is_array($request->input('substancesSearch')) ? $request->input('substancesSearch') : json_decode($request->input('substancesSearch')) ?? [];
 
         // Get all categories and sources (cached)
-        $allCategories = \Cache::remember('all_category_ids', 300, function () {
+        $allCategories = Cache::remember('all_category_ids', 300, function () {
             return Category::pluck('id')->toArray();
         });
 
-        $allSources = \Cache::remember('all_source_ids', 300, function () {
+        $allSources = Cache::remember('all_source_ids', 300, function () {
             return SuspectListExchangeSource::pluck('id')->toArray();
         });
 
@@ -339,11 +340,11 @@ class SubstanceController extends Controller
         }
 
         // Load categories and sources for display (cached)
-        $categories = \Cache::remember('categories_display', 300, function () {
+        $categories = Cache::remember('categories_display', 300, function () {
             return Category::select('id', 'name', 'abbreviation')->get()->keyBy('id');
         });
 
-        $sources = \Cache::remember('sources_display', 300, function () {
+        $sources = Cache::remember('sources_display', 300, function () {
             return SuspectListExchangeSource::select('id', 'code', 'name')->get()->keyBy('id');
         });
 
@@ -449,7 +450,16 @@ class SubstanceController extends Controller
         }
 
         if (!empty($substancesSearch)) {
-            $searchParameters['Substances'] = $substancesSearch;
+            // Fetch substance names for display instead of showing IDs
+            $substanceNames = Substance::whereIn('id', $substancesSearch)
+                ->select('id', 'code', 'name')
+                ->get()
+                ->map(function ($substance) {
+                    return $substance->prefixed_code . ' - ' . ($substance->name ?? 'Unknown Substance');
+                })
+                ->toArray();
+            
+            $searchParameters['Substances'] = $substanceNames;
         }
 
         return $searchParameters;

@@ -22,6 +22,9 @@ import './alpine-components/ecotox-modal.js';
 // Import the CRED evaluation modal component
 import './alpine-components/cred-evaluation-modal.js';
 
+// Import the search parameters collapse component
+import './search-parameters-collapse.js';
+
 // Register the component with Alpine (which is already available from Livewire)
 document.addEventListener('DOMContentLoaded', () => {
     if (window.Alpine) {
