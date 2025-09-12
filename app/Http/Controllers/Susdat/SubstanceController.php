@@ -12,7 +12,11 @@ use App\Http\Controllers\Controller;
 use App\Models\SLE\SuspectListExchange;
 use App\Models\SLE\SuspectListExchangeSource;
 use App\Models\Backend\QueryLog;
+use App\Models\Backend\ExportDownload;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 
 class SubstanceController extends Controller
@@ -490,5 +494,304 @@ class SubstanceController extends Controller
             'molecular_formula',
             'mass_iso',
         ];
+    }
+
+    /**
+     * Start direct CSV download for SUSDAT data (no queue needed due to manageable dataset size)
+     */
+    public function startDownloadJob($query_log_id)
+    {
+        if (!Auth::check()) {
+            session()->flash('error', 'You must be logged in to download the CSV file.');
+            return back();
+        }
+
+        try {
+            // Get the query log record
+            $queryLog = QueryLog::findOrFail($query_log_id);
+            
+            // Generate filename
+            $filename = 'susdat_export_uid_' . Auth::id() . '_' . now()->format('YmdHis') . '.csv';
+            
+            // Get request information for logging
+            $ip = request()->ip();
+            $userAgent = request()->userAgent();
+            
+            // Create an export download record for tracking
+            $exportDownload = ExportDownload::create([
+                'user_id' => Auth::id(),
+                'filename' => $filename,
+                'format' => 'csv',
+                'ip_address' => $ip,
+                'user_agent' => $userAgent,
+                'database_key' => 'susdat',
+                'status' => 'processing',
+                'started_at' => Carbon::now()
+            ]);
+            
+            // Associate with the query log
+            $exportDownload->queryLogs()->attach($query_log_id);
+
+            // Process the export directly (no queue needed for manageable dataset)
+            $startTime = microtime(true);
+            $directory = 'exports/susdat';
+            
+            // Make sure the directory exists
+            Storage::makeDirectory($directory);
+            
+            $path = Storage::path("{$directory}/{$filename}");
+            $handle = fopen($path, 'w');
+            
+            if (!$handle) {
+                throw new \Exception("Unable to open file for writing: {$path}");
+            }
+            
+            // Write CSV headers
+            $headers = [
+                'ID',
+                'NORMAN SusDat ID',
+                'Name',
+                'CAS Number',
+                'SMILES',
+                'InChI Key',
+                'DTXID',
+                'PubChem CID',
+                'ChemSpider ID',
+                'Molecular Formula',
+                'Isotopic Mass',
+                'Categories',
+                'Sources',
+                'Export Date'
+            ];
+            fputcsv($handle, $headers);
+            
+            // Build the query from the query log
+            $baseQuery = Substance::query()->select(['id', 'code', 'name', 'cas_number', 'smiles', 'stdinchikey', 'dtxid', 'pubchem_cid', 'chemspider_id', 'molecular_formula', 'mass_iso']);
+            $content = json_decode($queryLog->content, true);
+            $requestData = $content['request'] ?? [];
+            
+            // Process search fields to handle JSON strings properly
+            $categoriesSearch = is_array($requestData['categoriesSearch'] ?? null)
+                ? $requestData['categoriesSearch'] 
+                : json_decode($requestData['categoriesSearch'] ?? '[]', true);
+                
+            $sourcesSearch = is_array($requestData['sourcesSearch'] ?? null)
+                ? $requestData['sourcesSearch'] 
+                : json_decode($requestData['sourcesSearch'] ?? '[]', true);
+
+            $substancesSearch = is_array($requestData['substancesSearch'] ?? null)
+                ? $requestData['substancesSearch'] 
+                : json_decode($requestData['substancesSearch'] ?? '[]', true);
+            
+            // Apply the same filters as in the search method
+            if ($requestData['searchCategory'] == 1 && !empty($categoriesSearch)) {
+                $baseQuery->whereHas('categories', function ($query) use ($categoriesSearch) {
+                    $query->whereIn('susdat_categories.id', $categoriesSearch);
+                });
+            } elseif ($requestData['searchSource'] == 1 && !empty($sourcesSearch)) {
+                $baseQuery->whereHas('sources', function ($query) use ($sourcesSearch) {
+                    $query->whereIn('source_id', $sourcesSearch);
+                });
+            } elseif ($requestData['searchSubstance'] == 1 && !empty($substancesSearch)) {
+                $baseQuery->whereIn('id', $substancesSearch);
+            }
+
+            // Apply ordering
+            $orderColumn = 'code';
+            $orderDirection = 'asc';
+
+            if (!is_null($requestData['order_by_column'] ?? null) && !is_null($requestData['order_by_direction'] ?? null)) {
+                $viewColumns = $this->getViewColumns();
+                $columnIndex = $requestData['order_by_column'];
+                $columnName = $viewColumns[$columnIndex] ?? 'NORMAN SusDat ID';
+
+                $columnMapping = [
+                    '' => 'id',
+                    'NORMAN SusDat ID' => 'code',
+                    'name' => 'name',
+                    'cas_number' => 'cas_number',
+                    'smiles' => 'smiles',
+                    'stdinchikey' => 'stdinchikey',
+                    'dtxid' => 'dtxid',
+                    'pubchem_cid' => 'pubchem_cid',
+                    'chemspider_id' => 'chemspider_id',
+                    'molecular_formula' => 'molecular_formula',
+                    'mass_iso' => 'mass_iso',
+                ];
+
+                $orderColumn = $columnMapping[$columnName] ?? 'code';
+                $orderDirection = $this->orderByList((int) $requestData['order_by_direction']) ?? 'asc';
+            }
+
+            $baseQuery->orderBy($orderColumn, $orderDirection);
+            
+            // Limit to maximum 10,000 rows as requested
+            $baseQuery->limit(10000);
+            
+            // Process records in chunks to manage memory
+            $totalExported = 0;
+            $exportDate = Carbon::now()->format('Y-m-d H:i:s');
+            
+            // Load categories and sources for lookups
+            $categories = Category::select('id', 'name', 'abbreviation')->get()->keyBy('id');
+            $sources = SuspectListExchangeSource::select('id', 'code', 'name')->get()->keyBy('id');
+            
+            $baseQuery->chunk(500, function ($records) use ($handle, $exportDate, &$totalExported, $categories, $sources) {
+                // Get substance IDs for this chunk
+                $substanceIds = $records->pluck('id')->toArray();
+                
+                // Load category associations for this chunk
+                $categoryAssociations = DB::table('susdat_category_substance')
+                    ->whereIn('substance_id', $substanceIds)
+                    ->select('substance_id', 'category_id')
+                    ->get()
+                    ->groupBy('substance_id')
+                    ->map(function ($items) use ($categories) {
+                        return $items->pluck('category_id')
+                            ->map(function ($id) use ($categories) {
+                                return $categories[$id]->name ?? 'Unknown';
+                            })
+                            ->implode('; ');
+                    })
+                    ->toArray();
+
+                // Load source associations for this chunk
+                $sourceAssociations = DB::table('susdat_source_substance')
+                    ->whereIn('substance_id', $substanceIds)
+                    ->select('substance_id', 'source_id')
+                    ->get()
+                    ->groupBy('substance_id')
+                    ->map(function ($items) use ($sources) {
+                        return $items->pluck('source_id')
+                            ->map(function ($id) use ($sources) {
+                                $source = $sources[$id] ?? null;
+                                return $source ? $source->code . ' - ' . $source->name : 'Unknown';
+                            })
+                            ->implode('; ');
+                    })
+                    ->toArray();
+                
+                foreach ($records as $record) {
+                    $row = [
+                        $record->id,
+                        $record->prefixed_code,
+                        $record->name,
+                        $record->cas_number,
+                        $record->smiles,
+                        $record->stdinchikey,
+                        $record->dtxid,
+                        $record->pubchem_cid,
+                        $record->chemspider_id,
+                        $record->molecular_formula,
+                        $record->mass_iso,
+                        $categoryAssociations[$record->id] ?? '',
+                        $sourceAssociations[$record->id] ?? '',
+                        $exportDate
+                    ];
+                    fputcsv($handle, $row);
+                    $totalExported++;
+                }
+            });
+            
+            fclose($handle);
+            
+            // Get file size and processing time
+            $fileSize = Storage::size("{$directory}/{$filename}");
+            $formattedFileSize = $this->formatBytes($fileSize);
+            $processingTime = round(microtime(true) - $startTime, 2);
+            
+            // Update the export download record with completion metrics
+            $exportDownload->update([
+                'status' => 'completed',
+                'record_count' => $totalExported,
+                'file_size_bytes' => $fileSize,
+                'file_size_formatted' => $formattedFileSize,
+                'processing_time_seconds' => $processingTime,
+                'completed_at' => Carbon::now()
+            ]);
+            
+            Log::info("SUSDAT export complete: {$totalExported} records exported in {$processingTime} seconds. File size: {$formattedFileSize}");
+            
+            // Redirect directly to download since processing is complete
+            return redirect()->route('susdat.csv.download', ['filename' => $filename]);
+            
+        } catch (\Exception $e) {
+            Log::error("SUSDAT export failed: " . $e->getMessage());
+            
+            // Update export download record if it exists
+            if (isset($exportDownload)) {
+                $exportDownload->update([
+                    'status' => 'failed',
+                    'message' => $e->getMessage(),
+                    'completed_at' => Carbon::now()
+                ]);
+            }
+            
+            session()->flash('error', 'Export failed: ' . $e->getMessage());
+            return back();
+        }
+    }
+
+    /**
+     * Download the generated CSV file
+     */
+    public function downloadCsv($filename)
+    {
+        $directory = 'exports/susdat';
+        $path = Storage::path("{$directory}/{$filename}");
+        
+        // Debug logging for file availability
+        Log::info("Download request for: {$filename}", [
+            'path' => $path,
+            'exists' => file_exists($path),
+            'directory_contents' => Storage::files($directory)
+        ]);
+
+        if (!file_exists($path)) {
+            // Try to find similar files for debugging
+            $similarFiles = collect(Storage::files($directory))
+                ->filter(function($file) use ($filename) {
+                    $fileBasename = basename($file);
+                    $requestBasename = basename($filename);
+                    // Check if the filename pattern matches (same user and similar timestamp)
+                    return str_contains($fileBasename, explode('_', $requestBasename)[3] ?? '') ||
+                           str_contains($fileBasename, explode('_', $requestBasename)[2] ?? '');
+                })
+                ->values();
+            
+            Log::warning("File not found: {$filename}", [
+                'path' => $path,
+                'similar_files' => $similarFiles->toArray(),
+                'user_id' => Auth::id()
+            ]);
+            
+            return response()->json([
+                'error' => 'File not found',
+                'message' => 'The requested CSV file does not exist. It may have expired or failed to generate.',
+                'similar_files' => $similarFiles->map(function($file) {
+                    return basename($file);
+                })
+            ], 404);
+        }
+
+        return response()->download($path, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+    /**
+     * Format bytes to human-readable file size
+     */
+    protected function formatBytes($bytes, $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        
+        $bytes /= (1 << (10 * $pow));
+        
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }

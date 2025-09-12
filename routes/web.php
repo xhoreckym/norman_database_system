@@ -133,6 +133,8 @@ Route::prefix('factsheets')->group(function () {
 Route::prefix('susdat')->group(function () {
     Route::get('substances/search/filter/', [SubstanceController::class, 'filter'])->name('substances.search.filter');
     Route::get('substances/search/search/', [SubstanceController::class, 'search'])->name('substances.search.search');
+    Route::get('csv/start/{query_log_id}', [SubstanceController::class, 'startDownloadJob'])->name('susdat.csv.start');
+    Route::get('csv/download/{filename}', [SubstanceController::class, 'downloadCsv'])->name('susdat.csv.download');
     Route::get('duplicates/filter/', [DuplicateController::class, 'filter'])->name('duplicates.filter');
     
     Route::get('duplicates/records/{pivot}/{pivot_value}', [DuplicateController::class, 'records'])->name('duplicates.records');
