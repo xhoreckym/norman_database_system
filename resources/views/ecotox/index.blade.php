@@ -205,10 +205,10 @@
                     <td class="p-1 text-center">{{ $e->ph ?? 'N/A' }}</td>
                     <td class="p-1 text-center">{{ $e->exposure_regime ?? 'N/A' }}</td>
                     <td class="p-1 text-center">{{ $e->purity ?? 'N/A' }}</td>
-                    <td class="p-1 text-center"></td>
+                    <td class="p-1 text-center">{{ $e->concentration_qualifier ?? '' }}</td>
                     <td class="p-1 text-center">
                       @if ($e->concentration_value)
-                        <div>{{ $e->concentration_qualifier ?? '' }} {{ number_format($e->concentration_value, 4) }}
+                        <div> {{ number_format($e->concentration_value, 4) }}
                         </div>
                         @if ($e->unit_concentration)
                           <div class="text-xs text-gray-500">{{ $e->unit_concentration }}</div>
