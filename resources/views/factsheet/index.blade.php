@@ -227,7 +227,13 @@
                                         {{ $fieldTranslations[$field] ?? ucwords(str_replace(['_', '-'], ' ', $field)) }}
                                       </td>
                                       <td class="px-4 py-3 text-sm text-gray-700 font-mono break-all">
-                                        {{ $value ?: 'N/A' }}
+                                        @if(is_array($value))
+                                          @foreach($value as $item)
+                                            <div>{{ $item }}</div>
+                                          @endforeach
+                                        @else
+                                          {{ $value ?: 'N/A' }}
+                                        @endif
                                       </td>
                                     </tr>
                                   @endforeach

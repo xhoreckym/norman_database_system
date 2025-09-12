@@ -121,7 +121,7 @@ class FactsheetController extends Controller
                     // Direct access to substance data
                     foreach ($fields as $field) {
                         $value = $substance->{$field} ?? 'N/A';
-                        $processedData['key_value_data'][$field] = $value;
+                        $processedData['key_value_data'][$field] = [$value];
                     }
                 } else {
                     // For other models, try to find related records
@@ -136,25 +136,25 @@ class FactsheetController extends Controller
                             foreach ($fields as $field) {
                                 $values = $records->pluck($field)->filter()->unique();
                                 $processedData['key_value_data'][$field] = $values->isNotEmpty() ? 
-                                    $values->join(', ') : 'N/A';
+                                    $values->toArray() : ['N/A'];
                             }
                         } else {
                             // No records found
                             foreach ($fields as $field) {
-                                $processedData['key_value_data'][$field] = 'No data available';
+                                $processedData['key_value_data'][$field] = ['No data available'];
                             }
                         }
                     } else {
                         // Model doesn't have substance relation, return placeholder
                         foreach ($fields as $field) {
-                            $processedData['key_value_data'][$field] = 'Model relation not configured';
+                            $processedData['key_value_data'][$field] = ['Model relation not configured'];
                         }
                     }
                 }
             } catch (\Exception $e) {
                 Log::error('Error processing database table data: ' . $e->getMessage());
                 foreach ($fields as $field) {
-                    $processedData['key_value_data'][$field] = 'Error loading data';
+                    $processedData['key_value_data'][$field] = ['Error loading data'];
                 }
             }
         }
