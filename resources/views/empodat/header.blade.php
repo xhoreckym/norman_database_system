@@ -19,13 +19,15 @@
     Statistics
   </x-nav-link-header>
 
+
+
   @role('super_admin')
+  <x-nav-link-header :href="route('backend.empodat.stations.index')" :active="request()->is('empodat/stations*')">
+    Stations
+  </x-nav-link-header>
+
   <x-nav-link-header :href="route('querylog.index', ['module' => 'empodat'])" :active="request()->is('*querylog*')">
     History of search
-  </x-nav-link-header>
-  @else
-  <x-nav-link-header>
-    History of search <i class="fas fa-lock ml-2"></i>
   </x-nav-link-header>
   @endrole
 

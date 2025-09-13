@@ -28,7 +28,11 @@ class EmpodatStation extends Model
         'longitude',
     ];
     
-    public function country(){
+    public function countryRelation(){
         return $this->belongsTo(Country::class, 'country_id');
+    }
+    
+    public function countryOtherRelation(){
+        return $this->belongsTo(Country::class, 'country_other_id');
     }
 }

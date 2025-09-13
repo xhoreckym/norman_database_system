@@ -50,6 +50,7 @@ use App\Http\Controllers\ARGB\AntibioticResistanceBacteriaGeneHomeController;
 use App\Http\Controllers\Empodat\StatisticsController as EmpodatStatisticsController;
 use App\Http\Controllers\Backend\UserLoginRetentionController;
 use App\Http\Controllers\Backend\NotificationController;
+use App\Http\Controllers\Empodat\StationController;
 
 // Route::get('/', function () {
 //     return redirect()->route('landing.index');
@@ -98,6 +99,17 @@ Route::prefix('backend')->middleware('auth')->group(function () {
         Route::put('{notification}', [NotificationController::class, 'update'])->name('backend.notifications.update');
         Route::delete('{notification}', [NotificationController::class, 'destroy'])->name('backend.notifications.destroy');
         Route::patch('{notification}/turn-off', [NotificationController::class, 'turnOff'])->name('backend.notifications.turn-off');
+    });
+
+    // Empodat Station Management routes (super_admin only)
+    Route::prefix('empodat/stations')->middleware('role:super_admin')->group(function () {
+        Route::get('/', [StationController::class, 'index'])->name('backend.empodat.stations.index');
+        Route::get('create', [StationController::class, 'create'])->name('backend.empodat.stations.create');
+        Route::post('/', [StationController::class, 'store'])->name('backend.empodat.stations.store');
+        Route::get('{station}', [StationController::class, 'show'])->name('backend.empodat.stations.show');
+        Route::get('{station}/edit', [StationController::class, 'edit'])->name('backend.empodat.stations.edit');
+        Route::put('{station}', [StationController::class, 'update'])->name('backend.empodat.stations.update');
+        Route::delete('{station}', [StationController::class, 'destroy'])->name('backend.empodat.stations.destroy');
     });
 });
 
