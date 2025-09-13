@@ -32,6 +32,10 @@ class EmpodatStation extends Model
         return $this->belongsTo(Country::class, 'country_id');
     }
     
+    public function country(){
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+    
     public function countryOtherRelation(){
         return $this->belongsTo(Country::class, 'country_other_id');
     }

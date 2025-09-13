@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        @include('dashboard.header')
+        @include('empodat.header')
     </x-slot>
 
     <div class="py-12">
