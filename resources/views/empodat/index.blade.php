@@ -112,8 +112,8 @@
               @foreach ($empodats as $e)
                 <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif ">
                   <td class="p-1 text-center">
-                    <div class="">
-                      {{ $e->id }}
+                    <div class="font-mono text-teal-800">
+                      {{ number_format($e->id, 0, '', '  ') }}
                       <a href="{{ route('codsearch.show', $e->id) }}" class="link-lime-text"
                         x-on:click.prevent="openModal({{ $e->id }})">
                         <i class="fas fa-search"></i>
@@ -122,7 +122,7 @@
                   </td>
                   @role('super_admin')
                     <td class="p-1 text-center">
-                      <span class="text-sm text-gray-700">{{ $e->dct_analysis_id ?? 'N/A' }}</span>
+                      <span class="font-mono text-teal-800">{{ number_format($e->dct_analysis_id ?? 'N/A', 0, '', '  ') }}</span>
                     </td>
                   @endrole
                   <td class="p-1 text-center">
