@@ -542,8 +542,15 @@ private function processSearchInput(Request $request, array $fields): array
         } elseif (is_array($value)) {
             $processed[$field] = $value;
         } else {
-            $decoded = json_decode($value, true);
-            $processed[$field] = $decoded ?? $defaultValue;
+            // For simple string values (like id_type), use the value directly
+            // Only try JSON decoding for fields that might contain JSON arrays
+            if (str_ends_with($field, 'Search') || str_ends_with($field, '[]')) {
+                $decoded = json_decode($value, true);
+                $processed[$field] = $decoded ?? $defaultValue;
+            } else {
+                // Use the string value as-is for simple fields
+                $processed[$field] = $value;
+            }
         }
     }
     

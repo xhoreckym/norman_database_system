@@ -97,6 +97,9 @@
             <thead>
               <tr class="bg-gray-600 text-white">
                 <th>ID</th>
+                @role('super_admin')
+                  <th>DCT Analysis ID</th>
+                @endrole
                 <th>Substance</th>
                 <th>Concentration</th>
                 <th>Ecosystem/Matrix</th>
@@ -117,6 +120,11 @@
                       </a>
                     </div>
                   </td>
+                  @role('super_admin')
+                    <td class="p-1 text-center">
+                      <span class="text-sm text-gray-700">{{ $e->dct_analysis_id ?? 'N/A' }}</span>
+                    </td>
+                  @endrole
                   <td class="p-1 text-center">
                     @if ($e->substance)
                       {{ $e->substance->name ?? 'N/A' }}
