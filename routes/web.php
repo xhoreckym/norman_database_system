@@ -49,6 +49,7 @@ use App\Http\Controllers\Factsheet\FactsheetStatisticsController;
 use App\Http\Controllers\ARGB\AntibioticResistanceBacteriaGeneHomeController;
 use App\Http\Controllers\Empodat\StatisticsController as EmpodatStatisticsController;
 use App\Http\Controllers\Backend\UserLoginRetentionController;
+use App\Http\Controllers\Backend\NotificationController;
 
 // Route::get('/', function () {
 //     return redirect()->route('landing.index');
@@ -86,6 +87,17 @@ Route::prefix('backend')->middleware('auth')->group(function () {
     Route::prefix('user-login-retention')->middleware('role:super_admin')->group(function () {
         Route::get('filter', [UserLoginRetentionController::class, 'filter'])->name('backend.user-login-retention.filter');
         Route::get('search', [UserLoginRetentionController::class, 'search'])->name('backend.user-login-retention.search');
+    });
+
+    // Notification Management routes (super_admin only)
+    Route::prefix('notifications')->middleware('role:super_admin')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('backend.notifications.index');
+        Route::get('create', [NotificationController::class, 'create'])->name('backend.notifications.create');
+        Route::post('/', [NotificationController::class, 'store'])->name('backend.notifications.store');
+        Route::get('{notification}/edit', [NotificationController::class, 'edit'])->name('backend.notifications.edit');
+        Route::put('{notification}', [NotificationController::class, 'update'])->name('backend.notifications.update');
+        Route::delete('{notification}', [NotificationController::class, 'destroy'])->name('backend.notifications.destroy');
+        Route::patch('{notification}/turn-off', [NotificationController::class, 'turnOff'])->name('backend.notifications.turn-off');
     });
 });
 

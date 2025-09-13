@@ -38,4 +38,10 @@
     User Login Retention
   </x-nav-link-header>
   @endrole
+
+  @role('super_admin')
+  <x-nav-link-header :href="route('backend.notifications.index')" :active="request()->is('*notifications*')">
+    Notifications
+  </x-nav-link-header>
+  @endrole
 </div>
