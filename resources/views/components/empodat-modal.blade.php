@@ -28,8 +28,8 @@
         <!-- Modal Header -->
         <div class="flex justify-between items-center border-b px-4 py-3 bg-stone-600 text-white rounded-t-lg">
             <div class="flex items-center space-x-4">
-                <h3 class="text-lg font-semibold">Record ID: <span x-text="recordId"></span></h3>
-                <h3 class="text-sm font-medium text-stone-200">DCT Analysis ID: <span x-text="record?.dct_analysis_id || 'N/A'"></span></h3>
+                <h3 class="text-lg font-semibold">Record ID: <span x-text="formatRecordId(recordId)"></span></h3>
+                <h3 class="text-sm font-medium text-stone-200">Legacy ID: <span x-text="formatRecordId(record?.dct_analysis_id) || 'N/A'"></span></h3>
             </div>
             <button @click="closeModal()" class="text-white hover:text-gray-200 text-2xl leading-none p-1">
                 &times;

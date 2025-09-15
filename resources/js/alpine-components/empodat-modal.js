@@ -271,6 +271,27 @@ export default function empodatModal() {
             }
             
             return `${degrees}°${minutes}'${seconds.toFixed(2)}"${direction} (${val.toFixed(6)})`;
+        },
+
+        // Helper method to format record ID with spaces between triple digits
+        formatRecordId(id) {
+            if (!id) return 'N/A';
+            
+            // Convert to string and reverse it for easier processing
+            const idStr = id.toString();
+            const reversed = idStr.split('').reverse();
+            
+            // Add spaces every 3 digits
+            const formatted = [];
+            for (let i = 0; i < reversed.length; i++) {
+                if (i > 0 && i % 3 === 0) {
+                    formatted.push(' ');
+                }
+                formatted.push(reversed[i]);
+            }
+            
+            // Reverse back and join
+            return formatted.reverse().join('');
         }
     };
 }
