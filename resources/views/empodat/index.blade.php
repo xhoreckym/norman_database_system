@@ -7,29 +7,105 @@
   <div class="py-4">
     <div class="w-full mx-auto sm:px-6 lg:px-8">
       <div class="bg-white shadow-lg sm:rounded-lg">
-        <div class="p-6 text-gray-900" x-data="{ ...empodatModal() }" x-init="initLeaflet()">
+        <div class="p-6 text-gray-900" x-data="{ modalComponent: null }" x-init="modalComponent = $refs.empodatModal">
           {{-- main div --}}
 
-          <a
-            href="{{ route('codsearch.filter', [
-                'countrySearch' => $countrySearch,
-                'matrixSearch' => $matrixSearch,
-                'sourceSearch' => $sourceSearch,
-                'year_from' => $year_from ?? '',
-                'year_to' => $year_to ?? '',
-                'displayOption' => $displayOption,
-                'substances' => $substances,
-                'categoriesSearch' => $categoriesSearch,
-                'typeDataSourcesSearch' => $typeDataSourcesSearch,
-                'concentrationIndicatorSearch' => $concentrationIndicatorSearch,
-                'analyticalMethodSearch' => $analyticalMethodSearch,
-                'dataSourceLaboratorySearch' => $dataSourceLaboratorySearch,
-                'dataSourceOrganisationSearch' => $dataSourceOrganisationSearch,
-                'qualityAnalyticalMethodsSearch' => $qualityAnalyticalMethodsSearch,
-                'query_log_id' => $query_log_id,
-            ]) }}">
+          <form method="GET" action="{{ route('codsearch.filter') }}" class="inline">
+            @if(is_array($countrySearch))
+              @foreach($countrySearch as $country)
+                <input type="hidden" name="countrySearch[]" value="{{ $country }}">
+              @endforeach
+            @else
+              <input type="hidden" name="countrySearch" value="{{ $countrySearch }}">
+            @endif
+
+            @if(is_array($matrixSearch))
+              @foreach($matrixSearch as $matrix)
+                <input type="hidden" name="matrixSearch[]" value="{{ $matrix }}">
+              @endforeach
+            @else
+              <input type="hidden" name="matrixSearch" value="{{ $matrixSearch }}">
+            @endif
+
+            @if(is_array($sourceSearch))
+              @foreach($sourceSearch as $source)
+                <input type="hidden" name="sourceSearch[]" value="{{ $source }}">
+              @endforeach
+            @else
+              <input type="hidden" name="sourceSearch" value="{{ $sourceSearch }}">
+            @endif
+
+            <input type="hidden" name="year_from" value="{{ $year_from ?? '' }}">
+            <input type="hidden" name="year_to" value="{{ $year_to ?? '' }}">
+            <input type="hidden" name="displayOption" value="{{ $displayOption }}">
+
+            @if(is_array($substances))
+              @foreach($substances as $substance)
+                <input type="hidden" name="substances[]" value="{{ $substance }}">
+              @endforeach
+            @else
+              <input type="hidden" name="substances" value="{{ $substances }}">
+            @endif
+
+            @if(is_array($categoriesSearch))
+              @foreach($categoriesSearch as $category)
+                <input type="hidden" name="categoriesSearch[]" value="{{ $category }}">
+              @endforeach
+            @else
+              <input type="hidden" name="categoriesSearch" value="{{ $categoriesSearch }}">
+            @endif
+
+            @if(is_array($typeDataSourcesSearch))
+              @foreach($typeDataSourcesSearch as $typeDataSource)
+                <input type="hidden" name="typeDataSourcesSearch[]" value="{{ $typeDataSource }}">
+              @endforeach
+            @else
+              <input type="hidden" name="typeDataSourcesSearch" value="{{ $typeDataSourcesSearch }}">
+            @endif
+
+            @if(is_array($concentrationIndicatorSearch))
+              @foreach($concentrationIndicatorSearch as $concentrationIndicator)
+                <input type="hidden" name="concentrationIndicatorSearch[]" value="{{ $concentrationIndicator }}">
+              @endforeach
+            @else
+              <input type="hidden" name="concentrationIndicatorSearch" value="{{ $concentrationIndicatorSearch }}">
+            @endif
+
+            @if(is_array($analyticalMethodSearch))
+              @foreach($analyticalMethodSearch as $analyticalMethod)
+                <input type="hidden" name="analyticalMethodSearch[]" value="{{ $analyticalMethod }}">
+              @endforeach
+            @else
+              <input type="hidden" name="analyticalMethodSearch" value="{{ $analyticalMethodSearch }}">
+            @endif
+
+            @if(is_array($dataSourceLaboratorySearch))
+              @foreach($dataSourceLaboratorySearch as $dataSourceLaboratory)
+                <input type="hidden" name="dataSourceLaboratorySearch[]" value="{{ $dataSourceLaboratory }}">
+              @endforeach
+            @else
+              <input type="hidden" name="dataSourceLaboratorySearch" value="{{ $dataSourceLaboratorySearch }}">
+            @endif
+
+            @if(is_array($dataSourceOrganisationSearch))
+              @foreach($dataSourceOrganisationSearch as $dataSourceOrganisation)
+                <input type="hidden" name="dataSourceOrganisationSearch[]" value="{{ $dataSourceOrganisation }}">
+              @endforeach
+            @else
+              <input type="hidden" name="dataSourceOrganisationSearch" value="{{ $dataSourceOrganisationSearch }}">
+            @endif
+
+            @if(is_array($qualityAnalyticalMethodsSearch))
+              @foreach($qualityAnalyticalMethodsSearch as $qualityAnalyticalMethod)
+                <input type="hidden" name="qualityAnalyticalMethodsSearch[]" value="{{ $qualityAnalyticalMethod }}">
+              @endforeach
+            @else
+              <input type="hidden" name="qualityAnalyticalMethodsSearch" value="{{ $qualityAnalyticalMethodsSearch }}">
+            @endif
+
+            <input type="hidden" name="query_log_id" value="{{ $query_log_id }}">
             <button type="submit" class="btn-submit">Refine Search</button>
-          </a>
+          </form>
 
           <div class="text-gray-600 flex border-l-2 border-white">
             @if ($displayOption == 1)
@@ -115,7 +191,7 @@
                     <div class="font-mono text-teal-800">
                       {{ number_format($e->id, 0, '', '  ') }}
                       <a href="{{ route('codsearch.show', $e->id) }}" class="link-lime-text"
-                        x-on:click.prevent="openModal({{ $e->id }})">
+                        x-on:click.prevent="console.log('Clicking record:', {{ $e->id }}); $dispatch('open-empodat-modal', {{ $e->id }})">
                         <i class="fas fa-search"></i>
                       </a>
                     </div>

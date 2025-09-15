@@ -30,9 +30,16 @@ import './search-parameters-collapse.js';
 
 // Register the component with Alpine (which is already available from Livewire)
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Registering Alpine components...');
+    console.log('Alpine available:', !!window.Alpine);
+    console.log('empodatModal available:', !!window.empodatModal);
+    
     if (window.Alpine) {
         Alpine.data('ecotoxModal', window.ecotoxModal);
         Alpine.data('credEvaluationModal', window.credEvaluationModal);
         Alpine.data('empodatModal', window.empodatModal);
+        console.log('Alpine components registered successfully');
+    } else {
+        console.error('Alpine not available when trying to register components');
     }
 });

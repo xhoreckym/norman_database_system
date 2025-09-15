@@ -4,6 +4,7 @@ export default function empodatModal() {
         record: null,
         recordId: null,
         mapInstance: null,
+        mapMarker: null,
         stationArray: [],
         analyticalMethodArray: [],
         dataSourceArray: [],
@@ -12,29 +13,23 @@ export default function empodatModal() {
         init() {
             // Initialize Alpine component
             console.log('Empodat modal component initialized');
-        },
-
-        initLeaflet() {
-            // Initialize Leaflet once when component loads
-            // We'll wait to set the view until after we have coordinates
-            // or we can set some default. For now, let's do a blank init.
-            this.mapInstance = L.map('map', {
-                center: [0, 0],
-                zoom: 2
+            
+            // Clean up map on page unload
+            window.addEventListener('beforeunload', () => {
+                if (this.mapInstance) {
+                    this.mapInstance.remove();
+                    this.mapInstance = null;
+                }
             });
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(this.mapInstance);
         },
 
         async openModal(recordId) {
             try {
                 console.log('Opening Empodat modal for record ID:', recordId);
                 
-                this.recordId = recordId; // Store the record ID
+                this.recordId = recordId;
 
-                // Fetch record data from our /records/:id/json route
+                // Fetch record data
                 const response = await fetch(
                     window.empodatRoutes.show.replace(':id', recordId)
                 );
@@ -47,7 +42,7 @@ export default function empodatModal() {
                 this.record = await response.json();
                 console.log('Record data loaded:', this.record);
 
-                // Build arrays for display, filtering out unwanted keys and empty/null values
+                // Build arrays for display
                 this.buildStationArray();
                 this.buildAnalyticalMethodArray();
                 this.buildDataSourceArray();
@@ -56,8 +51,16 @@ export default function empodatModal() {
                 // Show the modal
                 this.showModal = true;
 
-                // Update map with record coordinates
-                this.updateMapLocation();
+                // Initialize map after modal is shown and DOM is updated
+                // Use nextTick to ensure DOM is ready
+                await this.$nextTick();
+                
+                // Additional delay to ensure modal transition is complete
+                setTimeout(() => {
+                    if (this.hasValidCoordinates()) {
+                        this.initializeMap();
+                    }
+                }, 300);
 
             } catch (error) {
                 console.error('Error opening Empodat modal:', error);
@@ -65,50 +68,126 @@ export default function empodatModal() {
             }
         },
 
+        initializeMap() {
+            console.log('Initializing map...');
+            
+            const mapContainer = document.getElementById('map');
+            
+            if (!mapContainer) {
+                console.error('Map container not found');
+                return;
+            }
+
+            // Clean up existing map instance if it exists
+            if (this.mapInstance) {
+                console.log('Removing existing map instance');
+                this.mapInstance.remove();
+                this.mapInstance = null;
+                this.mapMarker = null;
+            }
+
+            try {
+                const lat = parseFloat(this.record.station.latitude);
+                const lng = parseFloat(this.record.station.longitude);
+                
+                console.log('Creating map with coordinates:', lat, lng);
+
+                // Create new map instance
+                this.mapInstance = L.map('map', {
+                    center: [lat, lng],
+                    zoom: 10,
+                    scrollWheelZoom: false // Disable scroll zoom in modal
+                });
+
+                // Add tile layer
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    maxZoom: 19
+                }).addTo(this.mapInstance);
+
+                // Add marker
+                this.mapMarker = L.marker([lat, lng])
+                    .addTo(this.mapInstance)
+                    .bindPopup(`
+                        <div class="text-sm">
+                            <strong>Station:</strong> ${this.record.station.name || 'Unknown'}<br>
+                            <strong>Record ID:</strong> ${this.recordId}<br>
+                            <strong>Coordinates:</strong> ${lat.toFixed(4)}, ${lng.toFixed(4)}
+                        </div>
+                    `);
+
+                // Force map to recalculate its size
+                setTimeout(() => {
+                    this.mapInstance.invalidateSize();
+                    
+                    // Optional: Open popup automatically
+                    this.mapMarker.openPopup();
+                }, 100);
+
+                console.log('Map initialized successfully');
+
+            } catch (error) {
+                console.error('Error creating map:', error);
+            }
+        },
+
         buildStationArray() {
-            if (this.record.station) {
-                const excludedKeys = ['id', 'created_at', 'updated_at'];
+            if (this.record?.station) {
+                const excludedKeys = ['id', 'created_at', 'updated_at', 'latitude', 'longitude'];
                 this.stationArray = Object.entries(this.record.station)
                     .filter(([key, val]) =>
                         !excludedKeys.includes(key) &&
                         val !== null &&
-                        val !== ''
-                    );
+                        val !== '' &&
+                        val !== 0
+                    )
+                    .map(([key, val]) => [
+                        this.formatFieldName(key),
+                        val
+                    ]);
             } else {
                 this.stationArray = [];
             }
         },
 
         buildAnalyticalMethodArray() {
-            if (this.record.analytical_method) {
+            if (this.record?.analytical_method) {
                 const excludedKeys = ['id', 'created_at', 'updated_at'];
                 this.analyticalMethodArray = Object.entries(this.record.analytical_method)
                     .filter(([key, val]) =>
                         !excludedKeys.includes(key) &&
                         val !== null &&
                         val !== ''
-                    );
+                    )
+                    .map(([key, val]) => [
+                        this.formatFieldName(key),
+                        val
+                    ]);
             } else {
                 this.analyticalMethodArray = [];
             }
         },
 
         buildDataSourceArray() {
-            if (this.record.data_source) {
+            if (this.record?.data_source) {
                 const excludedKeys = ['id', 'created_at', 'updated_at'];
                 this.dataSourceArray = Object.entries(this.record.data_source)
                     .filter(([key, val]) =>
                         !excludedKeys.includes(key) &&
                         val !== null &&
                         val !== ''
-                    );
+                    )
+                    .map(([key, val]) => [
+                        this.formatFieldName(key),
+                        val
+                    ]);
             } else {
                 this.dataSourceArray = [];
             }
         },
 
         buildMetaDataArray() {
-            if (this.record.matrix_data && this.record.matrix_data.meta_data) {
+            if (this.record?.matrix_data?.meta_data) {
                 const excludedKeys = ['id', 'created_at', 'updated_at'];
                 
                 this.metaDataArray = Object.entries(this.record.matrix_data.meta_data)
@@ -116,33 +195,55 @@ export default function empodatModal() {
                         !excludedKeys.includes(key) &&
                         val !== null &&
                         val !== ''
-                    );
+                    )
+                    .map(([key, val]) => [
+                        this.formatFieldName(key),
+                        val
+                    ]);
             } else {
                 this.metaDataArray = [];
             }
         },
 
-        updateMapLocation() {
-            // Now that we have record coordinates, update the map
-            if (this.record.station && this.record.station.latitude && this.record.station.longitude) {
-                // Fly or setView to the record's location
-                this.mapInstance.setView([this.record.station.latitude, this.record.station.longitude], 7);
+        formatFieldName(fieldName) {
+            // Convert snake_case to Title Case
+            return fieldName
+                .split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        },
 
-                // Clear existing markers (if any).
-                this.mapInstance.eachLayer((layer) => {
-                    if (layer instanceof L.Marker) {
-                        this.mapInstance.removeLayer(layer);
-                    }
-                });
-
-                // Add a marker
-                L.marker([this.record.station.latitude, this.record.station.longitude])
-                    .addTo(this.mapInstance)
-                    .bindPopup(`Record ID: ${this.recordId}`);
+        hasValidCoordinates() {
+            if (!this.record?.station) {
+                return false;
             }
+            
+            const lat = parseFloat(this.record.station.latitude);
+            const lng = parseFloat(this.record.station.longitude);
+            
+            // Check if coordinates exist, are valid numbers, and not both zero
+            return !isNaN(lat) && !isNaN(lng) && 
+                   lat >= -90 && lat <= 90 && 
+                   lng >= -180 && lng <= 180 &&
+                   (lat !== 0 || lng !== 0);
         },
 
         closeModal() {
+            console.log('Closing modal');
+            
+            // Clean up map instance
+            if (this.mapInstance) {
+                console.log('Removing map instance');
+                try {
+                    this.mapInstance.remove();
+                } catch (error) {
+                    console.error('Error removing map:', error);
+                }
+                this.mapInstance = null;
+                this.mapMarker = null;
+            }
+
+            // Reset all data
             this.showModal = false;
             this.record = null;
             this.recordId = null;
@@ -150,7 +251,26 @@ export default function empodatModal() {
             this.analyticalMethodArray = [];
             this.dataSourceArray = [];
             this.metaDataArray = [];
-            // Optionally reset map or let it persist
+        },
+
+        // Helper method to format coordinates for display
+        formatCoordinate(value, type) {
+            const val = parseFloat(value);
+            if (isNaN(val)) return 'N/A';
+            
+            const absVal = Math.abs(val);
+            const degrees = Math.floor(absVal);
+            const minutes = Math.floor((absVal - degrees) * 60);
+            const seconds = ((absVal - degrees) * 60 - minutes) * 60;
+            
+            let direction = '';
+            if (type === 'latitude') {
+                direction = val >= 0 ? 'N' : 'S';
+            } else {
+                direction = val >= 0 ? 'E' : 'W';
+            }
+            
+            return `${degrees}°${minutes}'${seconds.toFixed(2)}"${direction} (${val.toFixed(6)})`;
         }
     };
 }
