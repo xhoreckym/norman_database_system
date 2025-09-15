@@ -22,6 +22,9 @@ import './alpine-components/ecotox-modal.js';
 // Import the CRED evaluation modal component
 import './alpine-components/cred-evaluation-modal.js';
 
+// Import the Empodat modal component
+import './alpine-components/empodat-modal.js';
+
 // Import the search parameters collapse component
 import './search-parameters-collapse.js';
 
@@ -30,5 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.Alpine) {
         Alpine.data('ecotoxModal', window.ecotoxModal);
         Alpine.data('credEvaluationModal', window.credEvaluationModal);
+        Alpine.data('empodatModal', window.empodatModal);
     }
 });
