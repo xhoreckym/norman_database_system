@@ -104,6 +104,15 @@
             @endif
 
             <input type="hidden" name="query_log_id" value="{{ $query_log_id }}">
+            @if(request('id_type'))
+              <input type="hidden" name="id_type" value="{{ request('id_type') }}">
+            @endif
+            @if(request('id_from'))
+              <input type="hidden" name="id_from" value="{{ request('id_from') }}">
+            @endif
+            @if(request('id_to'))
+              <input type="hidden" name="id_to" value="{{ request('id_to') }}">
+            @endif
             <button type="submit" class="btn-submit">Refine Search</button>
           </form>
 

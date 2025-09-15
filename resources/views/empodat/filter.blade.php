@@ -68,7 +68,7 @@
             <div id="searchId">
               <div class="bg-zinc-200 p-2">
                 <div class="font-bold mb-2">
-                  ID Search:
+                  ID Search <span class="text-xs text-red-500">(only for super admin, other search parameters are ignored)</span>
                 </div>
                 <div class="mb-3">
                   <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
