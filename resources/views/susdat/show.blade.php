@@ -2,17 +2,17 @@
   <x-slot name="header">
     @include('susdat.header')
   </x-slot>
-  
+
   <div class="py-4">
-    
+
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-    
+
       {{-- @include('_t.errors') --}}
 
       <div class="bg-white shadow-lg sm:rounded-lg">
-        
+
         <div class="p-6 text-gray-900">
-        
+
           {{-- Substance Information at Glance --}}
           <div class="mb-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Substance Information at Glance</h2>
@@ -60,8 +60,8 @@
               <div>
                 <h3 class="text-sm font-medium text-gray-800 mb-1">Categories</h3>
                 <div class="text-sm text-teal-800">
-                  @if($substance->categories && $substance->categories->count() > 0)
-                    @foreach($substance->categories as $category)
+                  @if ($substance->categories && $substance->categories->count() > 0)
+                    @foreach ($substance->categories as $category)
                       <span class="inline-block bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded mr-1 mb-1">
                         {{ $category->name }}
                       </span>
@@ -74,8 +74,8 @@
               <div>
                 <h3 class="text-sm font-medium text-gray-800 mb-1">Sources</h3>
                 <div class="text-sm text-teal-800">
-                  @if($substance->sources && $substance->sources->count() > 0)
-                    @foreach($substance->sources as $source)
+                  @if ($substance->sources && $substance->sources->count() > 0)
+                    @foreach ($substance->sources as $source)
                       <span class="inline-block bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded mr-1 mb-1">
                         {{ $source->code }} - {{ $source->name }}
                       </span>
@@ -87,102 +87,107 @@
               </div>
             </div>
           </div>
-        
+
           <div class="w-full">
             <div class="flex justify-between items-center">
               <span class="text-xl font-bold">Complete Substance Details</span>
-              <a class="link-edit" href="{{route('substances.edit', $substance->id)}}">
-                Edit
-              </a>
-          </div>
+              @auth
+                @role('super_admin|admin|susdat')
+                  <a class="link-edit" href="{{ route('substances.edit', $substance->id) }}">
+                    Edit
+                  </a>
+                @endrole
+              @endauth
+            </div>
 
-          <table class="table-auto w-full border-separate border-spacing-1 text-xs">
-            @foreach ($substance->toArray() as $key => $value)
-            <tr class="@if($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
-              <td class="p-1 font-bold">{{$key}}</td>
-              @if (substr($key, 0, 8) == 'metadata')
-              @php
-              // Handle both string and array values for metadata
-              if (is_string($value)) {
-                $decodedJson = json_decode($value, true);
-              } else {
-                $decodedJson = $value;
-              }
-              
-              // Ensure we have an array to work with
-              if (is_array($decodedJson)) {
-                $prettyJson = json_encode($decodedJson, JSON_PRETTY_PRINT);
-                $escapedJson = htmlspecialchars($prettyJson, ENT_QUOTES, 'UTF-8');
-              } else {
-                $decodedJson = [];
-              }
-              @endphp
-              <td class="p-1">
-                @if (is_array($decodedJson) && !empty($decodedJson))
-                  @foreach ($decodedJson as $keyInner => $valueInner)
-                    <span class="block py-1">
-                      <span class="font-bold">{{$keyInner}}:</span> 
-                      @if (is_array($valueInner))
-                        @if (!empty($valueInner))
-                          @foreach ($valueInner as $subItem)
-                            <div class="ml-2">{{ is_array($subItem) ? json_encode($subItem) : $subItem }}</div>
-                          @endforeach
+            <table class="table-auto w-full border-separate border-spacing-1 text-xs">
+              @foreach ($substance->toArray() as $key => $value)
+                <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
+                  <td class="p-1 font-bold">{{ $key }}</td>
+                  @if (substr($key, 0, 8) == 'metadata')
+                    @php
+                      // Handle both string and array values for metadata
+                      if (is_string($value)) {
+                          $decodedJson = json_decode($value, true);
+                      } else {
+                          $decodedJson = $value;
+                      }
+
+                      // Ensure we have an array to work with
+                      if (is_array($decodedJson)) {
+                          $prettyJson = json_encode($decodedJson, JSON_PRETTY_PRINT);
+                          $escapedJson = htmlspecialchars($prettyJson, ENT_QUOTES, 'UTF-8');
+                      } else {
+                          $decodedJson = [];
+                      }
+                    @endphp
+                    <td class="p-1">
+                      @if (is_array($decodedJson) && !empty($decodedJson))
+                        @foreach ($decodedJson as $keyInner => $valueInner)
+                          <span class="block py-1">
+                            <span class="font-bold">{{ $keyInner }}:</span>
+                            @if (is_array($valueInner))
+                              @if (!empty($valueInner))
+                                @foreach ($valueInner as $subItem)
+                                  <div class="ml-2">{{ is_array($subItem) ? json_encode($subItem) : $subItem }}</div>
+                                @endforeach
+                              @else
+                                <span class="text-gray-500">Empty</span>
+                              @endif
+                            @else
+                              {{ $valueInner }}
+                            @endif
+                          </span>
+                        @endforeach
+                      @else
+                        <span class="text-gray-500">No metadata available</span>
+                      @endif
+                    </td>
+                  @else
+                    <td class="p-1">
+                      @if (is_array($value))
+                        @if (!empty($value))
+                          @if ($key === 'categories')
+                            @foreach ($value as $category)
+                              <span class="inline-block bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded mr-1 mb-1">
+                                {{ is_object($category) ? $category->name : (is_array($category) ? $category['name'] ?? 'Unknown' : $category) }}
+                              </span>
+                            @endforeach
+                          @elseif ($key === 'sources')
+                            @foreach ($value as $source)
+                              <span
+                                class="inline-block bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded mr-1 mb-1">
+                                @if (is_object($source))
+                                  {{ $source->code }} - {{ $source->name }}
+                                @elseif (is_array($source))
+                                  {{ $source['code'] ?? 'Unknown' }} - {{ $source['name'] ?? 'Unknown' }}
+                                @else
+                                  {{ $source }}
+                                @endif
+                              </span>
+                            @endforeach
+                          @else
+                            {{-- For other arrays (like metadata arrays from casts) --}}
+                            @foreach ($value as $item)
+                              <div class="py-1">{{ is_array($item) ? json_encode($item) : $item }}</div>
+                            @endforeach
+                          @endif
                         @else
-                          <span class="text-gray-500">Empty</span>
+                          <span class="text-gray-500">No data available</span>
                         @endif
                       @else
-                        {{ $valueInner }}
+                        {{ $value }}
                       @endif
-                    </span>
-                  @endforeach
-                @else
-                  <span class="text-gray-500">No metadata available</span>
-                @endif
-              </td>
-              @else
-              <td class="p-1">
-                @if (is_array($value))
-                  @if (!empty($value))
-                    @if ($key === 'categories')
-                      @foreach ($value as $category)
-                        <span class="inline-block bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded mr-1 mb-1">
-                          {{ is_object($category) ? $category->name : (is_array($category) ? ($category['name'] ?? 'Unknown') : $category) }}
-                        </span>
-                      @endforeach
-                    @elseif ($key === 'sources')
-                      @foreach ($value as $source)
-                        <span class="inline-block bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded mr-1 mb-1">
-                          @if (is_object($source))
-                            {{ $source->code }} - {{ $source->name }}
-                          @elseif (is_array($source))
-                            {{ ($source['code'] ?? 'Unknown') }} - {{ ($source['name'] ?? 'Unknown') }}
-                          @else
-                            {{ $source }}
-                          @endif
-                        </span>
-                      @endforeach
-                    @else
-                      {{-- For other arrays (like metadata arrays from casts) --}}
-                      @foreach ($value as $item)
-                        <div class="py-1">{{ is_array($item) ? json_encode($item) : $item }}</div>
-                      @endforeach
-                    @endif
-                  @else
-                    <span class="text-gray-500">No data available</span>
+                    </td>
                   @endif
-                @else
-                  {{ $value }}
-                @endif
-              </td>
-              @endif
-              
-            </tr>
-            @endforeach
-          </table>
-          
-          
+
+                </tr>
+              @endforeach
+            </table>
+
+
+          </div>
         </div>
       </div>
     </div>
-  </div>
 </x-app-layout>
