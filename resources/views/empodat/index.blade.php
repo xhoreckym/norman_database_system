@@ -198,7 +198,7 @@
                 <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif ">
                   <td class="p-1 text-center">
                     <div class="font-mono text-teal-800">
-                      {{ number_format($e->id, 0, '', '  ') }}
+                      {!! number_format($e->id, 0, '', '&nbsp;') !!}
                       <a href="{{ route('codsearch.show', $e->id) }}" class="link-lime-text"
                         x-on:click.prevent="console.log('Clicking record:', {{ $e->id }}); $dispatch('open-empodat-modal', {{ $e->id }})">
                         <i class="fas fa-search"></i>
@@ -207,7 +207,7 @@
                   </td>
                   @role('super_admin')
                     <td class="p-1 text-center">
-                      <span class="font-mono text-teal-800">{{ number_format($e->dct_analysis_id ?? 'N/A', 0, '', '  ') }}</span>
+                      <span class="font-mono text-teal-800">{!! number_format($e->dct_analysis_id ?? 'N/A', 0, '', '&nbsp;') !!}</span>
                     </td>
                   @endrole
                   <td class="p-1 text-center">

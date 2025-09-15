@@ -23,7 +23,7 @@ class SubstanceController extends Controller
 {
     public function audits(Substance $substance)
     {
-        $audits = $substance->audits()->with('user')->orderBy('created_at', 'desc')->paginate(20);
+        $audits = $substance->audits()->with('user')->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
 
         return view('susdat.audits', [
             'substance' => $substance,
@@ -33,7 +33,7 @@ class SubstanceController extends Controller
 
     public function withAudits()
     {
-        $substances = Substance::whereHas('audits')->withCount('audits')->orderBy('audits_count', 'desc')->paginate(50);
+        $substances = Substance::whereHas('audits')->withCount('audits')->orderBy('audits_count', 'desc')->paginate(50)->withQueryString();
 
         return view('susdat.with-audits', [
             'substances' => $substances,
@@ -47,7 +47,8 @@ class SubstanceController extends Controller
     {
         $substances = Substance::select(['id', 'code', 'name', 'cas_number', 'smiles', 'stdinchikey', 'dtxid', 'pubchem_cid', 'chemspider_id', 'molecular_formula', 'mass_iso', 'deleted_at'])
             ->orderBy('code', 'asc')
-            ->paginate(100);
+            ->paginate(100)
+            ->withQueryString();
 
         // Get category IDs for the paginated substances
         $substanceIds = $substances->pluck('id')->toArray();
@@ -133,8 +134,10 @@ class SubstanceController extends Controller
      */
     public function show($id)
     {
+        $substance = Substance::with(['categories', 'sources'])->findOrFail($id);
+        
         return view('susdat.show', [
-            'substance' => Substance::findOrFail($id),
+            'substance' => $substance,
         ]);
     }
 
@@ -298,7 +301,7 @@ class SubstanceController extends Controller
         }
 
         // Paginate FIRST, then load relationships
-        $substances = $substances->paginate(30);
+        $substances = $substances->paginate(100)->withQueryString();
 
         // Get substance IDs from paginated results only
         $substanceIds = $substances->pluck('id')->toArray();

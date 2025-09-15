@@ -13,9 +13,84 @@
         
         <div class="p-6 text-gray-900">
         
+          {{-- Substance Information at Glance --}}
+          <div class="mb-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Substance Information at Glance</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">NORMAN Code</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->prefixed_code ?? 'N/A' }}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">Substance</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->name ?? 'N/A' }}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">CAS Number</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->cas_number ?? 'N/A' }}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">StdInChIKey</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->stdinchikey ?? 'N/A' }}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">SMILES</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->smiles ?? 'N/A' }}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">Molecular Formula</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->molecular_formula ?? 'N/A' }}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">Isotopic Mass</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->mass_iso ?? 'N/A' }}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">PubChem CID</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->pubchem_cid ?? 'N/A' }}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">DTXID</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->dtxid ?? 'N/A' }}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">ChemSpider ID</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->chemspider_id ?? 'N/A' }}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">Categories</h3>
+                <div class="text-sm text-teal-800">
+                  @if($substance->categories && $substance->categories->count() > 0)
+                    @foreach($substance->categories as $category)
+                      <span class="inline-block bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded mr-1 mb-1">
+                        {{ $category->name }}
+                      </span>
+                    @endforeach
+                  @else
+                    <span class="text-gray-500">N/A</span>
+                  @endif
+                </div>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">Sources</h3>
+                <div class="text-sm text-teal-800">
+                  @if($substance->sources && $substance->sources->count() > 0)
+                    @foreach($substance->sources as $source)
+                      <span class="inline-block bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded mr-1 mb-1">
+                        {{ $source->code }} - {{ $source->name }}
+                      </span>
+                    @endforeach
+                  @else
+                    <span class="text-gray-500">N/A</span>
+                  @endif
+                </div>
+              </div>
+            </div>
+          </div>
+        
           <div class="w-full">
             <div class="flex justify-between items-center">
-              <span class="text-xl font-bold">Substance Details</span>
+              <span class="text-xl font-bold">Complete Substance Details</span>
               <a class="link-edit" href="{{route('substances.edit', $substance->id)}}">
                 Edit
               </a>
@@ -45,14 +120,60 @@
               <td class="p-1">
                 @if (is_array($decodedJson) && !empty($decodedJson))
                   @foreach ($decodedJson as $keyInner => $valueInner)
-                    <span class="block py-1"><span class="font-bold">{{$keyInner}}:</span> {{$valueInner}}</span>
+                    <span class="block py-1">
+                      <span class="font-bold">{{$keyInner}}:</span> 
+                      @if (is_array($valueInner))
+                        @if (!empty($valueInner))
+                          @foreach ($valueInner as $subItem)
+                            <div class="ml-2">{{ is_array($subItem) ? json_encode($subItem) : $subItem }}</div>
+                          @endforeach
+                        @else
+                          <span class="text-gray-500">Empty</span>
+                        @endif
+                      @else
+                        {{ $valueInner }}
+                      @endif
+                    </span>
                   @endforeach
                 @else
                   <span class="text-gray-500">No metadata available</span>
                 @endif
               </td>
               @else
-              <td>{{$value}}</td>
+              <td class="p-1">
+                @if (is_array($value))
+                  @if (!empty($value))
+                    @if ($key === 'categories')
+                      @foreach ($value as $category)
+                        <span class="inline-block bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded mr-1 mb-1">
+                          {{ is_object($category) ? $category->name : (is_array($category) ? ($category['name'] ?? 'Unknown') : $category) }}
+                        </span>
+                      @endforeach
+                    @elseif ($key === 'sources')
+                      @foreach ($value as $source)
+                        <span class="inline-block bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded mr-1 mb-1">
+                          @if (is_object($source))
+                            {{ $source->code }} - {{ $source->name }}
+                          @elseif (is_array($source))
+                            {{ ($source['code'] ?? 'Unknown') }} - {{ ($source['name'] ?? 'Unknown') }}
+                          @else
+                            {{ $source }}
+                          @endif
+                        </span>
+                      @endforeach
+                    @else
+                      {{-- For other arrays (like metadata arrays from casts) --}}
+                      @foreach ($value as $item)
+                        <div class="py-1">{{ is_array($item) ? json_encode($item) : $item }}</div>
+                      @endforeach
+                    @endif
+                  @else
+                    <span class="text-gray-500">No data available</span>
+                  @endif
+                @else
+                  {{ $value }}
+                @endif
+              </td>
               @endif
               
             </tr>
