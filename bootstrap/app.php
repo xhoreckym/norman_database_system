@@ -7,6 +7,8 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
+use Sentry\Laravel\Integration;
+
 
 return Application::configure(basePath: dirname(__DIR__))
 ->withRouting(
@@ -26,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        Integration::handles($exceptions);
         $exceptions->renderable(function (NotFoundHttpException $e, Request $request) {
             if ($request->wantsJson()) { 
                 return response()->json(['message' => 'Object not found'], 404);
