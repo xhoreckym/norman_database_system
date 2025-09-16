@@ -8,4 +8,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-Schedule::command('test:cron')->hourly();
+Schedule::command('telescope:prune --hours=72')->daily();
+
+Schedule::command('logs:clear')->days([1, 5])->at('03:00');
