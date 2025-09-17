@@ -9,8 +9,10 @@ use App\Models\DatabaseEntity;
 use App\Models\Backend\Template;
 use App\Models\Backend\File;
 use App\Models\Backend\Project;
+use App\Models\Backend\ServerPayment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardMainController extends Controller
 {
@@ -168,6 +170,32 @@ class DashboardMainController extends Controller
             ],
         ];
 
+        // Get server payment data for server payment roles
+        $serverPayment = null;
+        $daysRemaining = null;
+        $progressPercentage = 0;
+        
+        if ($user->hasAnyRole(['super_admin', 'server_payment_admin', 'server_payment_viewer'])) {
+            $serverPayment = ServerPayment::where('status', 'paid')
+                ->orderBy('period_end_date', 'desc')
+                ->first();
+                
+            if ($serverPayment) {
+                $today = Carbon::today();
+                $endDate = Carbon::parse($serverPayment->period_end_date);
+                
+                if ($endDate->isFuture()) {
+                    $daysRemaining = $today->diffInDays($endDate, false);
+                    $totalDays = Carbon::parse($serverPayment->period_start_date)->diffInDays($endDate);
+                    $daysPassed = $totalDays - $daysRemaining;
+                    $progressPercentage = $totalDays > 0 ? ($daysPassed / $totalDays) * 100 : 0;
+                } else {
+                    $daysRemaining = 0;
+                    $progressPercentage = 100;
+                }
+            }
+        }
+
         return view('dashboard.index', [
             'user' => $user,
             'databaseEntities' => $databaseEntities,
@@ -177,6 +205,9 @@ class DashboardMainController extends Controller
             'quickAccessLinks' => $quickAccessLinks,
             'adminProcessGroups' => $adminProcessGroups,
             'currentDate' => now(),
+            'serverPayment' => $serverPayment,
+            'daysRemaining' => $daysRemaining,
+            'progressPercentage' => $progressPercentage,
         ]);
     }
 

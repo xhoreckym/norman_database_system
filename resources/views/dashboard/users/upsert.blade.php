@@ -177,21 +177,25 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">User Roles</label>
                   <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
                     @php
-                    if (auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('admin')) {
+                    if (auth()->user()->hasRole('super_admin')) {
                         $roles = Spatie\Permission\Models\Role::all();
+                    } elseif (auth()->user()->hasRole('admin')) {
+                        $roles = Spatie\Permission\Models\Role::whereNotIn('name', ['super_admin', 'server_payment_admin', 'server_payment_viewer'])->get();
                     } else {
-                        $roles = Spatie\Permission\Models\Role::whereNotIn('name', ['super_admin', 'admin'])->get();
+                        $roles = Spatie\Permission\Models\Role::whereNotIn('name', ['super_admin', 'admin', 'server_payment_viewer', 'server_payment_admin'])->get();
                     }
                     @endphp
                     
                     @foreach ($roles as $role)
-                    <label class="inline-flex items-center space-x-2 p-2 border rounded {{ $role->name === 'user' ? 'bg-gray-100' : 'hover:bg-gray-50' }}">
+                    <label class="inline-flex items-center space-x-2 p-2 border rounded {{ $role->name === 'user' ? 'bg-gray-100' : (($role->name === 'server_payment_admin' || $role->name === 'server_payment_viewer') ? 'bg-yellow-100' : 'hover:bg-gray-50') }}">
                       <input type="checkbox" 
                              name="roles[]" 
                              value="{{ $role->name }}" 
                              class="h-4 w-4 text-slate-600 focus:ring-slate-500 border-gray-300 rounded"
                              @if($role->name === 'user') 
                                checked disabled 
+                             @elseif(($role->name === 'server_payment_admin' || $role->name === 'server_payment_viewer') && !auth()->user()->hasRole('super_admin'))
+                               disabled
                              @elseif(isset($user) && $user->hasRole($role->name)) 
                                checked 
                              @endif>
@@ -199,6 +203,8 @@
                         {{ $role->name }}
                         @if($role->name === 'user')
                           <span class="text-xs text-gray-500">(required)</span>
+                        @elseif($role->name === 'server_payment_admin' || $role->name === 'server_payment_viewer')
+                          <span class="text-xs text-gray-500">(super_admin only)</span>
                         @endif
                       </span>
                       @if($role->name === 'user')

@@ -137,6 +137,14 @@ class UserController extends Controller implements HasMiddleware
       'projects'      => 'nullable',
     ];
     $request->validate($validation_array);
+    
+    // Check if non-super_admin is trying to assign server payment roles
+    $serverPaymentRoles = ['server_payment_admin', 'server_payment_viewer'];
+    $requestedServerRoles = array_intersect($request->roles ?? [], $serverPaymentRoles);
+    if (!empty($requestedServerRoles) && !auth()->user()->hasRole('super_admin')) {
+      return redirect()->back()->with('error', 'Only super_admin can assign server payment roles.')
+        ->withInput();
+    }
     $temporary_password = Str::random(12);
     $user = New User();
     // Set explicit ID to avoid sequence conflict
@@ -219,17 +227,25 @@ class UserController extends Controller implements HasMiddleware
     /**
     * Update the specified resource in storage.
     */
-    public function update(Request $request, string $id)
-    {
-      //
-      $validation_array = [
-        'first_name'    => 'required',
-        'last_name'     => 'required',
-        'email'         => 'required',
-        'roles'         => 'required',
-        'projects'      => 'nullable',
-      ];
-      $request->validate($validation_array);
+  public function update(Request $request, string $id)
+  {
+    //
+    $validation_array = [
+      'first_name'    => 'required',
+      'last_name'     => 'required',
+      'email'         => 'required',
+      'roles'         => 'required',
+      'projects'      => 'nullable',
+    ];
+    $request->validate($validation_array);
+    
+    // Check if non-super_admin is trying to assign server payment roles
+    $serverPaymentRoles = ['server_payment_admin', 'server_payment_viewer'];
+    $requestedServerRoles = array_intersect($request->roles ?? [], $serverPaymentRoles);
+    if (!empty($requestedServerRoles) && !auth()->user()->hasRole('super_admin')) {
+      return redirect()->back()->with('error', 'Only super_admin can assign server payment roles.')
+        ->withInput();
+    }
       
       $user = User::find($id);
       $user->first_name = $request['first_name'];
