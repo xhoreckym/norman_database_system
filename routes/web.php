@@ -51,6 +51,7 @@ use App\Http\Controllers\Empodat\StatisticsController as EmpodatStatisticsContro
 use App\Http\Controllers\Backend\UserLoginRetentionController;
 use App\Http\Controllers\Backend\NotificationController;
 use App\Http\Controllers\Empodat\StationController;
+use App\Http\Controllers\Backend\ServerPaymentController;
 
 // Route::get('/', function () {
 //     return redirect()->route('landing.index');
@@ -88,6 +89,20 @@ Route::prefix('backend')->middleware('auth')->group(function () {
     Route::prefix('user-login-retention')->middleware('role:super_admin')->group(function () {
         Route::get('filter', [UserLoginRetentionController::class, 'filter'])->name('backend.user-login-retention.filter');
         Route::get('search', [UserLoginRetentionController::class, 'search'])->name('backend.user-login-retention.search');
+    });
+
+    // Server Payments (CRUD)
+    Route::prefix('server-payments')->group(function () {
+        Route::middleware(['role:super_admin|server_payment_admin|server_payment_viewer'])->group(function () {
+            Route::get('/', [ServerPaymentController::class, 'index'])->name('backend.server-payments.index');
+        });
+        Route::middleware(['role:super_admin|server_payment_admin'])->group(function () {
+            Route::get('create', [ServerPaymentController::class, 'create'])->name('backend.server-payments.create');
+            Route::post('/', [ServerPaymentController::class, 'store'])->name('backend.server-payments.store');
+            Route::get('{serverPayment}/edit', [ServerPaymentController::class, 'edit'])->name('backend.server-payments.edit');
+            Route::put('{serverPayment}', [ServerPaymentController::class, 'update'])->name('backend.server-payments.update');
+            Route::delete('{serverPayment}', [ServerPaymentController::class, 'destroy'])->name('backend.server-payments.destroy');
+        });
     });
 
     // Notification Management routes (super_admin only)

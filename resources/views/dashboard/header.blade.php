@@ -44,4 +44,10 @@
     Notifications
   </x-nav-link-header>
   @endrole
+
+  @hasanyrole('super_admin|server_payment_admin|server_payment_viewer')
+  <x-nav-link-header :href="route('backend.server-payments.index')" :active="request()->is('*server-payments*')">
+    Server Payments
+  </x-nav-link-header>
+  @endhasanyrole
 </div>
