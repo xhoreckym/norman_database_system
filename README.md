@@ -28,15 +28,19 @@ The NORMAN Database System is a Laravel-based web application that serves as a c
 ### Data Management
 - Bulk data import via CSV seeders
 - Query logging and performance tracking
+- CSV export with background job processing
 - Download capabilities for registered users
 - Pagination for large datasets
 - Real-time record counting
+- Export tracking and download management
 
 ### User Management
 - Authentication system with role-based access
 - Guest browsing with limited features
 - Admin panel for data management
-- API resource management
+- API token management for programmatic access
+- User role and permission management
+- Server payment tracking and management
 
 ## Main Notes
 
@@ -73,6 +77,9 @@ Server infrastructure is moved to: [https://github.com/mklauco/norman_database_s
 2. Manage database entities and user accounts
 3. Monitor query logs and system performance
 4. Upload new datasets via seeders
+5. Manage templates and file uploads
+6. Track export downloads and user activity
+7. Configure server payments and billing
 
 ## Database Structure
 
@@ -94,9 +101,11 @@ The system manages multiple environmental databases:
 
 ### Controllers
 - RESTful controllers for each module
-- Search and filtering logic
-- CSV export functionality
+- Search and filtering logic with query optimization
+- CSV export functionality with background job processing
 - Query logging and performance tracking
+- Role-based access control
+- API endpoints for programmatic access
 
 ### Views
 - Responsive Blade templates
