@@ -40,6 +40,7 @@ use App\Http\Controllers\SLE\SuspectListExchangeHomeController;
 use App\Http\Controllers\Prioritisation\ModellingDanubeController;
 use App\Http\Controllers\Prioritisation\ModellingScarceController;
 use App\Http\Controllers\Ecotox\EcotoxCREDEvaluationHomeController;
+use App\Http\Controllers\Ecotox\PNECDerivationController;
 use App\Http\Controllers\Prioritisation\MonitoringDanubeController;
 use App\Http\Controllers\Prioritisation\MonitoringScarceController;
 use App\Http\Controllers\Prioritisation\PrioritisationHomeController;
@@ -327,6 +328,9 @@ Route::prefix('ecotox')->group(function () {
         Route::get('form/{id}', [EcotoxQualityController::class, 'showForm'])->name('ecotox.quality.form');
         Route::get('changes/{pnecId}/{columnName}', [EcotoxQualityController::class, 'getChanges'])->name('ecotox.quality.changes');
     });
+    
+    // PNEC Derivation routes
+    Route::get('pnecderivation', [PNECDerivationController::class, 'index'])->name('ecotox.pnecderivation.index');
     
 });
 
