@@ -7,7 +7,7 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <!-- Google Analytics - GDPR Compliant -->
-  <x-google-analytics />
+  {{-- <x-google-analytics /> --}}
 
   <title>{{ config('app.name', 'Laravel') }}</title>
 
