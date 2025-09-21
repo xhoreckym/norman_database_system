@@ -120,8 +120,8 @@ services:
     restart: unless-stopped
     tty: true
     environment:
-      - VIRTUAL_HOST=nds.mkassets.sk
-      - LETSENCRYPT_HOST=nds.mkassets.sk
+      - VIRTUAL_HOST=nds.mkassets.sk,norman-databases.org,www.norman-databases.org
+      - LETSENCRYPT_HOST=nds.mkassets.sk,norman-databases.org,www.norman-databases.org
     volumes:
       - ./:/var/www
       - ./nginx/conf.d/:/etc/nginx/conf.d/

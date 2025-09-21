@@ -12,8 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('files', function (Blueprint $table) {
-            $table->boolean('is_deleted')->default(0);
-            $table->foreignId('project_id')->nullable()->default(null)->constrained('projects')->onDelete('restrict');
         });
     }
 
@@ -27,7 +25,6 @@ return new class extends Migration
         Schema::table('files', function (Blueprint $table) {
             //
             // Drop columns
-            $table->dropColumn('is_deleted');
 
         });
     }
