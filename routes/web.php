@@ -330,7 +330,13 @@ Route::prefix('ecotox')->group(function () {
     });
     
     // PNEC Derivation routes
-    Route::get('pnecderivation', [PNECDerivationController::class, 'index'])->name('ecotox.pnecderivation.index');
+    Route::prefix('pnecderivation')->group(function () {
+        Route::get('/', [PNECDerivationController::class, 'index'])->name('ecotox.pnecderivation.index');
+        Route::get('search/filter/', [PNECDerivationController::class, 'filter'])->name('ecotox.pnecderivation.search.filter');
+        Route::get('search/search/', [PNECDerivationController::class, 'search'])->name('ecotox.pnecderivation.search.search');
+        Route::get('countAll', [PNECDerivationController::class, 'countAll'])->middleware('auth')->name('ecotox.pnecderivation.countAll');
+        Route::post('save-quality-votes', [PNECDerivationController::class, 'saveQualityVotes'])->middleware('auth')->name('ecotox.pnecderivation.saveQualityVotes');
+    });
     
 });
 

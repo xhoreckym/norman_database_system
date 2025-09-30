@@ -15,12 +15,13 @@
   <x-nav-link-header :href="route('ecotox.credevaluation.search.filter')" :active="request()->is('ecotox/credevaluation*')">
     CRED Evaluation
   </x-nav-link-header>
-  @endrole
+  
 
   <x-nav-link-header :href="route('ecotox.pnecderivation.index')" :active="request()->is('ecotox/pnecderivation*')">
     PNEC Derivation
   </x-nav-link-header>
-
+  @endrole
+  
   <x-nav-link-header :href="route('ecotox.quality.search.filter')" :active="request()->is('ecotox/quality*')">
     Search Quality Target
   </x-nav-link-header>
