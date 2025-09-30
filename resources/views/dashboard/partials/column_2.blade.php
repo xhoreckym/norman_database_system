@@ -14,18 +14,12 @@
       <h4 class="font-medium text-gray-700 text-sm uppercase tracking-wide">System Messages</h4>
     </div>
     <div class="p-4 space-y-3 border-b border-stone-200">
-      {{-- Check if any database entity has zero templates --}}
-      @php
-        $hasZeroTemplates = $entitiesWithTemplateCounts->contains(function ($entity) {
-            return $entity->active_templates_count + $entity->inactive_templates_count == 0;
-        });
-      @endphp
-
-      @if ($hasZeroTemplates)
+      {{-- Check if NO templates exist in the entire system --}}
+      @if ($statistics['total_templates'] == 0)
         <div class="bg-red-50 border border-red-200 rounded-lg p-3">
           <div class="flex items-center">
             <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
-            <span class="text-red-700 text-sm font-medium">DCT Templates are missing</span>
+            <span class="text-red-700 text-sm font-medium">No DCT Templates found in system</span>
           </div>
         </div>
       @else
