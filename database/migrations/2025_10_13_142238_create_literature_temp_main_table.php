@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignId('substance_id')->nullable()->default(null)->constrained('susdat_substances')->onDelete('restrict');
 
             // Species information
-            $table->foreignId('latin_name_id')->nullable()->default(null)->constrained('list_latin_names')->onDelete('restrict');
+            $table->foreignId('species_id')->nullable()->default(null)->constrained('list_species')->onDelete('restrict');
             $table->foreignId('common_name_id')->nullable()->default(null)->constrained('list_common_names')->onDelete('restrict');
 
             // Bibliographic source
