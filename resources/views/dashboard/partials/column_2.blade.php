@@ -117,16 +117,18 @@
           <h4 class="font-medium text-gray-700 text-sm uppercase tracking-wide mb-3">Data Templates</h4>
           <div class="grid grid-cols-1 gap-3">
             @foreach ($entitiesWithTemplates as $entity)
-              <a href="{{ route('templates.specific.index', ['code' => $entity->code]) }}"
-                class="flex items-center p-3 border rounded-lg hover:bg-stone-50 transition">
-                <div class="bg-stone-100 p-2 rounded-full mr-3">
-                  <i class="fas fa-file-alt text-gray-600"></i>
-                </div>
-                <div>
-                  <h4 class="font-medium text-gray-900 text-sm">{{ $entity->name }}</h4>
-                  <p class="text-xs text-gray-600">Download templates</p>
-                </div>
-              </a>
+              @if($entity->is_public)
+                <a href="{{ route('templates.specific.index', ['code' => $entity->code]) }}"
+                  class="flex items-center p-3 border rounded-lg hover:bg-stone-50 transition">
+                  <div class="bg-stone-100 p-2 rounded-full mr-3">
+                    <i class="fas fa-file-alt text-gray-600"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-medium text-gray-900 text-sm">{{ $entity->name }}</h4>
+                    <p class="text-xs text-gray-600">Download templates</p>
+                  </div>
+                </a>
+              @endif
             @endforeach
           </div>
         </div>

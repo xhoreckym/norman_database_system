@@ -9,6 +9,8 @@ use App\Http\Controllers\EmailTestController;
 use App\Http\Controllers\Sars\SarsController;
 use App\Http\Controllers\Backend\FileController;
 use App\Http\Controllers\ARBG\ARBGHomeController;
+use App\Http\Controllers\Literature\LiteratureController;
+use App\Http\Controllers\Literature\LiteratureHomeController;
 
 use App\Http\Controllers\ARBG\BacteriaController;
 use App\Http\Controllers\Ecotox\EcotoxController;
@@ -470,6 +472,40 @@ Route::prefix('sars')->group(function () {
         'edit' => 'sars.home.edit',
         'update' => 'sars.home.update',
         'destroy' => 'sars.home.destroy',
+    ]);
+    
+    
+});
+
+Route::prefix('literature')->group(function () {
+    
+    Route::get('search/filter/', [LiteratureController::class, 'filter'])->name('literature.search.filter');
+    Route::get('search/search/', [LiteratureController::class, 'search'])->name('literature.search.search');
+    Route::get('search/downloadjob/{query_log_id}', [LiteratureController::class, 'startDownloadJob'])->name('literature.search.download');
+    Route::get('search/download/{filename}', [LiteratureController::class, 'downloadCsv'])
+    ->name('literature.csv.download');
+    Route::resource('search', LiteratureController::class)->names([
+        'index'   => 'literature.search.index',
+        'create'  => 'literature.search.create',
+        'store'   => 'literature.search.store',
+        'show'    => 'literature.search.show',
+        'edit'    => 'literature.search.edit',
+        'update'  => 'literature.search.update',
+        'destroy' => 'literature.search.destroy',
+    ]);
+    
+    // Public routes
+    Route::resource('home', LiteratureHomeController::class)->only(['index'])->names([
+        'index' => 'literature.home.index',
+    ]);
+    
+    // Authenticated routes
+    Route::resource('home', LiteratureHomeController::class)->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy'])->names([
+        'create' => 'literature.home.create',
+        'store' => 'literature.home.store',
+        'edit' => 'literature.home.edit',
+        'update' => 'literature.home.update',
+        'destroy' => 'literature.home.destroy',
     ]);
     
     

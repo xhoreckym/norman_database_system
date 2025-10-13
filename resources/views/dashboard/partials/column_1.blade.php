@@ -18,11 +18,18 @@
 
       <div class="divide-y divide-gray-100">
         @foreach ($databaseEntities as $entity)
-          <div class="grid grid-cols-3 px-4 py-3 hover:bg-slate-50">
-            <div class="text-gray-800 font-medium">{{ $entity->name }}</div>
-            <div class="text-right font-mono text-gray-700">{{ number_format($entity->number_of_records ?? 0) }}</div>
-            <div class="text-right font-mono text-gray-700">{{ number_format($entity->query_log_count ?? 0) }}</div>
-          </div>
+          @if($entity->is_public || (auth()->check() && (auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('admin'))))
+            <div class="grid grid-cols-3 px-4 py-3 hover:bg-slate-50">
+              <div class="text-gray-800 font-medium">
+                {{ $entity->name }}
+                @if(!$entity->is_public)
+                  <i class="fas fa-lock ml-1 text-gray-500 text-xs"></i>
+                @endif
+              </div>
+              <div class="text-right font-mono text-gray-700">{{ number_format($entity->number_of_records ?? 0) }}</div>
+              <div class="text-right font-mono text-gray-700">{{ number_format($entity->query_log_count ?? 0) }}</div>
+            </div>
+          @endif
         @endforeach
       </div>
     </div>

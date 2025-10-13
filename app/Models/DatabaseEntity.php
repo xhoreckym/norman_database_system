@@ -35,6 +35,7 @@ class DatabaseEntity extends Model
         'parent_id',
         'show_in_dashboard',
         'has_templates',
+        'is_public',
     ];
 
     /**
@@ -48,6 +49,7 @@ class DatabaseEntity extends Model
         'parent_id' => 'integer',
         'show_in_dashboard' => 'boolean',
         'has_templates' => 'boolean',
+        'is_public' => 'boolean',
     ];
 
     /**
