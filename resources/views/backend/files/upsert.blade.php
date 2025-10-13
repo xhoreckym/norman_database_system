@@ -9,12 +9,19 @@
         <div class="p-6 text-gray-900">
           <!-- File Actions -->
           <div class="mb-6 flex justify-between items-center">
-            <h2 class="text-xl font-semibold text-gray-800">
-              {{ isset($isCreate) && $isCreate ? 'Upload New File' : 'Edit File' }}
-            </h2>
+            <div>
+              @if(!isset($isCreate) || !$isCreate)
+                <div class="mb-2">
+                  <span class="font-mono text-lg font-bold text-gray-900 bg-gray-200 px-3 py-1 rounded">ID: {{ $file->id }}</span>
+                </div>
+              @endif
+              <h2 class="text-xl font-semibold text-gray-800">
+                {{ isset($isCreate) && $isCreate ? 'Upload New File' : 'Edit File' }}
+              </h2>
+            </div>
             @if(!isset($isCreate) || !$isCreate)
-              <a href="{{ route('files.show', $file) }}" class="text-indigo-600 hover:text-indigo-800">
-                <i class="fa fa-eye mr-1"></i> View Details
+              <a href="{{ route('files.show', $file) }}" class="text-gray-600 hover:text-gray-900">
+                View Details
               </a>
             @endif
           </div>
@@ -34,8 +41,7 @@
               <!-- Left Column - Basic Information -->
               <div class="space-y-6">
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa fa-info-circle mr-2 text-blue-600"></i>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
                     Basic Information
                   </h3>
 
@@ -47,7 +53,7 @@
                       name="name" 
                       id="name" 
                       value="{{ old('name', $file->name) }}"
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('name') border-red-500 @enderror"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('name') border-red-500 @enderror"
                       placeholder="Enter a display name for the file"
                     >
                     <p class="mt-1 text-xs text-gray-500">Leave empty to use the original filename</p>
@@ -63,7 +69,7 @@
                       name="description" 
                       id="description" 
                       rows="4" 
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('description') border-red-500 @enderror"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('description') border-red-500 @enderror"
                       placeholder="Describe the content and purpose of this file..."
                     >{{ old('description', $file->description) }}</textarea>
                     @error('description')
@@ -74,8 +80,7 @@
 
                 <!-- File Upload Section -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa fa-upload mr-2 text-green-600"></i>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
                     File Upload
                   </h3>
 
@@ -91,13 +96,11 @@
                               file:mr-4 file:py-2 file:px-4
                               file:rounded-md file:border-0
                               file:text-sm file:font-semibold
-                              file:bg-indigo-50 file:text-indigo-700
-                              hover:file:bg-indigo-100
-                              focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              file:bg-gray-200 file:text-gray-800
+                              hover:file:bg-gray-300"
                         required
                       >
                       <p class="mt-2 text-sm text-gray-500">
-                        <i class="fa fa-info-circle mr-1"></i>
                         Maximum file size: 20MB. Supported formats: CSV, Excel, PDF, Word, Text, ZIP
                       </p>
                       @error('file')
@@ -110,22 +113,19 @@
                       <label class="block text-sm font-medium text-gray-700 mb-2">Current File</label>
                       <div class="bg-white p-3 rounded border border-gray-300">
                         <div class="flex items-center justify-between">
-                          <div class="flex items-center space-x-3">
-                            <i class="{{ $file->file_icon }} text-2xl text-gray-600"></i>
-                            <div>
-                              <div class="font-medium text-gray-900">{{ $file->original_name }}</div>
-                              <div class="text-sm text-gray-500">
-                                {{ $file->formatted_file_size }} • {{ $file->mime_type }}
-                              </div>
+                          <div>
+                            <div class="font-medium text-gray-900">{{ $file->original_name }}</div>
+                            <div class="text-sm text-gray-500">
+                              {{ $file->formatted_file_size }} • {{ $file->mime_type }}
                             </div>
                           </div>
                           @if($file->file_path && $file->existsOnDisk())
-                            <a href="{{ route('files.download', $file) }}" class="text-indigo-600 hover:text-indigo-800" title="Download">
-                              <i class="fa fa-download text-lg"></i>
+                            <a href="{{ route('files.download', $file) }}" class="text-gray-600 hover:text-gray-900 text-sm" title="Download">
+                              Download
                             </a>
                           @else
-                            <span class="text-red-500" title="File not available">
-                              <i class="fa fa-times text-lg"></i>
+                            <span class="text-gray-500 text-sm" title="File not available">
+                              Not Available
                             </span>
                           @endif
                         </div>
@@ -143,11 +143,10 @@
                               file:mr-4 file:py-2 file:px-4
                               file:rounded-md file:border-0
                               file:text-sm file:font-semibold
-                              file:bg-orange-50 file:text-orange-700
-                              hover:file:bg-orange-100"
+                              file:bg-gray-200 file:text-gray-800
+                              hover:file:bg-gray-300"
                       >
                       <p class="mt-2 text-sm text-gray-500">
-                        <i class="fa fa-exclamation-triangle mr-1"></i>
                         Leave empty to keep the current file. Uploading a new file will replace the existing one.
                       </p>
                       @error('new_file')
@@ -159,15 +158,14 @@
 
                 <!-- Processing Notes -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa fa-sticky-note mr-2 text-orange-600"></i>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
                     Processing Notes
                   </h3>
                   <textarea 
                     name="processing_notes" 
                     id="processing_notes" 
                     rows="4" 
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('processing_notes') border-red-500 @enderror"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('processing_notes') border-red-500 @enderror"
                     placeholder="Add any processing notes, validation results, or special instructions..."
                   >{{ old('processing_notes', $file->processing_notes) }}</textarea>
                   @error('processing_notes')
@@ -180,8 +178,7 @@
               <div class="space-y-6">
                 <!-- Project Assignment -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa fa-project-diagram mr-2 text-blue-600"></i>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
                     Project Assignment
                   </h3>
                   <div>
@@ -189,7 +186,7 @@
                     <select 
                       name="project_id" 
                       id="project_id" 
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('project_id') border-red-500 @enderror"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('project_id') border-red-500 @enderror"
                     >
                       <option value="">-- No Project --</option>
                       @foreach($projects as $project)
@@ -210,8 +207,7 @@
 
                 <!-- Database Entity -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa fa-database mr-2 text-green-600"></i>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
                     Database Entity
                   </h3>
                   <div>
@@ -219,7 +215,7 @@
                     <select 
                       name="database_entity_id" 
                       id="database_entity_id" 
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('database_entity_id') border-red-500 @enderror"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('database_entity_id') border-red-500 @enderror"
                     >
                       <option value="">-- No Database Entity --</option>
                       @foreach($databaseEntities as $databaseEntity)
@@ -237,8 +233,7 @@
 
                 <!-- Template -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fa fa-file-alt mr-2 text-purple-600"></i>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
                     Template
                   </h3>
                   <div>
@@ -246,7 +241,7 @@
                     <select 
                       name="template_id" 
                       id="template_id" 
-                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm @error('template_id') border-red-500 @enderror"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('template_id') border-red-500 @enderror"
                     >
                       <option value="">-- No Template --</option>
                       @foreach($templates as $template)
@@ -268,14 +263,13 @@
                 <!-- File Preview/Info (for edit mode) -->
                 @if(!isset($isCreate) || !$isCreate)
                   <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                      <i class="fa fa-info-circle mr-2 text-gray-600"></i>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
                       File Information
                     </h3>
                     <div class="space-y-3 text-sm">
                       <div class="flex justify-between">
                         <span class="text-gray-600">File ID:</span>
-                        <span class="font-medium">#{{ $file->id }}</span>
+                        <span class="font-mono font-semibold text-gray-900">{{ $file->id }}</span>
                       </div>
                       <div class="flex justify-between">
                         <span class="text-gray-600">Upload Date:</span>
@@ -288,11 +282,11 @@
                       <div class="flex justify-between">
                         <span class="text-gray-600">Status:</span>
                         @if($file->is_deleted)
-                          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-200 text-gray-800">
                             Deleted
                           </span>
                         @else
-                          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-200 text-gray-800">
                             Active
                           </span>
                         @endif
@@ -307,20 +301,17 @@
             <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
               <a 
                 href="{{ route('files.index') }}" 
-                class="inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
+                class="inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition"
               >
-                <i class="fa fa-times mr-2"></i>
                 Cancel
               </a>
               <button 
                 type="submit" 
-                class="inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition"
+                class="btn-submit"
               >
                 @if(isset($isCreate) && $isCreate)
-                  <i class="fa fa-upload mr-2"></i>
                   Upload File
                 @else
-                  <i class="fa fa-save mr-2"></i>
                   Update File
                 @endif
               </button>

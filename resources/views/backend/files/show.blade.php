@@ -9,56 +9,42 @@
         <div class="p-6 text-gray-900">
           <!-- File Details Header -->
           <div class="mb-6 flex justify-between items-start">
-            <div class="flex items-center space-x-4">
-              <div class="flex-shrink-0">
-                <i class="{{ $file->file_icon }} text-3xl text-gray-600"></i>
+            <div>
+              <div class="mb-2">
+                <span class="font-mono text-lg font-bold text-gray-900 bg-gray-200 px-3 py-1 rounded">ID: {{ $file->id }}</span>
+                @if($file->is_deleted)
+                  <span class="ml-2 text-sm text-gray-700 bg-gray-300 px-2 py-1 rounded">DELETED</span>
+                @endif
               </div>
-              <div>
-                <h2 class="text-2xl font-semibold text-gray-800">{{ $file->name ?? $file->original_name ?? 'Unnamed File' }}</h2>
-                <p class="text-sm text-gray-600 mt-1">
-                  File ID: #{{ $file->id }} • 
-                  @if($file->is_deleted)
-                    <span class="text-red-600 font-medium">DELETED</span>
-                  @else
-                    <span class="text-green-600">Active</span>
-                  @endif
-                </p>
-              </div>
+              <h2 class="text-2xl font-semibold text-gray-800">{{ $file->name ?? $file->original_name ?? 'Unnamed File' }}</h2>
             </div>
             <div class="flex space-x-2">
               @if(!$file->is_deleted)
-                <a href="{{ route('files.edit', $file) }}" class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition">
-                  <i class="fa fa-edit mr-1"></i> Edit
+                <a href="{{ route('files.edit', $file) }}" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
+                  Edit
                 </a>
                 @if($file->file_path)
                   <a href="{{ route('files.download', $file) }}" class="btn-submit">
-                    <i class="fa fa-download mr-1"></i> Download
+                    Download
                   </a>
                 @else
                   <span class="px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed">
-                    <i class="fa fa-times mr-1"></i> No File Path
+                    No File Path
                   </span>
                 @endif
-                {{-- <form action="{{ route('files.destroy', $file) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this file? This action can be reversed.');">
-                  @csrf
-                  @method('DELETE')
-                  <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
-                    <i class="fa fa-trash mr-1"></i> Delete
-                  </button>
-                </form> --}}
               @else
                 <form action="{{ route('files.restore', $file) }}" method="POST" class="inline">
                   @csrf
                   @method('PATCH')
                   <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
-                    <i class="fa fa-undo mr-1"></i> Restore
+                    Restore
                   </button>
                 </form>
                 <form action="{{ route('files.forceDestroy', $file) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to permanently delete this file? This action cannot be undone!');">
                   @csrf
                   @method('DELETE')
-                  <button type="submit" class="px-4 py-2 bg-red-800 text-white rounded hover:bg-red-900 transition">
-                    <i class="fa fa-trash-alt mr-1"></i> Delete Forever
+                  <button type="submit" class="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900 transition">
+                    Delete Forever
                   </button>
                 </form>
               @endif
@@ -71,8 +57,7 @@
             <div class="lg:col-span-2 space-y-6">
               <!-- Basic Information -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="font-semibold text-lg text-gray-800 mb-4 flex items-center">
-                  <i class="fa fa-info-circle mr-2 text-gray-600"></i>
+                <h3 class="font-semibold text-lg text-gray-800 mb-4">
                   Basic Information
                 </h3>
                 
@@ -121,8 +106,7 @@
               
               <!-- Description -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="font-semibold text-lg text-gray-800 mb-3 flex items-center">
-                  <i class="fa fa-align-left mr-2 text-green-600"></i>
+                <h3 class="font-semibold text-lg text-gray-800 mb-3">
                   Description
                 </h3>
                 <div class="text-sm text-gray-900 whitespace-pre-wrap">{{ $file->description ?? 'No description provided.' }}</div>
@@ -130,33 +114,18 @@
               
               <!-- Processing Notes -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="font-semibold text-lg text-gray-800 mb-3 flex items-center">
-                  <i class="fa fa-sticky-note mr-2 text-orange-600"></i>
+                <h3 class="font-semibold text-lg text-gray-800 mb-3">
                   Processing Notes
                 </h3>
                 <div class="text-sm text-gray-900 whitespace-pre-wrap">{{ $file->processing_notes ?? 'No processing notes available.' }}</div>
               </div>
-              
-              <!-- Related Records -->
-              @if($empodatRecordsCount > 0)
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="font-semibold text-lg text-gray-800 mb-3 flex items-center">
-                    <i class="fa fa-link mr-2 text-purple-600"></i>
-                    Related Empodat Records
-                  </h3>
-                  <div class="text-sm">
-                    <p class="mb-2">There are <strong>{{ number_format($empodatRecordsCount) }}</strong> empodat records linked to this file.</p>
-                  </div>
-                </div>
-              @endif
             </div>
             
             <!-- Right Column - Associations & Metadata -->
             <div class="space-y-6">
               <!-- Project Association -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="font-semibold text-lg text-gray-800 mb-3 flex items-center">
-                  <i class="fa fa-project-diagram mr-2 text-gray-600"></i>
+                <h3 class="font-semibold text-lg text-gray-800 mb-3">
                   Project
                 </h3>
                 @if($file->project)
@@ -176,8 +145,7 @@
               
               <!-- Database Entity -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="font-semibold text-lg text-gray-800 mb-3 flex items-center">
-                  <i class="fa fa-database mr-2 text-green-600"></i>
+                <h3 class="font-semibold text-lg text-gray-800 mb-3">
                   Database Entity
                 </h3>
                 @if($file->databaseEntity)
@@ -194,8 +162,7 @@
               
               <!-- Template -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="font-semibold text-lg text-gray-800 mb-3 flex items-center">
-                  <i class="fa fa-file-alt mr-2 text-purple-600"></i>
+                <h3 class="font-semibold text-lg text-gray-800 mb-3">
                   Template
                 </h3>
                 @if($file->template)
@@ -212,8 +179,7 @@
               
               <!-- Upload Information -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="font-semibold text-lg text-gray-800 mb-3 flex items-center">
-                  <i class="fa fa-upload mr-2 text-indigo-600"></i>
+                <h3 class="font-semibold text-lg text-gray-800 mb-3">
                   Upload Information
                 </h3>
                 <div class="space-y-3">
@@ -231,10 +197,10 @@
                     <span class="text-sm font-medium text-gray-500 block">Upload Date:</span>
                     <span class="text-sm text-gray-900">
                       @if($file->uploaded_at)
-                        {{ $file->uploaded_at->format('F j, Y \a\t g:i A') }}
+                        {{ $file->uploaded_at->format('Y-m-d G:i:s') }}
                         <div class="text-xs text-gray-600">{{ $file->uploaded_at->diffForHumans() }}</div>
                       @elseif($file->created_at)
-                        {{ $file->created_at->format('F j, Y \a\t g:i A') }}
+                        {{ $file->created_at->format('Y-m-d G:i:s') }}
                         <div class="text-xs text-gray-600">{{ $file->created_at->diffForHumans() }}</div>
                       @else
                         Unknown
@@ -245,7 +211,7 @@
                   <div>
                     <span class="text-sm font-medium text-gray-500 block">Last Modified:</span>
                     <span class="text-sm text-gray-900">
-                      {{ $file->updated_at->format('F j, Y \a\t g:i A') }}
+                      {{ $file->updated_at->format('Y-m-d G:i:s') }}
                       <div class="text-xs text-gray-600">{{ $file->updated_at->diffForHumans() }}</div>
                     </span>
                   </div>
@@ -254,20 +220,19 @@
               
               <!-- File Status -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 class="font-semibold text-lg text-gray-800 mb-3 flex items-center">
-                  <i class="fa fa-info-circle mr-2 text-gray-600"></i>
+                <h3 class="font-semibold text-lg text-gray-800 mb-3">
                   File Status
                 </h3>
                 <div class="space-y-2">
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-600">Status:</span>
                     @if($file->is_deleted)
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        <i class="fa fa-trash mr-1"></i> Deleted
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
+                        Deleted
                       </span>
                     @else
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <i class="fa fa-check mr-1"></i> Active
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
+                        Active
                       </span>
                     @endif
                   </div>
@@ -275,12 +240,12 @@
                   <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-600">File Path:</span>
                     @if($file->file_path)
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <i class="fa fa-check mr-1"></i> Set
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
+                        Set
                       </span>
                     @else
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        <i class="fa fa-times mr-1"></i> Missing
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
+                        Missing
                       </span>
                     @endif
                   </div>
@@ -288,22 +253,22 @@
                   @if($file->is_image)
                     <div class="flex items-center justify-between">
                       <span class="text-sm text-gray-600">File Type:</span>
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        <i class="fa fa-image mr-1"></i> Image
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
+                        Image
                       </span>
                     </div>
                   @elseif($file->is_document)
                     <div class="flex items-center justify-between">
                       <span class="text-sm text-gray-600">File Type:</span>
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        <i class="fa fa-file-text mr-1"></i> Document
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
+                        Document
                       </span>
                     </div>
                   @elseif($file->is_spreadsheet)
                     <div class="flex items-center justify-between">
                       <span class="text-sm text-gray-600">File Type:</span>
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                        <i class="fa fa-table mr-1"></i> Spreadsheet
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
+                        Spreadsheet
                       </span>
                     </div>
                   @endif
@@ -315,9 +280,6 @@
           <!-- Back Button -->
           <div class="mt-8 pt-6 border-t border-gray-200">
             <a href="{{ route('files.index') }}" class="link-lime-text">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
               Back to Files
             </a>
           </div>

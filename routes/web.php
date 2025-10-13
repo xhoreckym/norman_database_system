@@ -81,6 +81,7 @@ Route::prefix('backend')->middleware('auth')->group(function () {
     Route::get('templates/{template}/download', [TemplateController::class, 'download'])->name('templates.download');
     
     Route::resource('files', FileController::class);
+    Route::get('/file-data', [FileController::class, 'getFileData'])->middleware('auth');
     // Specific templates for a database entity code
     
     Route::get('export-downloads', [App\Http\Controllers\Backend\ExportDownloadController::class, 'index'])->name('export_downloads.index');

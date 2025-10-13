@@ -18,16 +18,111 @@ class FileController extends Controller
     /**
      * Display a listing of the files.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $files = File::with(['template', 'databaseEntity', 'uploader', 'project'])
-            // ->notDeleted()
-            ->orderBy('created_at', 'desc')
-            ->paginate(50);
-            
-        return view('backend.files.index', compact('files'));
+        $perPage = $request->input('per_page', 25);
+        $search = $request->input('search', '');
+        $sort = $request->input('sort', 'id');
+        $direction = $request->input('direction', 'desc');
+
+        $query = File::with(['template', 'databaseEntity', 'uploader', 'project'])
+            ->notDeleted();
+
+        // Apply search
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('original_name', 'ilike', "%{$search}%")
+                    ->orWhere('description', 'ilike', "%{$search}%");
+            });
+        }
+
+        // Apply sorting - only allow safe columns
+        $allowedSortColumns = ['id', 'name', 'original_name', 'file_size', 'uploaded_at', 'created_at', 'updated_at'];
+        if (in_array($sort, $allowedSortColumns)) {
+            $query->orderBy($sort, $direction);
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
+        $files = $query->paginate($perPage)->appends($request->except('page'));
+
+        return view('backend.files.index', [
+            'files' => $files,
+            'columns' => $this->getVisibleColumns(),
+            'search' => $search,
+            'perPage' => $perPage,
+            'sort' => $sort,
+            'direction' => $direction,
+        ]);
+    }
+
+    /**
+     * Get file data for AJAX requests.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getFileData(Request $request)
+    {
+        $perPage = $request->input('per_page', 25);
+        $search = $request->input('search', '');
+        $sort = $request->input('sort', 'id');
+        $direction = $request->input('direction', 'desc');
+        $entityId = $request->input('database_entity_id', '');
+        $projectId = $request->input('project_id', '');
+        
+        $query = File::with(['template', 'databaseEntity', 'uploader', 'project'])
+            ->notDeleted();
+        
+        // Apply search
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('original_name', 'ilike', "%{$search}%")
+                    ->orWhere('description', 'ilike', "%{$search}%");
+            });
+        }
+        
+        // Apply filters
+        if (!empty($entityId)) {
+            $query->byDatabaseEntity($entityId);
+        }
+        
+        if (!empty($projectId)) {
+            $query->byProject($projectId);
+        }
+        
+        // Apply sorting
+        if (in_array($sort, ['id', 'name', 'original_name', 'file_size', 'uploaded_at', 'created_at', 'updated_at'])) {
+            $query->orderBy($sort, $direction);
+        }
+        
+        $results = $query->paginate($perPage);
+        
+        return response()->json($results);
+    }
+
+    /**
+     * Get visible columns for the table.
+     *
+     * @return array
+     */
+    private function getVisibleColumns()
+    {
+        return [
+            'id',
+            'name',
+            'project',
+            'database_entity',
+            'template',
+            'size',
+            'uploaded_by',
+            'uploaded_at',
+        ];
     }
 
     /**
@@ -116,12 +211,7 @@ class FileController extends Controller
         // Load only essential relationships without heavy queries
         $file->load(['template', 'databaseEntity', 'uploader', 'project']);
         
-        // Pre-calculate the records count using direct pivot table query for performance
-        $empodatRecordsCount = DB::table('empodat_main_file')
-            ->where('file_id', $file->id)
-            ->count();
-        
-        return view('backend.files.show', compact('file', 'empodatRecordsCount'));
+        return view('backend.files.show', compact('file'));
     }
 
     /**
