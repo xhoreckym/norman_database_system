@@ -1,0 +1,288 @@
+<?php
+
+namespace App\Models\Literature;
+
+use App\Models\List\Country;
+use App\Models\Literature\Species;
+use App\Models\List\Tissue;
+use App\Models\List\BiotaSex;
+use App\Models\List\LifeStage;
+use App\Models\List\HabitatType;
+use App\Models\List\ConcentrationUnit;
+use App\Models\List\CommonName;
+use App\Models\List\UseCategory;
+use App\Models\Susdat\Substance;
+use App\Models\Backend\File;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class LiteratureTempMain extends Model
+{
+    use HasFactory;
+
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'literature_temp_main';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'rowid',
+        'substance_id',
+        'species_id',
+        'common_name_id',
+        'title',
+        'first_author',
+        'year',
+        'doi',
+        'sex_id',
+        'diet_as_described_in_paper',
+        'trophic_level_as_described_in_paper',
+        'life_stage_id',
+        'age_in_days',
+        'x_of_replicates',
+        'type_of_monitoring',
+        'active_passive_sampling',
+        'country_id',
+        'region_city',
+        'health_status',
+        'habitat_type_id',
+        'reported_distance_to_industry',
+        'last_pesticide_treatment',
+        'pesticide_used_in_treatment',
+        'tissue_id',
+        'basis_of_measurement',
+        'analytical_method',
+        'storage_temp_c',
+        'chemical_name',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'rowid' => 'integer',
+        'substance_id' => 'integer',
+        'species_id' => 'integer',
+        'common_name_id' => 'integer',
+        'year' => 'integer',
+        'sex_id' => 'integer',
+        'life_stage_id' => 'integer',
+        'x_of_replicates' => 'integer',
+        'country_id' => 'integer',
+        'habitat_type_id' => 'integer',
+        'tissue_id' => 'integer',
+        'concentration_units_id' => 'integer',
+        'use_chem_id' => 'integer',
+        'individual_id' => 'integer',
+        'start_of_sampling_day' => 'integer',
+        'end_of_sampling_day' => 'integer',
+        'freq_numeric' => 'float',
+        'n_0' => 'float',
+        'water_content' => 'float',
+        'ww_conc_ng' => 'float',
+        'ww_lod_ng' => 'float',
+        'ww_loq_ng' => 'float',
+        'ww_sd_ng' => 'float',
+        'imputed_lod' => 'float',
+        'all_means_without_0' => 'float',
+        'all_means_with_0' => 'float',
+    ];
+
+    /**
+     * Get the country associated with this record.
+     */
+    public function country()
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+
+    /**
+     * Get the species associated with this record.
+     */
+    public function species()
+    {
+        return $this->belongsTo(Species::class, 'species_id');
+    }
+
+    /**
+     * Get the substance associated with this record.
+     */
+    public function substance()
+    {
+        return $this->belongsTo(Substance::class, 'substance_id');
+    }
+
+    /**
+     * Get the tissue associated with this record.
+     */
+    public function tissue()
+    {
+        return $this->belongsTo(Tissue::class, 'tissue_id');
+    }
+
+    /**
+     * Get the sex associated with this record.
+     */
+    public function sex()
+    {
+        return $this->belongsTo(BiotaSex::class, 'sex_id');
+    }
+
+    /**
+     * Get the life stage associated with this record.
+     */
+    public function lifeStage()
+    {
+        return $this->belongsTo(LifeStage::class, 'life_stage_id');
+    }
+
+    /**
+     * Get the habitat type associated with this record.
+     */
+    public function habitatType()
+    {
+        return $this->belongsTo(HabitatType::class, 'habitat_type_id');
+    }
+
+    /**
+     * Get the concentration unit associated with this record.
+     */
+    public function concentrationUnit()
+    {
+        return $this->belongsTo(ConcentrationUnit::class, 'concentration_units_id');
+    }
+
+    /**
+     * Get the common name associated with this record.
+     */
+    public function commonName()
+    {
+        return $this->belongsTo(CommonName::class, 'common_name_id');
+    }
+
+    /**
+     * Get the use category associated with this record.
+     */
+    public function useCategory()
+    {
+        return $this->belongsTo(UseCategory::class, 'use_chem_id');
+    }
+
+    /**
+     * Get the files associated with this literature record.
+     */
+    public function files()
+    {
+        return $this->belongsToMany(
+            File::class,
+            'file_literature_temp_main',
+            'literature_temp_main_id',
+            'file_id'
+        )->withTimestamps();
+    }
+
+    /**
+     * Scope to filter by countries
+     */
+    public function scopeByCountries($query, array $countryIds)
+    {
+        if (empty($countryIds)) {
+            return $query;
+        }
+
+        return $query->whereIn('country_id', $countryIds);
+    }
+
+    /**
+     * Scope to filter by substances
+     */
+    public function scopeBySubstances($query, array $substanceIds)
+    {
+        if (empty($substanceIds)) {
+            return $query;
+        }
+
+        return $query->whereIn('substance_id', $substanceIds);
+    }
+
+    /**
+     * Scope to filter by substance categories
+     */
+    public function scopeByCategories($query, array $categoryIds)
+    {
+        if (empty($categoryIds)) {
+            return $query;
+        }
+
+        return $query->whereHas('substance.categories', function ($q) use ($categoryIds) {
+            $q->whereIn('susdat_categories.id', $categoryIds);
+        });
+    }
+
+    /**
+     * Scope to filter by species
+     */
+    public function scopeBySpecies($query, array $speciesIds)
+    {
+        if (empty($speciesIds)) {
+            return $query;
+        }
+
+        return $query->whereIn('species_id', $speciesIds);
+    }
+
+    /**
+     * Scope to filter by habitat types
+     */
+    public function scopeByHabitatTypes($query, array $habitatTypeIds)
+    {
+        if (empty($habitatTypeIds)) {
+            return $query;
+        }
+
+        return $query->whereIn('habitat_type_id', $habitatTypeIds);
+    }
+
+    /**
+     * Scope to filter by year range
+     */
+    public function scopeByYearRange($query, $yearFrom = null, $yearTo = null)
+    {
+        if (!is_null($yearFrom)) {
+            $query->where('year', '>=', $yearFrom);
+        }
+
+        if (!is_null($yearTo)) {
+            $query->where('year', '<=', $yearTo);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Scope to eager load all search-related relationships
+     */
+    public function scopeWithSearchRelations($query)
+    {
+        return $query->with([
+            'country',
+            'species',
+            'substance',
+            'tissue',
+            'sex',
+            'lifeStage',
+            'habitatType',
+            'commonName',
+            'useCategory',
+        ]);
+    }
+}
