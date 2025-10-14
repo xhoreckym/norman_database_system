@@ -514,49 +514,54 @@ Route::prefix('literature')->group(function () {
 
     // Lookup Tables - Admin only routes
     Route::middleware(['auth', 'role:super_admin|admin'])->group(function () {
-        Route::resource('life_stages', \App\Http\Controllers\Literature\LifeStageController::class)->names([
+        // Life Stages
+        Route::get('life_stages/download', [\App\Http\Controllers\Literature\LifeStageController::class, 'download'])->name('literature.life_stages.download');
+        Route::resource('life_stages', \App\Http\Controllers\Literature\LifeStageController::class)->except(['destroy'])->names([
             'index' => 'literature.life_stages.index',
             'create' => 'literature.life_stages.create',
             'store' => 'literature.life_stages.store',
             'edit' => 'literature.life_stages.edit',
             'update' => 'literature.life_stages.update',
-            'destroy' => 'literature.life_stages.destroy',
         ]);
 
-        Route::resource('habitat_types', \App\Http\Controllers\Literature\HabitatTypeController::class)->names([
+        // Habitat Types
+        Route::get('habitat_types/download', [\App\Http\Controllers\Literature\HabitatTypeController::class, 'download'])->name('literature.habitat_types.download');
+        Route::resource('habitat_types', \App\Http\Controllers\Literature\HabitatTypeController::class)->except(['destroy'])->names([
             'index' => 'literature.habitat_types.index',
             'create' => 'literature.habitat_types.create',
             'store' => 'literature.habitat_types.store',
             'edit' => 'literature.habitat_types.edit',
             'update' => 'literature.habitat_types.update',
-            'destroy' => 'literature.habitat_types.destroy',
         ]);
 
-        Route::resource('concentration_units', \App\Http\Controllers\Literature\ConcentrationUnitController::class)->names([
+        // Concentration Units
+        Route::get('concentration_units/download', [\App\Http\Controllers\Literature\ConcentrationUnitController::class, 'download'])->name('literature.concentration_units.download');
+        Route::resource('concentration_units', \App\Http\Controllers\Literature\ConcentrationUnitController::class)->except(['destroy'])->names([
             'index' => 'literature.concentration_units.index',
             'create' => 'literature.concentration_units.create',
             'store' => 'literature.concentration_units.store',
             'edit' => 'literature.concentration_units.edit',
             'update' => 'literature.concentration_units.update',
-            'destroy' => 'literature.concentration_units.destroy',
         ]);
 
-        Route::resource('common_names', \App\Http\Controllers\Literature\CommonNameController::class)->names([
+        // Common Names
+        Route::get('common_names/download', [\App\Http\Controllers\Literature\CommonNameController::class, 'download'])->name('literature.common_names.download');
+        Route::resource('common_names', \App\Http\Controllers\Literature\CommonNameController::class)->except(['destroy'])->names([
             'index' => 'literature.common_names.index',
             'create' => 'literature.common_names.create',
             'store' => 'literature.common_names.store',
             'edit' => 'literature.common_names.edit',
             'update' => 'literature.common_names.update',
-            'destroy' => 'literature.common_names.destroy',
         ]);
 
-        Route::resource('species', \App\Http\Controllers\Literature\SpeciesController::class)->names([
+        // Species
+        Route::get('species/download', [\App\Http\Controllers\Literature\SpeciesController::class, 'download'])->name('literature.species.download');
+        Route::resource('species', \App\Http\Controllers\Literature\SpeciesController::class)->except(['destroy'])->names([
             'index' => 'literature.species.index',
             'create' => 'literature.species.create',
             'store' => 'literature.species.store',
             'edit' => 'literature.species.edit',
             'update' => 'literature.species.update',
-            'destroy' => 'literature.species.destroy',
         ]);
     });
 

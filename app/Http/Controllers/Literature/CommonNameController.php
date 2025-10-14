@@ -10,8 +10,38 @@ class CommonNameController extends Controller
 {
     public function index()
     {
-        $commonNames = CommonName::orderBy('name')->paginate(25);
+        $commonNames = CommonName::orderBy('id')->paginate(25);
         return view('literature.common_names.index', compact('commonNames'));
+    }
+
+    public function download()
+    {
+        $commonNames = CommonName::orderBy('id')->get();
+
+        $filename = 'common_names_' . date('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function() use ($commonNames) {
+            $file = fopen('php://output', 'w');
+
+            // Add CSV headers
+            fputcsv($file, ['id', 'name']);
+
+            // Add data rows
+            foreach ($commonNames as $item) {
+                fputcsv($file, [
+                    $item->id,
+                    $item->name,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function create()
@@ -51,11 +81,4 @@ class CommonNameController extends Controller
             ->with('success', 'Common name updated successfully.');
     }
 
-    public function destroy(CommonName $commonName)
-    {
-        $commonName->delete();
-
-        return redirect()->route('literature.common_names.index')
-            ->with('success', 'Common name deleted successfully.');
-    }
 }

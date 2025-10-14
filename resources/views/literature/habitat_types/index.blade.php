@@ -11,6 +11,9 @@
           <div class="mb-6 flex justify-between items-center">
             <h2 class="text-xl font-semibold text-gray-800">Habitat Types (EUNIS)</h2>
             <div class="flex space-x-3">
+              <a href="{{ route('literature.habitat_types.download') }}" class="btn-submit">
+                Download CSV
+              </a>
               <a href="{{ route('literature.habitat_types.create') }}" class="btn-create">
                 Add New Habitat Type
               </a>
@@ -38,7 +41,7 @@
                 @forelse ($habitatTypes as $index => $habitatType)
                   <tr class="hover:bg-slate-300 transition {{ $index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200' }}">
                     <td class="py-2 px-4">
-                      <span class="font-mono text-xs font-semibold text-gray-800 bg-gray-200 px-2 py-1 rounded">{{ $habitatType->id }}</span>
+                      <span class="font-mono text-xs font-semibold text-gray-800">{{ $habitatType->id }}</span>
                     </td>
                     <td class="py-2 px-4">
                       <span class="font-medium text-gray-900">{{ $habitatType->name }}</span>
@@ -48,13 +51,6 @@
                         <a href="{{ route('literature.habitat_types.edit', $habitatType) }}" class="text-gray-600 hover:text-gray-900 text-sm px-2 py-1">
                           Edit
                         </a>
-                        <form action="{{ route('literature.habitat_types.destroy', $habitatType) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this habitat type?');">
-                          @csrf
-                          @method('DELETE')
-                          <button type="submit" class="text-red-600 hover:text-red-900 text-sm px-2 py-1">
-                            Delete
-                          </button>
-                        </form>
                       </div>
                     </td>
                   </tr>

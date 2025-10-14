@@ -10,8 +10,44 @@ class SpeciesController extends Controller
 {
     public function index()
     {
-        $species = Species::orderBy('name')->paginate(25);
+        $species = Species::orderBy('id')->paginate(25);
         return view('literature.species.index', compact('species'));
+    }
+
+    public function download()
+    {
+        $species = Species::orderBy('id')->get();
+
+        $filename = 'species_' . date('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function() use ($species) {
+            $file = fopen('php://output', 'w');
+
+            // Add CSV headers
+            fputcsv($file, ['id', 'name', 'name_latin', 'kingdom', 'phylum', 'order', 'class', 'genus']);
+
+            // Add data rows
+            foreach ($species as $item) {
+                fputcsv($file, [
+                    $item->id,
+                    $item->name,
+                    $item->name_latin,
+                    $item->kingdom,
+                    $item->phylum,
+                    $item->order,
+                    $item->class,
+                    $item->genus,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function create()
@@ -63,11 +99,4 @@ class SpeciesController extends Controller
             ->with('success', 'Species updated successfully.');
     }
 
-    public function destroy(Species $species)
-    {
-        $species->delete();
-
-        return redirect()->route('literature.species.index')
-            ->with('success', 'Species deleted successfully.');
-    }
 }

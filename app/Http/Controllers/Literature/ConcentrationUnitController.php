@@ -10,8 +10,38 @@ class ConcentrationUnitController extends Controller
 {
     public function index()
     {
-        $concentrationUnits = ConcentrationUnit::orderBy('name')->paginate(25);
+        $concentrationUnits = ConcentrationUnit::orderBy('id')->paginate(25);
         return view('literature.concentration_units.index', compact('concentrationUnits'));
+    }
+
+    public function download()
+    {
+        $concentrationUnits = ConcentrationUnit::orderBy('id')->get();
+
+        $filename = 'concentration_units_' . date('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function() use ($concentrationUnits) {
+            $file = fopen('php://output', 'w');
+
+            // Add CSV headers
+            fputcsv($file, ['id', 'name']);
+
+            // Add data rows
+            foreach ($concentrationUnits as $item) {
+                fputcsv($file, [
+                    $item->id,
+                    $item->name,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function create()
@@ -51,11 +81,4 @@ class ConcentrationUnitController extends Controller
             ->with('success', 'Concentration unit updated successfully.');
     }
 
-    public function destroy(ConcentrationUnit $concentrationUnit)
-    {
-        $concentrationUnit->delete();
-
-        return redirect()->route('literature.concentration_units.index')
-            ->with('success', 'Concentration unit deleted successfully.');
-    }
 }

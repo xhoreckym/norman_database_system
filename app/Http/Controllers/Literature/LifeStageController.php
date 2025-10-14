@@ -10,8 +10,38 @@ class LifeStageController extends Controller
 {
     public function index()
     {
-        $lifeStages = LifeStage::orderBy('name')->paginate(25);
+        $lifeStages = LifeStage::orderBy('id')->paginate(25);
         return view('literature.life_stages.index', compact('lifeStages'));
+    }
+
+    public function download()
+    {
+        $lifeStages = LifeStage::orderBy('id')->get();
+
+        $filename = 'life_stages_' . date('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function() use ($lifeStages) {
+            $file = fopen('php://output', 'w');
+
+            // Add CSV headers
+            fputcsv($file, ['id', 'name']);
+
+            // Add data rows
+            foreach ($lifeStages as $item) {
+                fputcsv($file, [
+                    $item->id,
+                    $item->name,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function create()
@@ -51,11 +81,4 @@ class LifeStageController extends Controller
             ->with('success', 'Life stage updated successfully.');
     }
 
-    public function destroy(LifeStage $lifeStage)
-    {
-        $lifeStage->delete();
-
-        return redirect()->route('literature.life_stages.index')
-            ->with('success', 'Life stage deleted successfully.');
-    }
 }

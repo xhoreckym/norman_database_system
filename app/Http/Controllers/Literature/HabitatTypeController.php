@@ -10,8 +10,38 @@ class HabitatTypeController extends Controller
 {
     public function index()
     {
-        $habitatTypes = HabitatType::orderBy('name')->paginate(25);
+        $habitatTypes = HabitatType::orderBy('id')->paginate(25);
         return view('literature.habitat_types.index', compact('habitatTypes'));
+    }
+
+    public function download()
+    {
+        $habitatTypes = HabitatType::orderBy('id')->get();
+
+        $filename = 'habitat_types_' . date('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function() use ($habitatTypes) {
+            $file = fopen('php://output', 'w');
+
+            // Add CSV headers
+            fputcsv($file, ['id', 'name']);
+
+            // Add data rows
+            foreach ($habitatTypes as $item) {
+                fputcsv($file, [
+                    $item->id,
+                    $item->name,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function create()
@@ -51,11 +81,4 @@ class HabitatTypeController extends Controller
             ->with('success', 'Habitat type updated successfully.');
     }
 
-    public function destroy(HabitatType $habitatType)
-    {
-        $habitatType->delete();
-
-        return redirect()->route('literature.habitat_types.index')
-            ->with('success', 'Habitat type deleted successfully.');
-    }
 }
