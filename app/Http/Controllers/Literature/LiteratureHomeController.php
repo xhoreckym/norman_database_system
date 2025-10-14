@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Literature;
 
 use App\Http\Controllers\Controller;
+use App\Models\DatabaseEntity;
+use App\Models\Literature\LiteratureTempMain;
 use Illuminate\Http\Request;
 
 class LiteratureHomeController extends Controller
@@ -13,6 +15,19 @@ class LiteratureHomeController extends Controller
     public function index()
     {
         return view('literature.home.index');
+    }
+
+    /**
+     * Update the database counts for Literature module
+     */
+    public function countAll()
+    {
+        DatabaseEntity::where('code', 'literature')->update([
+            'last_update' => LiteratureTempMain::max('updated_at'),
+            'number_of_records' => LiteratureTempMain::count()
+        ]);
+        session()->flash('success', 'Literature database counts updated successfully');
+        return redirect()->back();
     }
 
     /**

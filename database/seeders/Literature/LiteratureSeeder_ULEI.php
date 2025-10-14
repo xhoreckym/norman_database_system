@@ -18,13 +18,14 @@ class LiteratureSeeder_ULEI extends Seeder
     protected array $sexCache = [];
     protected array $lifeStagesCache = [];
     protected array $habitatTypesCache = [];
+    protected array $habitatFuzzyCache = []; // Pre-computed fuzzy matching cache
     protected array $concentrationUnitsCache = [];
     protected array $commonNamesCache = [];
     protected array $useCategoriesCache = [];
     protected array $substanceCache = [];
 
     // Test mode - set to null for full processing
-    protected ?int $limitRows = 1000;
+    protected ?int $limitRows = 5000;
 
     /**
      * Run the database seeds.
@@ -38,6 +39,12 @@ class LiteratureSeeder_ULEI extends Seeder
 
         $this->command->info('Loading lookup tables into cache...');
         $this->loadLookupCaches();
+
+        // Disable query logging for performance
+        DB::connection()->disableQueryLog();
+
+        // Disable foreign key checks temporarily for faster inserts (PostgreSQL)
+        DB::statement('SET session_replication_role = replica;');
 
         $now = Carbon::now();
         $path = base_path() . '/database/seeders/seeds/literature/2025-6-20_ULEI_Wildlife_Exposure_data.csv';
@@ -79,68 +86,106 @@ class LiteratureSeeder_ULEI extends Seeder
         $this->command->info("Total columns in header: " . count($header));
 
         $batch = [];
-        $batchSize = 100; // Reduced for PostgreSQL parameter limit (103 columns × 500 rows = 51,500 params)
+        $batchSize = 200; // 
         $rowCount = 0;
         $skippedRows = 0;
+        $progressInterval = 200; // Report progress every 1000 rows
+        $startTime = microtime(true);
+        $lastProgressTime = $startTime;
 
-        while (($row = fgetcsv($handle)) !== false) {
-            // Test mode row limit
-            if ($this->limitRows && $rowCount >= $this->limitRows) {
-                break;
+        // Increase PHP memory limit and execution time for large imports
+        ini_set('memory_limit', '2048M');
+        ini_set('max_execution_time', '3600'); // 1 hour
+
+        // Start transaction for better performance
+        DB::beginTransaction();
+
+        try {
+            while (($row = fgetcsv($handle)) !== false) {
+                // Test mode row limit
+                if ($this->limitRows && $rowCount >= $this->limitRows) {
+                    break;
+                }
+
+                // Combine header with row
+                if (count($row) !== count($header)) {
+                    if ($skippedRows < 10) {
+                        $this->command->warn("Row " . ($rowCount + $skippedRows + 1) . " column count mismatch: expected " . count($header) . ", got " . count($row));
+                    }
+                    $skippedRows++;
+                    continue;
+                }
+
+                $data = array_combine($header, $row);
+                if ($data === false) {
+                    if ($skippedRows < 10) {
+                        $this->command->error("Failed to combine header and row at line " . ($rowCount + $skippedRows + 1));
+                    }
+                    $skippedRows++;
+                    continue;
+                }
+
+                try {
+                    $processedData = $this->processRow($data, $now);
+                    if ($processedData) {
+                        $batch[] = $processedData;
+                        $rowCount++;
+                    }
+                } catch (\Exception $e) {
+                    // Only show first 10 errors to avoid spam
+                    if ($skippedRows < 10) {
+                        $this->command->error("Error processing row " . ($rowCount + $skippedRows + 1) . ": " . $e->getMessage());
+                    }
+                    $skippedRows++;
+                    continue;
+                }
+
+                // Insert batch when it reaches the batch size
+                if (count($batch) >= $batchSize) {
+                    DB::table($target_table_name)->insert($batch);
+                    $batch = [];
+
+                    // Report progress less frequently with timing
+                    if ($rowCount % $progressInterval === 0) {
+                        $currentTime = microtime(true);
+                        $batchDuration = round($currentTime - $lastProgressTime, 2);
+                        $totalDuration = round($currentTime - $startTime, 2);
+                        $this->command->info("Processed {$rowCount} rows... (batch: {$batchDuration}s, total: {$totalDuration}s)");
+                        $lastProgressTime = $currentTime;
+                    }
+                }
             }
 
-            // Combine header with row
-            if (count($row) !== count($header)) {
-                if ($skippedRows < 10) {
-                    $this->command->warn("Row " . ($rowCount + $skippedRows + 1) . " column count mismatch: expected " . count($header) . ", got " . count($row));
-                }
-                $skippedRows++;
-                continue;
-            }
-
-            $data = array_combine($header, $row);
-            if ($data === false) {
-                if ($skippedRows < 10) {
-                    $this->command->error("Failed to combine header and row at line " . ($rowCount + $skippedRows + 1));
-                }
-                $skippedRows++;
-                continue;
-            }
-
-            try {
-                $processedData = $this->processRow($data, $now);
-                if ($processedData) {
-                    $batch[] = $processedData;
-                    $rowCount++;
-                }
-            } catch (\Exception $e) {
-                // Only show first 10 errors to avoid spam
-                if ($skippedRows < 10) {
-                    $this->command->error("Error processing row " . ($rowCount + $skippedRows + 1) . ": " . $e->getMessage());
-                }
-                $skippedRows++;
-                continue;
-            }
-
-            // Insert batch when it reaches the batch size
-            if (count($batch) >= $batchSize) {
+            // Insert remaining records
+            if (!empty($batch)) {
                 DB::table($target_table_name)->insert($batch);
-                $this->command->info("Processed {$rowCount} rows...");
-                $batch = [];
             }
-        }
 
-        // Insert remaining records
-        if (!empty($batch)) {
-            DB::table($target_table_name)->insert($batch);
+            DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            fclose($handle);
+            throw $e;
         }
 
         fclose($handle);
 
-        $this->command->info("Successfully seeded {$rowCount} records into {$target_table_name} table.");
+        $totalTime = round(microtime(true) - $startTime, 2);
+        $avgPerRow = $rowCount > 0 ? round($totalTime / $rowCount * 1000, 2) : 0;
+        $rowsPerSecond = $rowCount > 0 ? round($rowCount / $totalTime, 2) : 0;
+
+        $this->command->info("Successfully seeded {$rowCount} records into {$target_table_name} table in {$totalTime}s");
+        $this->command->info("Performance: {$avgPerRow}ms/row ({$rowsPerSecond} rows/second)");
         if ($skippedRows > 0) {
             $this->command->warn("Skipped {$skippedRows} rows due to errors.");
         }
+
+        // Re-enable foreign key checks (PostgreSQL)
+        DB::statement('SET session_replication_role = default;');
+
+        // Re-enable query logging
+        DB::connection()->enableQueryLog();
 
         // Link all seeded records to file_id 477 (ULEI data source)
         $this->linkRecordsToFile(477);
@@ -200,75 +245,130 @@ class LiteratureSeeder_ULEI extends Seeder
 
     /**
      * Load all lookup tables into memory for faster processing
+     * Using lowercase keys for O(1) lookup performance
      */
     protected function loadLookupCaches(): void
     {
-        // Load species by name_latin
-        $this->speciesCache = DB::table('list_species')
+        // Load species by name_latin with lowercase keys
+        $species = DB::table('list_species')
             ->whereNotNull('name_latin')
-            ->pluck('id', 'name_latin')
-            ->map(fn($id) => $id)
-            ->toArray();
+            ->select('id', 'name_latin')
+            ->get();
+        foreach ($species as $s) {
+            $this->speciesCache[strtolower($s->name_latin)] = $s->id;
+        }
         $this->command->info("Loaded " . count($this->speciesCache) . " species");
 
-        // Load countries by name
-        $this->countriesCache = DB::table('list_countries')
-            ->pluck('id', 'name')
-            ->map(fn($id) => $id)
-            ->toArray();
+        // Load countries by name with lowercase keys
+        $countries = DB::table('list_countries')
+            ->select('id', 'name')
+            ->get();
+        foreach ($countries as $c) {
+            $this->countriesCache[strtolower($c->name)] = $c->id;
+        }
         $this->command->info("Loaded " . count($this->countriesCache) . " countries");
 
-        // Load tissues by name
-        $this->tissuesCache = DB::table('list_tissues')
-            ->pluck('id', 'name')
-            ->map(fn($id) => $id)
-            ->toArray();
+        // Load tissues by name with lowercase keys
+        $tissues = DB::table('list_tissues')
+            ->select('id', 'name')
+            ->get();
+        foreach ($tissues as $t) {
+            $this->tissuesCache[strtolower($t->name)] = $t->id;
+        }
         $this->command->info("Loaded " . count($this->tissuesCache) . " tissues");
 
-        // Load sex by name
-        $this->sexCache = DB::table('list_biota_sexs')
-            ->pluck('id', 'name')
-            ->map(fn($id) => $id)
-            ->toArray();
+        // Load sex by name with lowercase keys
+        $sexes = DB::table('list_biota_sexs')
+            ->select('id', 'name')
+            ->get();
+        foreach ($sexes as $s) {
+            $this->sexCache[strtolower($s->name)] = $s->id;
+        }
         $this->command->info("Loaded " . count($this->sexCache) . " sex types");
 
-        // Load life stages by name
-        $this->lifeStagesCache = DB::table('list_life_stages')
-            ->pluck('id', 'name')
-            ->map(fn($id) => $id)
-            ->toArray();
+        // Load life stages by name with lowercase keys
+        $lifeStages = DB::table('list_life_stages')
+            ->select('id', 'name')
+            ->get();
+        foreach ($lifeStages as $ls) {
+            $this->lifeStagesCache[strtolower($ls->name)] = $ls->id;
+        }
         $this->command->info("Loaded " . count($this->lifeStagesCache) . " life stages");
 
-        // Load habitat types by name
-        $this->habitatTypesCache = DB::table('list_habitat_types')
-            ->pluck('id', 'name')
-            ->map(fn($id) => $id)
-            ->toArray();
+        // Load habitat types by name with lowercase keys
+        $habitatTypes = DB::table('list_habitat_types')
+            ->select('id', 'name')
+            ->get();
+        foreach ($habitatTypes as $ht) {
+            $this->habitatTypesCache[strtolower($ht->name)] = $ht->id;
+        }
         $this->command->info("Loaded " . count($this->habitatTypesCache) . " habitat types");
 
-        // Load concentration units by name
-        $this->concentrationUnitsCache = DB::table('list_concentration_units')
-            ->pluck('id', 'name')
-            ->map(fn($id) => $id)
-            ->toArray();
+        // Load concentration units by name with lowercase keys
+        $concentrationUnits = DB::table('list_concentration_units')
+            ->select('id', 'name')
+            ->get();
+        foreach ($concentrationUnits as $cu) {
+            $this->concentrationUnitsCache[strtolower($cu->name)] = $cu->id;
+        }
         $this->command->info("Loaded " . count($this->concentrationUnitsCache) . " concentration units");
 
-        // Load common names by name
-        $this->commonNamesCache = DB::table('list_common_names')
-            ->pluck('id', 'name')
-            ->map(fn($id) => $id)
-            ->toArray();
+        // Load common names by name with lowercase keys
+        $commonNames = DB::table('list_common_names')
+            ->select('id', 'name')
+            ->get();
+        foreach ($commonNames as $cn) {
+            $this->commonNamesCache[strtolower($cn->name)] = $cn->id;
+        }
         $this->command->info("Loaded " . count($this->commonNamesCache) . " common names");
 
-        // Load use categories by name
-        $this->useCategoriesCache = DB::table('list_use_categories')
-            ->pluck('id', 'name')
-            ->map(fn($id) => $id)
-            ->toArray();
+        // Load use categories by name with lowercase keys
+        $useCategories = DB::table('list_use_categories')
+            ->select('id', 'name')
+            ->get();
+        foreach ($useCategories as $uc) {
+            $this->useCategoriesCache[strtolower($uc->name)] = $uc->id;
+        }
         $this->command->info("Loaded " . count($this->useCategoriesCache) . " use categories");
 
         // Load substance mapping from chemical_name to substance_id
         $this->loadSubstanceMapping();
+
+        // Pre-compute habitat fuzzy matching cache
+        $this->buildHabitatFuzzyCache();
+    }
+
+    /**
+     * Pre-compute habitat fuzzy matching cache for O(1) lookups
+     */
+    protected function buildHabitatFuzzyCache(): void
+    {
+        $mappings = [
+            'Coastal habitats' => ['coast', 'beach', 'shore', 'estuary', 'lagoon'],
+            'Forest and other wooded land' => ['forest', 'woodland', 'wood', 'tree', 'canopy', 'taiga'],
+            'Grasslands and lands dominated by forbs, mosses or lichens' => ['grassland', 'meadow', 'prairie', 'steppe', 'pasture', 'moss', 'lichen', 'forb'],
+            'Heathland, scrub and tundra' => ['heath', 'scrub', 'tundra', 'shrub', 'moor'],
+            'Ice-associated marine habitats' => ['ice', 'arctic', 'antarctic', 'polar', 'glacier', 'pack ice'],
+            'Inland habitats with no or little soil and mostly with sparse vegetation' => ['rock', 'cliff', 'quarry', 'scree', 'bare', 'sparse'],
+            'Marine benthic habitats' => ['benthic', 'seabed', 'seafloor', 'marine sediment'],
+            'Pelagic water column' => ['pelagic', 'open sea', 'ocean', 'offshore'],
+            'Vegetated man-made habitats' => ['farm', 'agricultural', 'arable', 'crop', 'field', 'orchard', 'vineyard', 'garden', 'park', 'urban', 'suburban', 'hedgerow', 'cereal', 'maize', 'conventional', 'organic'],
+            'Wetlands' => ['wetland', 'marsh', 'swamp', 'bog', 'fen', 'pond', 'lake', 'river', 'stream', 'fjord', 'aquatic'],
+        ];
+
+        // Pre-compute keyword -> habitat_id mappings
+        foreach ($mappings as $category => $keywords) {
+            $categoryLower = strtolower($category);
+            $habitatId = $this->habitatTypesCache[$categoryLower] ?? null;
+
+            if ($habitatId) {
+                foreach ($keywords as $keyword) {
+                    $this->habitatFuzzyCache[$keyword] = $habitatId;
+                }
+            }
+        }
+
+        $this->command->info("Pre-computed " . count($this->habitatFuzzyCache) . " fuzzy habitat mappings");
     }
 
     /**
@@ -502,65 +602,40 @@ class LiteratureSeeder_ULEI extends Seeder
         ];
     }
 
-    // Lookup methods
+    // Lookup methods - optimized for O(1) performance with lowercase keys
     protected function lookupSpecies(?string $latinName): ?int
     {
         if (empty($latinName)) return null;
         $cleaned = strtolower(trim($latinName));
-        foreach ($this->speciesCache as $name => $id) {
-            if (strtolower($name) === $cleaned) {
-                return $id;
-            }
-        }
-        return null;
+        return $this->speciesCache[$cleaned] ?? null;
     }
 
     protected function lookupCountry(?string $name): ?int
     {
         if (empty($name)) return null;
         $cleaned = strtolower(trim($name));
-        foreach ($this->countriesCache as $countryName => $id) {
-            if (strtolower($countryName) === $cleaned) {
-                return $id;
-            }
-        }
-        return null;
+        return $this->countriesCache[$cleaned] ?? null;
     }
 
     protected function lookupTissue(?string $name): ?int
     {
         if (empty($name)) return null;
         $cleaned = strtolower(trim($name));
-        foreach ($this->tissuesCache as $tissueName => $id) {
-            if (strtolower($tissueName) === $cleaned) {
-                return $id;
-            }
-        }
-        return null;
+        return $this->tissuesCache[$cleaned] ?? null;
     }
 
     protected function lookupSex(?string $name): ?int
     {
         if (empty($name)) return null;
         $cleaned = strtolower(trim($name));
-        foreach ($this->sexCache as $sexName => $id) {
-            if (strtolower($sexName) === $cleaned) {
-                return $id;
-            }
-        }
-        return null;
+        return $this->sexCache[$cleaned] ?? null;
     }
 
     protected function lookupLifeStage(?string $name): ?int
     {
         if (empty($name)) return null;
         $cleaned = strtolower(trim($name));
-        foreach ($this->lifeStagesCache as $stageName => $id) {
-            if (strtolower($stageName) === $cleaned) {
-                return $id;
-            }
-        }
-        return null;
+        return $this->lifeStagesCache[$cleaned] ?? null;
     }
 
     protected function lookupHabitatType(?string $name): ?int
@@ -573,86 +648,41 @@ class LiteratureSeeder_ULEI extends Seeder
             return null;
         }
 
-        // Try exact match first
-        foreach ($this->habitatTypesCache as $habitatName => $id) {
-            if (strtolower($habitatName) === $cleaned) {
-                return $id;
+        // Try exact match first (O(1))
+        if (isset($this->habitatTypesCache[$cleaned])) {
+            return $this->habitatTypesCache[$cleaned];
+        }
+
+        // Try fuzzy matching using pre-computed cache (O(n) where n is number of keywords, much faster than before)
+        foreach ($this->habitatFuzzyCache as $keyword => $habitatId) {
+            if (str_contains($cleaned, $keyword)) {
+                return $habitatId;
             }
         }
 
-        // Fuzzy matching using keyword mapping
-        $mappings = [
-            'Coastal habitats' => ['coast', 'beach', 'shore', 'estuary', 'lagoon'],
-            'Forest and other wooded land' => ['forest', 'woodland', 'wood', 'tree', 'canopy', 'taiga'],
-            'Grasslands and lands dominated by forbs, mosses or lichens' => ['grassland', 'meadow', 'prairie', 'steppe', 'pasture', 'moss', 'lichen', 'forb'],
-            'Heathland, scrub and tundra' => ['heath', 'scrub', 'tundra', 'shrub', 'moor'],
-            'Ice-associated marine habitats' => ['ice', 'arctic', 'antarctic', 'polar', 'glacier', 'pack ice'],
-            'Inland habitats with no or little soil and mostly with sparse vegetation' => ['rock', 'cliff', 'quarry', 'scree', 'bare', 'sparse'],
-            'Marine benthic habitats' => ['benthic', 'seabed', 'seafloor', 'marine sediment'],
-            'Pelagic water column' => ['pelagic', 'open sea', 'ocean', 'offshore'],
-            'Vegetated man-made habitats' => ['farm', 'agricultural', 'arable', 'crop', 'field', 'orchard', 'vineyard', 'garden', 'park', 'urban', 'suburban', 'hedgerow', 'cereal', 'maize', 'conventional', 'organic'],
-            'Wetlands' => ['wetland', 'marsh', 'swamp', 'bog', 'fen', 'pond', 'lake', 'river', 'stream', 'fjord', 'aquatic'],
-        ];
-
-        // Check each mapping category
-        foreach ($mappings as $category => $keywords) {
-            foreach ($keywords as $keyword) {
-                if (str_contains($cleaned, $keyword)) {
-                    // Find the ID for this category
-                    foreach ($this->habitatTypesCache as $habitatName => $id) {
-                        if (strtolower($habitatName) === strtolower($category)) {
-                            return $id;
-                        }
-                    }
-                }
-            }
-        }
-
-        // If no match found, try to find "Other" category
-        foreach ($this->habitatTypesCache as $habitatName => $id) {
-            if (strtolower($habitatName) === 'other') {
-                return $id;
-            }
-        }
-
-        // If still no match, return null
-        return null;
+        // If no match found, return "Other" category
+        return $this->habitatTypesCache['other'] ?? null;
     }
 
     protected function lookupConcentrationUnit(?string $name): ?int
     {
         if (empty($name)) return null;
         $cleaned = strtolower(trim($name));
-        foreach ($this->concentrationUnitsCache as $unitName => $id) {
-            if (strtolower($unitName) === $cleaned) {
-                return $id;
-            }
-        }
-        return null;
+        return $this->concentrationUnitsCache[$cleaned] ?? null;
     }
 
     protected function lookupCommonName(?string $name): ?int
     {
         if (empty($name)) return null;
         $cleaned = strtolower(trim($name));
-        foreach ($this->commonNamesCache as $commonName => $id) {
-            if (strtolower($commonName) === $cleaned) {
-                return $id;
-            }
-        }
-        return null;
+        return $this->commonNamesCache[$cleaned] ?? null;
     }
 
     protected function lookupUseCategory(?string $name): ?int
     {
         if (empty($name)) return null;
         $cleaned = strtolower(trim($name));
-        foreach ($this->useCategoriesCache as $categoryName => $id) {
-            if (strtolower($categoryName) === $cleaned) {
-                return $id;
-            }
-        }
-        return null;
+        return $this->useCategoriesCache[$cleaned] ?? null;
     }
 
     protected function lookupSubstance(?string $chemicalName): ?int

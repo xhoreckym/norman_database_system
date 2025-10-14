@@ -152,6 +152,11 @@ class DashboardMainController extends Controller
                         'method' => 'GET',
                     ],
                     [
+                        'name' => 'Literature',
+                        'route' => 'literature.countAll',
+                        'method' => 'GET',
+                    ],
+                    [
                         'name' => 'Lowest PNEC',
                         'route' => 'ecotox.lowestpnec.countAll',
                         'method' => 'GET',

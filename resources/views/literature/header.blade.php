@@ -25,4 +25,5 @@
   </x-nav-link-header>
   @endrole
 </div>
+@include('literature.helper_lookup_tables')
 
