@@ -16,7 +16,36 @@
             </a>
             @endrole
           </div>
-          
+
+          <!-- Admin Lists (Super Admin & Admin only) -->
+          @role('super_admin|admin')
+          <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Super Admins List -->
+            <div class="bg-red-50 border border-red-200 rounded-md p-4">
+              <h3 class="text-sm font-semibold text-red-800 mb-2">Super Admins ({{ $superAdmins->count() }})</h3>
+              <div class="text-sm text-red-900">
+                @if($superAdmins->count() > 0)
+                  {{ $superAdmins->pluck('last_name')->implode('; ') }}
+                @else
+                  <span class="text-red-600">None</span>
+                @endif
+              </div>
+            </div>
+
+            <!-- Admins List -->
+            <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <h3 class="text-sm font-semibold text-blue-800 mb-2">Admins ({{ $admins->count() }})</h3>
+              <div class="text-sm text-blue-900">
+                @if($admins->count() > 0)
+                  {{ $admins->pluck('last_name')->implode('; ') }}
+                @else
+                  <span class="text-blue-600">None</span>
+                @endif
+              </div>
+            </div>
+          </div>
+          @endrole
+
           <!-- User Actions -->
           <div class="mb-6 flex justify-between items-center">
             <div class="flex space-x-4 flex-1">

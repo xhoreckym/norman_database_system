@@ -28,21 +28,27 @@ class UserController extends Controller implements HasMiddleware
   public function index(Request $request)
   {
     $perPage = $request->input('per_page', 50);
-    
+
     $users = User::with(['roles', 'permissions', 'projects'])
     ->orderBy('last_name', 'desc')
     ->paginate($perPage);
-    
+
     $usersWithTokens = [];
     foreach ($users as $user) {
       $tokensCount = $user->tokens()->count();
       $usersWithTokens[$user->id] = $tokensCount;
     }
-    
+
+    // Get super_admins and admins for quick reference
+    $superAdmins = User::role('super_admin')->orderBy('last_name')->get();
+    $admins = User::role('admin')->orderBy('last_name')->get();
+
     return view('dashboard.users.index', [
       'users' => $users,
       'columns' => $this->getVisibleColumns(),
       'usersWithTokens' => $usersWithTokens,
+      'superAdmins' => $superAdmins,
+      'admins' => $admins,
     ]);
   }
   
