@@ -30,3 +30,4 @@ return new class extends Migration
         Schema::dropIfExists('file_literature_temp_main');
     }
 };
+
