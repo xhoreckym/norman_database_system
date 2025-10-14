@@ -85,19 +85,37 @@
               <thead>
                 <tr class="bg-gray-600 text-white">
                   @foreach ($columns as $column)
-                  <th class="py-2 px-4 text-left cursor-pointer" @click="sortBy('{{ $column }}')">
-                    <div class="flex items-center">
-                      <span>{{ Str::title(str_replace('_', ' ', $column)) }}</span>
-                      <template x-if="sortColumn === '{{ $column }}'">
-                        <span class="ml-1">
-                          <template x-if="sortDirection === 'asc'">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                          </template>
-                          <template x-if="sortDirection === 'desc'">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                          </template>
-                        </span>
-                      </template>
+                  <th class="py-2 px-4 text-left cursor-pointer hover:bg-gray-500 transition-colors"
+                      @click="sortBy('{{ $column }}')"
+                      :class="sortColumn === '{{ $column }}' ? 'bg-gray-900' : ''">
+                    <div class="flex items-center justify-between">
+                      <span :class="sortColumn === '{{ $column }}' ? 'font-bold' : ''">
+                        {{ Str::title(str_replace('_', ' ', $column)) }}
+                      </span>
+                      <span class="ml-2 flex flex-col">
+                        <!-- Active sort arrows -->
+                        <template x-if="sortColumn === '{{ $column }}'">
+                          <span>
+                            <template x-if="sortDirection === 'asc'">
+                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 14l5-5 5 5z"/>
+                              </svg>
+                            </template>
+                            <template x-if="sortDirection === 'desc'">
+                              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 10l5 5 5-5z"/>
+                              </svg>
+                            </template>
+                          </span>
+                        </template>
+                        <!-- Inactive sort indicator -->
+                        <template x-if="sortColumn !== '{{ $column }}'">
+                          <svg class="w-4 h-4 opacity-25" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M7 14l5-5 5 5z"/>
+                            <path d="M7 10l5 5 5-5z"/>
+                          </svg>
+                        </template>
+                      </span>
                     </div>
                   </th>
                   @endforeach

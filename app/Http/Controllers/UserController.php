@@ -92,8 +92,8 @@ class UserController extends Controller implements HasMiddleware
       })
       ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
       ->select('users.*')
-      ->orderBy('roles.name', $direction)
-      ->groupBy('users.id');
+      ->groupBy('users.id')
+      ->orderBy(\DB::raw("MIN(roles.name)"), $direction);
     } elseif ($sort === 'number_of_api_tokens') {
       // Handle special case for token count sorting
       $query->orderBy('tokens_count', $direction);
