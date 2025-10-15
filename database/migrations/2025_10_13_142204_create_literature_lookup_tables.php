@@ -12,73 +12,91 @@ return new class extends Migration
     public function up(): void
     {
         // List of life stages (e.g., adult, juvenile, hatchling, imago, larvae)
-        Schema::create('list_life_stages', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('list_life_stages')) {
+            Schema::create('list_life_stages', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
 
         // List of habitat types (EUNIS Habitat type)
-        Schema::create('list_habitat_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('list_habitat_types')) {
+            Schema::create('list_habitat_types', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
 
         // List of concentration units
-        Schema::create('list_concentration_units', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('list_concentration_units')) {
+            Schema::create('list_concentration_units', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
 
         // List of biota sexes (e.g., male, female, unknown)
-        Schema::create('list_biota_sexs', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('list_biota_sexs')) {
+            Schema::create('list_biota_sexs', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
 
         // List of tissues (e.g., liver, muscle, blood, brain)
-        Schema::create('list_tissues', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('list_tissues')) {
+            Schema::create('list_tissues', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
 
         // List of use categories (chemical use categories)
-        Schema::create('list_use_categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('list_use_categories')) {
+            Schema::create('list_use_categories', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
 
         // List of species with phylogenetic information
-        Schema::create('list_species', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->nullable()->default(null);
-            $table->string('name_latin')->nullable()->default(null);
-            $table->string('kingdom')->nullable()->default(null);
-            $table->string('phylum')->nullable()->default(null);
-            $table->string('order')->nullable()->default(null);
-            $table->string('class')->nullable()->default(null);
-            $table->string('genus')->nullable()->default(null);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('list_species')) {
+            Schema::create('list_species', function (Blueprint $table) {
+                $table->id();
+                $table->string('name')->nullable()->default(null);
+                $table->string('name_latin')->nullable()->default(null);
+                $table->string('kingdom')->nullable()->default(null);
+                $table->string('phylum')->nullable()->default(null);
+                $table->string('order')->nullable()->default(null);
+                $table->string('class')->nullable()->default(null);
+                $table->string('genus')->nullable()->default(null);
+                $table->timestamps();
+            });
+        }
 
         // List of common names for species
-        Schema::create('list_common_names', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('list_common_names')) {
+            Schema::create('list_common_names', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
 
         // List of type of numeric quantities (e.g., Arithmetic mean, Average, Mean, Median, etc.)
-        Schema::create('list_type_of_numeric_quantities', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('list_type_of_numeric_quantities')) {
+            Schema::create('list_type_of_numeric_quantities', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
