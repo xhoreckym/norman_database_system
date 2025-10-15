@@ -32,6 +32,27 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // List of biota sexes (e.g., male, female, unknown)
+        Schema::create('list_biota_sexs', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        // List of tissues (e.g., liver, muscle, blood, brain)
+        Schema::create('list_tissues', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        // List of use categories (chemical use categories)
+        Schema::create('list_use_categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+
         // List of species with phylogenetic information
         Schema::create('list_species', function (Blueprint $table) {
             $table->id();
@@ -51,6 +72,13 @@ return new class extends Migration
             $table->string('name');
             $table->timestamps();
         });
+
+        // List of type of numeric quantities (e.g., Arithmetic mean, Average, Mean, Median, etc.)
+        Schema::create('list_type_of_numeric_quantities', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -58,6 +86,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('list_type_of_numeric_quantities');
+        Schema::dropIfExists('list_use_categories');
+        Schema::dropIfExists('list_tissues');
+        Schema::dropIfExists('list_biota_sexs');
         Schema::dropIfExists('list_common_names');
         Schema::dropIfExists('list_species');
         Schema::dropIfExists('list_concentration_units');

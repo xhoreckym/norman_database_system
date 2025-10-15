@@ -23,6 +23,7 @@ class LiteratureSeeder_ULEI extends Seeder
     protected array $commonNamesCache = [];
     protected array $useCategoriesCache = [];
     protected array $substanceCache = [];
+    protected array $typeOfNumericQuantitiesCache = [];
 
     // Test mode - set to null for full processing
     protected ?int $limitRows = 5000;
@@ -331,6 +332,15 @@ class LiteratureSeeder_ULEI extends Seeder
         }
         $this->command->info("Loaded " . count($this->useCategoriesCache) . " use categories");
 
+        // Load type of numeric quantities by name with lowercase keys
+        $typeOfNumericQuantities = DB::table('list_type_of_numeric_quantities')
+            ->select('id', 'name')
+            ->get();
+        foreach ($typeOfNumericQuantities as $tonq) {
+            $this->typeOfNumericQuantitiesCache[strtolower($tonq->name)] = $tonq->id;
+        }
+        $this->command->info("Loaded " . count($this->typeOfNumericQuantitiesCache) . " type of numeric quantities");
+
         // Load substance mapping from chemical_name to substance_id
         $this->loadSubstanceMapping();
 
@@ -506,7 +516,7 @@ class LiteratureSeeder_ULEI extends Seeder
             'pooled' => $this->cleanString($data['pooled']),
             'x_of_subsamples' => $this->cleanString($data['x_of_subsamples']),
             'sd' => $this->cleanString($data['sd']),
-            'type_of_numeric_quantity' => $this->cleanString($data['type_of_numeric_quantity']),
+            'type_of_numeric_quantity_id' => $this->lookupTypeOfNumericQuantity($data['type_of_numeric_quantity']),
 
             // Range information
             'range_min' => $this->cleanString($data['range_min']),
@@ -621,14 +631,41 @@ class LiteratureSeeder_ULEI extends Seeder
     {
         if (empty($name)) return null;
         $cleaned = strtolower(trim($name));
-        return $this->tissuesCache[$cleaned] ?? null;
+
+        // Map CSV values to standardized lookup values
+        $mapping = [
+            'egg' => 'eggs',
+            'eggs' => 'eggs',
+            'liver' => 'liver',
+            'muscle' => 'muscle',
+            'whole body' => 'whole body',
+            'soft body' => 'soft body',
+            'placenta' => 'placenta',
+            'no data' => 'nr',
+            'na' => 'nr',
+            // Everything else maps to 'other'
+        ];
+
+        $standardized = $mapping[$cleaned] ?? 'other';
+        return $this->tissuesCache[$standardized] ?? null;
     }
 
     protected function lookupSex(?string $name): ?int
     {
         if (empty($name)) return null;
         $cleaned = strtolower(trim($name));
-        return $this->sexCache[$cleaned] ?? null;
+
+        // Map CSV values to standardized lookup values
+        $mapping = [
+            'm' => 'male',
+            'f' => 'female',
+            'mixed' => 'mixed',
+            'no data' => 'nr',
+            'na' => 'nr',
+        ];
+
+        $standardized = $mapping[$cleaned] ?? $cleaned;
+        return $this->sexCache[$standardized] ?? null;
     }
 
     protected function lookupLifeStage(?string $name): ?int
@@ -682,7 +719,35 @@ class LiteratureSeeder_ULEI extends Seeder
     {
         if (empty($name)) return null;
         $cleaned = strtolower(trim($name));
-        return $this->useCategoriesCache[$cleaned] ?? null;
+
+        // Map CSV values to standardized lookup values
+        // Note: CSV has chemical types (insecticide, herbicide, etc.)
+        // but lookup has ecological categories (Food_Humans, Feed_Livestock, etc.)
+        // For now, map everything to 'Other' unless you provide specific mapping
+        $mapping = [
+            'food_humans' => 'food_humans',
+            'feed_livestock' => 'feed_livestock',
+            'prey_predators' => 'prey_predators',
+            'no data' => 'nr',
+            'na' => 'nr',
+            // All pesticide types map to 'other' by default
+            'insecticide' => 'other',
+            'insecticides' => 'other',
+            'herbicides' => 'other',
+            'fungicides' => 'other',
+            'pesticides' => 'other',
+            'rodenticides' => 'other',
+            'acaricides' => 'other',
+        ];
+
+        // Handle compound values (e.g., "acaricides;insecticides")
+        if (str_contains($cleaned, ';')) {
+            $standardized = 'other';
+        } else {
+            $standardized = $mapping[$cleaned] ?? 'other';
+        }
+
+        return $this->useCategoriesCache[$standardized] ?? null;
     }
 
     protected function lookupSubstance(?string $chemicalName): ?int
@@ -692,6 +757,29 @@ class LiteratureSeeder_ULEI extends Seeder
 
         // Direct lookup from the mapping cache
         return $this->substanceCache[$cleaned] ?? null;
+    }
+
+    protected function lookupTypeOfNumericQuantity(?string $name): ?int
+    {
+        if (empty($name)) return null;
+        $cleaned = strtolower(trim($name));
+
+        // Map CSV values to standardized lookup values
+        $mapping = [
+            'mean' => 'mean',
+            'average' => 'average',
+            'arithmetic mean' => 'arithmetic mean',
+            'median' => 'median',
+            'geometric mean' => 'geometric mean',
+            'number' => 'single value',
+            'single value' => 'single value',
+            'no data' => 'nr',
+            'na' => 'nr',
+            // Everything else maps to 'other'
+        ];
+
+        $standardized = $mapping[$cleaned] ?? 'other';
+        return $this->typeOfNumericQuantitiesCache[$standardized] ?? null;
     }
 
     // Data cleaning methods

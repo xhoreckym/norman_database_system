@@ -71,7 +71,7 @@ return new class extends Migration
             $table->string('pooled')->nullable()->default(null)->comment('Denotes with "n" or "y" if a sample is a pooled sample');
             $table->string('x_of_subsamples')->nullable()->default(null)->comment('Number of samples pooled');
             $table->string('sd')->nullable()->default(null)->comment('Standard deviation of the concentration reported');
-            $table->string('type_of_numeric_quantity')->nullable()->default(null)->comment('Description of (summary) statistics');
+            $table->foreignId('type_of_numeric_quantity_id')->nullable()->default(null)->constrained('list_type_of_numeric_quantities')->onDelete('restrict');
 
             // Range information
             $table->string('range_min')->nullable()->default(null)->comment('Reported minimum value in range');
@@ -99,6 +99,8 @@ return new class extends Migration
 
             // Coordinates (10 latitude and 10 longitude fields)
             $table->string('imputed_coordinates')->nullable()->default(null)->comment('Indicator if coordinate is imputed or not');
+            $table->decimal('latitude_decimal', 10, 8)->nullable()->default(null)->comment('Latitude in decimal degrees');
+            $table->decimal('longitude_decimal', 11, 8)->nullable()->default(null)->comment('Longitude in decimal degrees');
             $table->string('latitude_1')->nullable()->default(null);
             $table->string('latitude_2')->nullable()->default(null);
             $table->string('latitude_3')->nullable()->default(null);
