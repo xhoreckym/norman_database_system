@@ -563,6 +563,46 @@ Route::prefix('literature')->group(function () {
             'edit' => 'literature.species.edit',
             'update' => 'literature.species.update',
         ]);
+
+        // Biota Sex
+        Route::get('biota_sexs/download', [\App\Http\Controllers\Literature\BiotaSexController::class, 'download'])->name('literature.biota_sexs.download');
+        Route::resource('biota_sexs', \App\Http\Controllers\Literature\BiotaSexController::class)->except(['destroy'])->names([
+            'index' => 'literature.biota_sexs.index',
+            'create' => 'literature.biota_sexs.create',
+            'store' => 'literature.biota_sexs.store',
+            'edit' => 'literature.biota_sexs.edit',
+            'update' => 'literature.biota_sexs.update',
+        ]);
+
+        // Tissues
+        Route::get('tissues/download', [\App\Http\Controllers\Literature\TissueController::class, 'download'])->name('literature.tissues.download');
+        Route::resource('tissues', \App\Http\Controllers\Literature\TissueController::class)->except(['destroy'])->names([
+            'index' => 'literature.tissues.index',
+            'create' => 'literature.tissues.create',
+            'store' => 'literature.tissues.store',
+            'edit' => 'literature.tissues.edit',
+            'update' => 'literature.tissues.update',
+        ]);
+
+        // Type of Numeric Quantities
+        Route::get('type_of_numeric_quantities/download', [\App\Http\Controllers\Literature\TypeOfNumericQuantityController::class, 'download'])->name('literature.type_of_numeric_quantities.download');
+        Route::resource('type_of_numeric_quantities', \App\Http\Controllers\Literature\TypeOfNumericQuantityController::class)->except(['destroy'])->names([
+            'index' => 'literature.type_of_numeric_quantities.index',
+            'create' => 'literature.type_of_numeric_quantities.create',
+            'store' => 'literature.type_of_numeric_quantities.store',
+            'edit' => 'literature.type_of_numeric_quantities.edit',
+            'update' => 'literature.type_of_numeric_quantities.update',
+        ]);
+
+        // Use Categories
+        Route::get('use_categories/download', [\App\Http\Controllers\Literature\UseCategoryController::class, 'download'])->name('literature.use_categories.download');
+        Route::resource('use_categories', \App\Http\Controllers\Literature\UseCategoryController::class)->except(['destroy'])->names([
+            'index' => 'literature.use_categories.index',
+            'create' => 'literature.use_categories.create',
+            'store' => 'literature.use_categories.store',
+            'edit' => 'literature.use_categories.edit',
+            'update' => 'literature.use_categories.update',
+        ]);
     });
 
 });

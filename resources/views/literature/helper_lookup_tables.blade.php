@@ -30,6 +30,26 @@
          class="text-xs px-3 py-1 rounded-md {{ request()->is('*species*') ? 'bg-amber-600 text-white' : 'bg-white text-amber-800 hover:bg-amber-100' }} border border-amber-300 transition">
         Species
       </a>
+
+      <a href="{{ route('literature.biota_sexs.index') }}"
+         class="text-xs px-3 py-1 rounded-md {{ request()->is('*biota_sexs*') ? 'bg-amber-600 text-white' : 'bg-white text-amber-800 hover:bg-amber-100' }} border border-amber-300 transition">
+        Biota Sex
+      </a>
+
+      <a href="{{ route('literature.tissues.index') }}"
+         class="text-xs px-3 py-1 rounded-md {{ request()->is('*tissues*') ? 'bg-amber-600 text-white' : 'bg-white text-amber-800 hover:bg-amber-100' }} border border-amber-300 transition">
+        Tissues
+      </a>
+
+      <a href="{{ route('literature.type_of_numeric_quantities.index') }}"
+         class="text-xs px-3 py-1 rounded-md {{ request()->is('*type_of_numeric_quantities*') ? 'bg-amber-600 text-white' : 'bg-white text-amber-800 hover:bg-amber-100' }} border border-amber-300 transition">
+        Type of Numeric Quantity
+      </a>
+
+      <a href="{{ route('literature.use_categories.index') }}"
+         class="text-xs px-3 py-1 rounded-md {{ request()->is('*use_categories*') ? 'bg-amber-600 text-white' : 'bg-white text-amber-800 hover:bg-amber-100' }} border border-amber-300 transition">
+        Use Categories
+      </a>
     </div>
   </div>
 </div>
