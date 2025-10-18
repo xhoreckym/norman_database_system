@@ -26,7 +26,7 @@ class LiteratureSeeder_ULEI extends Seeder
     protected array $typeOfNumericQuantitiesCache = [];
 
     // Test mode - set to null for full processing
-    protected ?int $limitRows = 5000;
+    protected ?int $limitRows = null;
 
     /**
      * Run the database seeds.
