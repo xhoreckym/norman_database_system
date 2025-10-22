@@ -11,6 +11,8 @@ use App\Http\Controllers\Backend\FileController;
 use App\Http\Controllers\ARBG\ARBGHomeController;
 use App\Http\Controllers\Literature\LiteratureController;
 use App\Http\Controllers\Literature\LiteratureHomeController;
+use App\Http\Controllers\EmpodatSuspect\EmpodatSuspectController;
+use App\Http\Controllers\EmpodatSuspect\EmpodatSuspectHomeController;
 
 use App\Http\Controllers\ARBG\BacteriaController;
 use App\Http\Controllers\Ecotox\EcotoxController;
@@ -604,6 +606,43 @@ Route::prefix('literature')->group(function () {
             'update' => 'literature.use_categories.update',
         ]);
     });
+
+});
+
+// EmpodatSuspect Routes
+Route::prefix('empodat_suspect')->group(function () {
+
+    Route::get('search/filter/', [EmpodatSuspectController::class, 'filter'])->name('empodat_suspect.search.filter');
+    Route::get('search/search/', [EmpodatSuspectController::class, 'search'])->name('empodat_suspect.search.search');
+    Route::get('search/downloadjob/{query_log_id}', [EmpodatSuspectController::class, 'startDownloadJob'])->name('empodat_suspect.search.download');
+    Route::get('search/download/{filename}', [EmpodatSuspectController::class, 'downloadCsv'])
+    ->name('empodat_suspect.csv.download');
+    Route::resource('search', EmpodatSuspectController::class)->names([
+        'index'   => 'empodat_suspect.search.index',
+        'create'  => 'empodat_suspect.search.create',
+        'store'   => 'empodat_suspect.search.store',
+        'show'    => 'empodat_suspect.search.show',
+        'edit'    => 'empodat_suspect.search.edit',
+        'update'  => 'empodat_suspect.search.update',
+        'destroy' => 'empodat_suspect.search.destroy',
+    ]);
+
+    // Public routes
+    Route::resource('home', EmpodatSuspectHomeController::class)->only(['index'])->names([
+        'index' => 'empodat_suspect.home.index',
+    ]);
+
+    // Authenticated routes
+    Route::resource('home', EmpodatSuspectHomeController::class)->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy'])->names([
+        'create' => 'empodat_suspect.home.create',
+        'store' => 'empodat_suspect.home.store',
+        'edit' => 'empodat_suspect.home.edit',
+        'update' => 'empodat_suspect.home.update',
+        'destroy' => 'empodat_suspect.home.destroy',
+    ]);
+
+    // Count all records
+    Route::get('empodat_suspect/countAll', [EmpodatSuspectHomeController::class, 'countAll'])->middleware('auth')->name('empodat_suspect.countAll');
 
 });
 
