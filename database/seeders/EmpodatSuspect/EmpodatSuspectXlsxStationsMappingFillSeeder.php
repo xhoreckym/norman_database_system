@@ -88,10 +88,8 @@ class EmpodatSuspectXlsxStationsMappingFillSeeder extends Seeder
         }
 
         $this->command->info('========================================');
-        $this->command->warn('MANUAL EXECUTION REQUIRED');
+        $this->command->info('EXECUTING UPDATE QUERY');
         $this->command->info('========================================');
-        $this->command->info('To actually update the table, run this SQL query:');
-        $this->command->newLine();
 
         $updateQuery = "
 UPDATE empodat_suspect_xlsx_stations_mapping m
@@ -124,7 +122,9 @@ FROM (
 WHERE m.id = subquery.mapping_id;
 ";
 
-        $this->command->line($updateQuery);
+        $this->command->info('Executing UPDATE query...');
+        $affectedRows = DB::update($updateQuery);
+        $this->command->info("Successfully updated {$affectedRows} rows.");
         $this->command->newLine();
 
         $this->command->info('========================================');

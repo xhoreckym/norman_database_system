@@ -17,7 +17,7 @@ class EmpodatSuspectMainSeeder extends Seeder
     protected array $stationIdCache = [];
 
     // Test mode - set to null for full processing
-    protected ?int $limitRows = 1000;
+    protected ?int $limitRows = null;
 
     // File tracking - set this to the file_id from the 'files' table
     protected ?int $fileId = null; // TODO: Set to actual file_id when linking to file
@@ -37,6 +37,12 @@ class EmpodatSuspectMainSeeder extends Seeder
 
         $this->command->info('Loading lookup tables into cache...');
         $this->loadLookupCaches();
+
+        // Disable Telescope during seeding to prevent memory issues
+        if (class_exists(\Laravel\Telescope\Telescope::class)) {
+            \Laravel\Telescope\Telescope::stopRecording();
+            $this->command->info('Telescope recording stopped for memory optimization');
+        }
 
         // Disable query logging for performance
         DB::connection()->disableQueryLog();
@@ -96,8 +102,8 @@ class EmpodatSuspectMainSeeder extends Seeder
         $lastProgressTime = $startTime;
 
         // Increase PHP memory limit and execution time for large imports
-        ini_set('memory_limit', '2048M');
-        ini_set('max_execution_time', '3600'); // 1 hour
+        ini_set('memory_limit', '16G'); // Increased from 2GB to 16GB
+        ini_set('max_execution_time', '7200'); // 2 hours
 
         // Start transaction for better performance
         DB::beginTransaction();
@@ -148,7 +154,13 @@ class EmpodatSuspectMainSeeder extends Seeder
                 // Insert batch when it reaches the batch size
                 if (count($batch) >= $batchSize) {
                     DB::table($target_table_name)->insert($batch);
+                    unset($batch);
                     $batch = [];
+
+                    // Force garbage collection periodically
+                    if ($rowCount % 1000 === 0) {
+                        gc_collect_cycles();
+                    }
 
                     // Report progress less frequently with timing
                     if ($rowCount % $progressInterval === 0) {
@@ -164,9 +176,14 @@ class EmpodatSuspectMainSeeder extends Seeder
             // Insert remaining records
             if (!empty($batch)) {
                 DB::table($target_table_name)->insert($batch);
+                unset($batch);
+                $batch = [];
             }
 
             DB::commit();
+
+            // Clear memory
+            gc_collect_cycles();
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -191,6 +208,12 @@ class EmpodatSuspectMainSeeder extends Seeder
 
         // Re-enable query logging
         DB::connection()->enableQueryLog();
+
+        // Re-enable Telescope
+        if (class_exists(\Laravel\Telescope\Telescope::class)) {
+            \Laravel\Telescope\Telescope::startRecording();
+            $this->command->info('Telescope recording re-enabled');
+        }
 
         // Link all seeded records to file if fileId is set
         if ($this->fileId !== null) {
