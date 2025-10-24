@@ -178,6 +178,14 @@ class LiteratureTempMain extends Model
     }
 
     /**
+     * Get the type of numeric quantity associated with this record.
+     */
+    public function typeOfNumericQuantity()
+    {
+        return $this->belongsTo(\App\Models\Literature\TypeOfNumericQuantity::class, 'type_of_numeric_quantity_id');
+    }
+
+    /**
      * Get the files associated with this literature record.
      */
     public function files()
@@ -241,15 +249,41 @@ class LiteratureTempMain extends Model
     }
 
     /**
-     * Scope to filter by habitat types
+     * Scope to filter by type of numeric quantity
      */
-    public function scopeByHabitatTypes($query, array $habitatTypeIds)
+    public function scopeByTypeOfNumericQuantity($query, array $typeOfNumericQuantityIds)
     {
-        if (empty($habitatTypeIds)) {
+        if (empty($typeOfNumericQuantityIds)) {
             return $query;
         }
 
-        return $query->whereIn('habitat_type_id', $habitatTypeIds);
+        return $query->whereIn('type_of_numeric_quantity_id', $typeOfNumericQuantityIds);
+    }
+
+    /**
+     * Scope to filter by species class
+     */
+    public function scopeByClasses($query, array $classes)
+    {
+        if (empty($classes)) {
+            return $query;
+        }
+
+        return $query->whereHas('species', function ($q) use ($classes) {
+            $q->whereIn('class', $classes);
+        });
+    }
+
+    /**
+     * Scope to filter by tissues
+     */
+    public function scopeByTissues($query, array $tissueIds)
+    {
+        if (empty($tissueIds)) {
+            return $query;
+        }
+
+        return $query->whereIn('tissue_id', $tissueIds);
     }
 
     /**

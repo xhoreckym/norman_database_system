@@ -9,8 +9,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Backend\ExportDownload;
 use App\Models\Literature\LiteratureTempMain;
 use App\Models\Literature\Species;
+use App\Models\Literature\TypeOfNumericQuantity;
 use App\Models\List\Country;
-use App\Models\List\HabitatType;
+use App\Models\List\Tissue;
 use App\Models\Susdat\Substance;
 use App\Models\Susdat\Category;
 use Illuminate\Support\Facades\Auth;
@@ -41,25 +42,52 @@ class LiteratureController extends Controller
             ->join('literature_temp_main', 'list_species.id', '=', 'literature_temp_main.species_id')
             ->select('list_species.id', 'list_species.name_latin', 'list_species.name')
             ->distinct()
-            ->orderBy('list_species.name_latin', 'asc')
+            ->orderBy('list_species.name', 'asc')
             ->get();
 
         $speciesList = [];
         foreach ($species as $s) {
-            $speciesList[$s->id] = $s->name_latin . ($s->name ? ' (' . $s->name . ')' : '');
+            $speciesList[$s->id] = $s->name . ($s->name_latin ? ' (' . $s->name_latin . ')' : '');
         }
 
-        // Get all habitat types that have literature records
-        $habitatTypes = HabitatType::query()
-            ->join('literature_temp_main', 'list_habitat_types.id', '=', 'literature_temp_main.habitat_type_id')
-            ->select('list_habitat_types.id', 'list_habitat_types.name')
+        // Get all type of numeric quantities that have literature records
+        $typeOfNumericQuantities = TypeOfNumericQuantity::query()
+            ->join('literature_temp_main', 'list_type_of_numeric_quantities.id', '=', 'literature_temp_main.type_of_numeric_quantity_id')
+            ->select('list_type_of_numeric_quantities.id', 'list_type_of_numeric_quantities.name')
             ->distinct()
-            ->orderBy('list_habitat_types.name', 'asc')
+            ->orderBy('list_type_of_numeric_quantities.name', 'asc')
             ->get();
 
-        $habitatTypeList = [];
-        foreach ($habitatTypes as $h) {
-            $habitatTypeList[$h->id] = $h->name;
+        $typeOfNumericQuantityList = [];
+        foreach ($typeOfNumericQuantities as $t) {
+            $typeOfNumericQuantityList[$t->id] = $t->name;
+        }
+
+        // Get all unique classes from species that have literature records
+        $classes = Species::query()
+            ->join('literature_temp_main', 'list_species.id', '=', 'literature_temp_main.species_id')
+            ->select('list_species.class')
+            ->whereNotNull('list_species.class')
+            ->distinct()
+            ->orderBy('list_species.class', 'asc')
+            ->pluck('list_species.class');
+
+        $classList = [];
+        foreach ($classes as $class) {
+            $classList[$class] = $class;
+        }
+
+        // Get all tissues that have literature records
+        $tissues = Tissue::query()
+            ->join('literature_temp_main', 'list_tissues.id', '=', 'literature_temp_main.tissue_id')
+            ->select('list_tissues.id', 'list_tissues.name')
+            ->distinct()
+            ->orderBy('list_tissues.name', 'asc')
+            ->get();
+
+        $tissueList = [];
+        foreach ($tissues as $t) {
+            $tissueList[$t->id] = $t->name;
         }
 
         // Get all categories (from SUSDAT)
@@ -72,7 +100,9 @@ class LiteratureController extends Controller
             'request' => $request,
             'countryList' => $countryList,
             'speciesList' => $speciesList,
-            'habitatTypeList' => $habitatTypeList,
+            'typeOfNumericQuantityList' => $typeOfNumericQuantityList,
+            'classList' => $classList,
+            'tissueList' => $tissueList,
             'categories' => $categories,
         ]);
     }
@@ -84,7 +114,9 @@ class LiteratureController extends Controller
             $searchFields = [
                 'countrySearch' => [],
                 'speciesSearch' => [],
-                'habitatTypeSearch' => [],
+                'typeOfNumericQuantitySearch' => [],
+                'classSearch' => [],
+                'tissueSearch' => [],
                 'categoriesSearch' => [],
             ];
 
@@ -99,7 +131,9 @@ class LiteratureController extends Controller
                 ->byCountries($searchInputs['countrySearch'])
                 ->bySubstances($request->input('substances', []))
                 ->bySpecies($searchInputs['speciesSearch'])
-                ->byHabitatTypes($searchInputs['habitatTypeSearch'])
+                ->byTypeOfNumericQuantity($searchInputs['typeOfNumericQuantitySearch'])
+                ->byClasses($searchInputs['classSearch'])
+                ->byTissues($searchInputs['tissueSearch'])
                 ->byCategories($searchInputs['categoriesSearch']);
 
             // Build search parameters for display
@@ -198,12 +232,22 @@ class LiteratureController extends Controller
 
         // Species parameters
         if (!empty($searchInputs['speciesSearch'])) {
-            $searchParameters['speciesSearch'] = Species::whereIn('id', $searchInputs['speciesSearch'])->pluck('name_latin');
+            $searchParameters['speciesSearch'] = Species::whereIn('id', $searchInputs['speciesSearch'])->pluck('name');
         }
 
-        // Habitat type parameters
-        if (!empty($searchInputs['habitatTypeSearch'])) {
-            $searchParameters['habitatTypeSearch'] = HabitatType::whereIn('id', $searchInputs['habitatTypeSearch'])->pluck('name');
+        // Type of numeric quantity parameters
+        if (!empty($searchInputs['typeOfNumericQuantitySearch'])) {
+            $searchParameters['typeOfNumericQuantitySearch'] = TypeOfNumericQuantity::whereIn('id', $searchInputs['typeOfNumericQuantitySearch'])->pluck('name');
+        }
+
+        // Class parameters
+        if (!empty($searchInputs['classSearch'])) {
+            $searchParameters['classSearch'] = collect($searchInputs['classSearch']);
+        }
+
+        // Tissue parameters
+        if (!empty($searchInputs['tissueSearch'])) {
+            $searchParameters['tissueSearch'] = Tissue::whereIn('id', $searchInputs['tissueSearch'])->pluck('name');
         }
 
         // Substance parameters
@@ -333,10 +377,22 @@ class LiteratureController extends Controller
 
     public function show($id)
     {
-        // TODO: Implement show logic once database table is created
-        
+        $record = LiteratureTempMain::with([
+            'country',
+            'species',
+            'substance',
+            'tissue',
+            'sex',
+            'lifeStage',
+            'habitatType',
+            'commonName',
+            'useCategory',
+            'concentrationUnit',
+            'typeOfNumericQuantity',
+        ])->findOrFail($id);
+
         return view('literature.show', [
-            'id' => $id,
+            'record' => $record,
         ]);
     }
 

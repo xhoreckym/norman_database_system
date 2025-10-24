@@ -88,88 +88,100 @@
             <thead>
               <tr class="bg-gray-600 text-white">
                 <th>ID</th>
-                <th>Norman SusDat ID</th>
-                <th>First Author</th>
-                <th>Year</th>
-                <th>Country</th>
-                <th>Species (Latin Name)</th>
-                <th>Life Stage</th>
+                <th>Norman SUS ID</th>
                 <th>Chemical Name</th>
-                <th>Tissue</th>
-                <th>Concentration (ng/g ww)</th>
-                <th>DOI</th>
+                <th>Concentration<br>(ng/g ww)</th>
+                <th>LOD<br>(ng/g ww)</th>
+                <th>LOQ<br>(ng/g ww)</th>
+                <th>Standard Deviation<br>(ng/g ww)</th>
+                <th>Species Class</th>
+                <th>Sampling Start</th>
+                <th>Sampling End</th>
+                <th>Country</th>
               </tr>
             </thead>
             <tbody>
               @forelse ($literatureRecords as $record)
                 <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif ">
                   <td class="p-1 text-center">
-                    <div class="font-mono text-teal-800">
+                    <a href="{{ route('literature.search.show', $record->id) }}" class="font-mono text-teal-800 hover:text-teal-600 hover:underline">
                       {!! number_format($record->id, 0, '', '&nbsp;') !!}
-                    </div>
+                    </a>
                   </td>
                   <td class="p-1 text-center">
                     @if ($record->substance && $record->substance->code)
-                      <div class="font-mono text-teal-800">
+                      <a href="{{ route('substances.show', $record->substance->id) }}" class="font-mono text-teal-800 hover:text-teal-600 hover:underline">
                         NS{{ $record->substance->code }}
+                      </a>
+                    @else
+                      N/A
+                    @endif
+                  </td>
+                  <td class="p-1 text-center">
+                    @if ($record->substance && $record->substance->name)
+                      <div class="max-w-xs truncate" title="{{ $record->substance->name }}">
+                        {{ $record->substance->name }}
                       </div>
                     @else
                       N/A
                     @endif
                   </td>
                   <td class="p-1 text-center">
-                    {{ $record->first_author ?? 'N/A' }}
-                  </td>
-                  <td class="p-1 text-center">
-                    {{ $record->year ?? 'N/A' }}
-                  </td>
-                  <td class="p-1 text-center">
-                    @if ($record->country)
-                      {{ $record->country->name ?? 'N/A' }}
-                    @else
-                      N/A
-                    @endif
-                  </td>
-                  <td class="p-1 text-center">
-                    @if ($record->species)
-                      <span title="{{ $record->species->name_latin ?? 'N/A' }}">
-                        {{ $record->species->name_latin ?? 'N/A' }}
-                      </span>
-                    @else
-                      N/A
-                    @endif
-                  </td>
-                  <td class="p-1 text-center">
-                    @if ($record->lifeStage)
-                      {{ $record->lifeStage->name ?? 'N/A' }}
-                    @else
-                      N/A
-                    @endif
-                  </td>
-                  <td class="p-1 text-center">
-                    <div class="max-w-xs truncate" title="{{ $record->chemical_name }}">
-                      {{ $record->chemical_name ?? 'N/A' }}
-                    </div>
-                  </td>
-                  <td class="p-1 text-center">
-                    @if ($record->tissue)
-                      {{ $record->tissue->name ?? 'N/A' }}
-                    @else
-                      N/A
-                    @endif
-                  </td>
-                  <td class="p-1 text-center">
-                    @if ($record->ww_conc_ng)
+                    @if ($record->ww_conc_ng !== null)
                       {{ number_format($record->ww_conc_ng, 4) }}
                     @else
                       N/A
                     @endif
                   </td>
                   <td class="p-1 text-center">
-                    @if ($record->doi)
-                      <a href="https://doi.org/{{ $record->doi }}" target="_blank" class="link-lime-text text-xs" title="Open DOI link">
-                        {{ $record->doi }}
-                      </a>
+                    @if ($record->ww_lod_ng !== null)
+                      {{ number_format($record->ww_lod_ng, 4) }}
+                    @else
+                      N/A
+                    @endif
+                  </td>
+                  <td class="p-1 text-center">
+                    @if ($record->ww_loq_ng !== null)
+                      {{ number_format($record->ww_loq_ng, 4) }}
+                    @else
+                      N/A
+                    @endif
+                  </td>
+                  <td class="p-1 text-center">
+                    @if ($record->ww_sd_ng !== null)
+                      {{ number_format($record->ww_sd_ng, 4) }}
+                    @else
+                      N/A
+                    @endif
+                  </td>
+                  <td class="p-1 text-center">
+                    @if ($record->species && $record->species->class)
+                      {{ $record->species->class }}
+                    @else
+                      N/A
+                    @endif
+                  </td>
+                  <td class="p-1 text-center">
+                    @php
+                      $startDate = [];
+                      if ($record->start_of_sampling_year) $startDate[] = $record->start_of_sampling_year;
+                      if ($record->start_of_sampling_month) $startDate[] = $record->start_of_sampling_month;
+                      if ($record->start_of_sampling_day) $startDate[] = $record->start_of_sampling_day;
+                      echo !empty($startDate) ? implode('-', $startDate) : 'N/A';
+                    @endphp
+                  </td>
+                  <td class="p-1 text-center">
+                    @php
+                      $endDate = [];
+                      if ($record->end_of_sampling_year) $endDate[] = $record->end_of_sampling_year;
+                      if ($record->end_of_sampling_month) $endDate[] = $record->end_of_sampling_month;
+                      if ($record->end_of_sampling_day) $endDate[] = $record->end_of_sampling_day;
+                      echo !empty($endDate) ? implode('-', $endDate) : 'N/A';
+                    @endphp
+                  </td>
+                  <td class="p-1 text-center">
+                    @if ($record->country)
+                      {{ $record->country->name ?? 'N/A' }}
                     @else
                       N/A
                     @endif

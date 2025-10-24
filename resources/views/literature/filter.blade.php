@@ -69,15 +69,43 @@
               </div>
             </div>
 
-            <div id="searchHabitatType">
+            <div id="searchClass">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Habitat type criteria:
+                  Class criteria:
                 </div>
                 <div>
                   @include('_t.form-apline-multiselect', [
-                    'tag' => 'habitatTypeSearch', 'list' => $habitatTypeList,
-                    'active_ids' => isset($request->habitatTypeSearch) ? $request->habitatTypeSearch : [],
+                    'tag' => 'classSearch', 'list' => $classList,
+                    'active_ids' => isset($request->classSearch) ? $request->classSearch : [],
+                  ])
+                </div>
+              </div>
+            </div>
+
+            <div id="searchTissue">
+              <div class="bg-gray-100 p-2">
+                <div class="font-bold mb-2">
+                  Tissue criteria:
+                </div>
+                <div>
+                  @include('_t.form-apline-multiselect', [
+                    'tag' => 'tissueSearch', 'list' => $tissueList,
+                    'active_ids' => isset($request->tissueSearch) ? $request->tissueSearch : [],
+                  ])
+                </div>
+              </div>
+            </div>
+
+            <div id="searchTypeOfNumericQuantity">
+              <div class="bg-gray-100 p-2">
+                <div class="font-bold mb-2">
+                  Type of numeric quantity criteria:
+                </div>
+                <div>
+                  @include('_t.form-apline-multiselect', [
+                    'tag' => 'typeOfNumericQuantitySearch', 'list' => $typeOfNumericQuantityList,
+                    'active_ids' => isset($request->typeOfNumericQuantitySearch) ? $request->typeOfNumericQuantitySearch : [],
                   ])
                 </div>
               </div>
