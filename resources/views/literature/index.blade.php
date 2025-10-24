@@ -9,13 +9,45 @@
         <div class="p-6 text-gray-900">
 
           <form method="GET" action="{{ route('literature.search.filter') }}" class="inline">
-            @if(is_array($countrySearch))
-              @foreach($countrySearch as $country)
-                <input type="hidden" name="countrySearch[]" value="{{ $country }}">
-              @endforeach
-            @else
-              <input type="hidden" name="countrySearch" value="{{ $countrySearch ?? '' }}">
-            @endif
+            {{-- Country Search --}}
+            @foreach(($countrySearch ?? []) as $country)
+              <input type="hidden" name="countrySearch[]" value="{{ $country }}">
+            @endforeach
+
+            {{-- Species Search --}}
+            @foreach(($speciesSearch ?? []) as $species)
+              <input type="hidden" name="speciesSearch[]" value="{{ $species }}">
+            @endforeach
+
+            {{-- Class Search --}}
+            @foreach(($classSearch ?? []) as $class)
+              <input type="hidden" name="classSearch[]" value="{{ $class }}">
+            @endforeach
+
+            {{-- Tissue Search --}}
+            @foreach(($tissueSearch ?? []) as $tissue)
+              <input type="hidden" name="tissueSearch[]" value="{{ $tissue }}">
+            @endforeach
+
+            {{-- Type of Numeric Quantity Search --}}
+            @foreach(($typeOfNumericQuantitySearch ?? []) as $quantity)
+              <input type="hidden" name="typeOfNumericQuantitySearch[]" value="{{ $quantity }}">
+            @endforeach
+
+            {{-- Categories Search --}}
+            @foreach(($categoriesSearch ?? []) as $category)
+              <input type="hidden" name="categoriesSearch[]" value="{{ $category }}">
+            @endforeach
+
+            {{-- File Search --}}
+            @foreach(($fileSearch ?? []) as $file)
+              <input type="hidden" name="fileSearch[]" value="{{ $file }}">
+            @endforeach
+
+            {{-- Substances --}}
+            @foreach(($substances ?? []) as $substance)
+              <input type="hidden" name="substances[]" value="{{ $substance }}">
+            @endforeach
 
             <input type="hidden" name="displayOption" value="{{ $displayOption }}">
             <input type="hidden" name="query_log_id" value="{{ $query_log_id }}">
@@ -114,7 +146,7 @@
                         NS{{ $record->substance->code }}
                       </a>
                     @else
-                      N/A
+                      <span class="text-gray-400">N/A</span>
                     @endif
                   </td>
                   <td class="p-1 text-center">
@@ -123,42 +155,42 @@
                         {{ $record->substance->name }}
                       </div>
                     @else
-                      N/A
+                      <span class="text-gray-400">N/A</span>
                     @endif
                   </td>
                   <td class="p-1 text-center">
                     @if ($record->ww_conc_ng !== null)
                       {{ number_format($record->ww_conc_ng, 4) }}
                     @else
-                      N/A
+                      <span class="text-gray-400">N/A</span>
                     @endif
                   </td>
                   <td class="p-1 text-center">
                     @if ($record->ww_lod_ng !== null)
                       {{ number_format($record->ww_lod_ng, 4) }}
                     @else
-                      N/A
+                      <span class="text-gray-400">N/A</span>
                     @endif
                   </td>
                   <td class="p-1 text-center">
                     @if ($record->ww_loq_ng !== null)
                       {{ number_format($record->ww_loq_ng, 4) }}
                     @else
-                      N/A
+                      <span class="text-gray-400">N/A</span>
                     @endif
                   </td>
                   <td class="p-1 text-center">
                     @if ($record->ww_sd_ng !== null)
                       {{ number_format($record->ww_sd_ng, 4) }}
                     @else
-                      N/A
+                      <span class="text-gray-400">N/A</span>
                     @endif
                   </td>
                   <td class="p-1 text-center">
                     @if ($record->species && $record->species->class)
                       {{ $record->species->class }}
                     @else
-                      N/A
+                      <span class="text-gray-400">N/A</span>
                     @endif
                   </td>
                   <td class="p-1 text-center">
@@ -167,7 +199,7 @@
                       if ($record->start_of_sampling_year) $startDate[] = $record->start_of_sampling_year;
                       if ($record->start_of_sampling_month) $startDate[] = $record->start_of_sampling_month;
                       if ($record->start_of_sampling_day) $startDate[] = $record->start_of_sampling_day;
-                      echo !empty($startDate) ? implode('-', $startDate) : 'N/A';
+                      echo !empty($startDate) ? implode('-', $startDate) : '<span class="text-gray-400">N/A</span>';
                     @endphp
                   </td>
                   <td class="p-1 text-center">
@@ -176,14 +208,14 @@
                       if ($record->end_of_sampling_year) $endDate[] = $record->end_of_sampling_year;
                       if ($record->end_of_sampling_month) $endDate[] = $record->end_of_sampling_month;
                       if ($record->end_of_sampling_day) $endDate[] = $record->end_of_sampling_day;
-                      echo !empty($endDate) ? implode('-', $endDate) : 'N/A';
+                      echo !empty($endDate) ? implode('-', $endDate) : '<span class="text-gray-400">N/A</span>';
                     @endphp
                   </td>
                   <td class="p-1 text-center">
-                    @if ($record->country)
-                      {{ $record->country->name ?? 'N/A' }}
+                    @if ($record->country && $record->country->name)
+                      {{ $record->country->name }}
                     @else
-                      N/A
+                      <span class="text-gray-400">N/A</span>
                     @endif
                   </td>
                 </tr>

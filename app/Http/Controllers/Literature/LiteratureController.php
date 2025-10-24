@@ -118,6 +118,7 @@ class LiteratureController extends Controller
                 'classSearch' => [],
                 'tissueSearch' => [],
                 'categoriesSearch' => [],
+                'fileSearch' => [],
             ];
 
             // Process all search inputs
@@ -134,7 +135,8 @@ class LiteratureController extends Controller
                 ->byTypeOfNumericQuantity($searchInputs['typeOfNumericQuantitySearch'])
                 ->byClasses($searchInputs['classSearch'])
                 ->byTissues($searchInputs['tissueSearch'])
-                ->byCategories($searchInputs['categoriesSearch']);
+                ->byCategories($searchInputs['categoriesSearch'])
+                ->byFiles($searchInputs['fileSearch']);
 
             // Build search parameters for display
             $searchParameters = $this->buildSearchParameters($searchInputs, $request);
@@ -258,6 +260,11 @@ class LiteratureController extends Controller
         // Category parameters
         if (!empty($searchInputs['categoriesSearch'])) {
             $searchParameters['categoriesSearch'] = Category::whereIn('id', $searchInputs['categoriesSearch'])->pluck('name');
+        }
+
+        // File parameters
+        if (!empty($searchInputs['fileSearch'])) {
+            $searchParameters['fileSearch'] = \App\Models\Backend\File::whereIn('id', $searchInputs['fileSearch'])->pluck('name');
         }
 
         return $searchParameters;

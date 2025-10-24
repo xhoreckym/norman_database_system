@@ -287,6 +287,20 @@ class LiteratureTempMain extends Model
     }
 
     /**
+     * Scope to filter by files
+     */
+    public function scopeByFiles($query, array $fileIds)
+    {
+        if (empty($fileIds)) {
+            return $query;
+        }
+
+        return $query->whereHas('files', function ($q) use ($fileIds) {
+            $q->whereIn('files.id', $fileIds);
+        });
+    }
+
+    /**
      * Scope to filter by year range
      */
     public function scopeByYearRange($query, $yearFrom = null, $yearTo = null)
