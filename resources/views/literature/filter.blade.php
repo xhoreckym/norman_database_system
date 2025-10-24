@@ -11,6 +11,24 @@
 
           <div class="p-4 text-gray-900 grid grid-cols-1 gap-4">
 
+            <div id="searchFiles">
+              <div class="bg-gray-100 p-2">
+                <div class="font-bold mb-2 flex items-center space-x-2">
+                  <i class="fas fa-file text-gray-600" aria-hidden="true"></i>
+                  <span>File criteria:</span>
+                </div>
+                <div aria-describedby="file-help">
+                  @livewire('literature.file-search', ['existingFiles' => request('fileSearch', [])])
+                </div>
+                <div id="file-help" class="sr-only">Search and select files to filter records that are associated with specific files</div>
+
+                <!-- File search instructions -->
+                <div class="mt-2 text-xs text-gray-600">
+                  <p><i class="fas fa-info-circle mr-1"></i> Search by file name or select from the dropdown. Only records associated with the selected files will be shown.</p>
+                </div>
+              </div>
+            </div>
+
             <div id="displayOptions">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
