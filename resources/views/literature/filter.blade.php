@@ -37,6 +37,7 @@
               </div>
             </div>
 
+            @if(auth()->check() && auth()->user()->hasRole('admin'))
             <div id="searchFiles">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2 flex items-center space-x-2">
@@ -54,6 +55,7 @@
                 </div>
               </div>
             </div>
+            @endif
 
             <div id="searchProjects">
               <div class="bg-gray-100 p-2">

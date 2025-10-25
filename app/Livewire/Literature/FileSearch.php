@@ -84,8 +84,6 @@ class FileSearch extends Component
                 return [
                     'id' => $file->id,
                     'name' => $file->name,
-                    'size' => $this->formatFileSize($file->file_size),
-                    'type' => $file->mime_type,
                     'uploaded_at' => optional($file->uploaded_at)->format('Y-m-d'),
                 ];
             })
