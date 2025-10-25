@@ -29,6 +29,11 @@
               <input type="hidden" name="tissueSearch[]" value="{{ $tissue }}">
             @endforeach
 
+            {{-- Matrix Search --}}
+            @foreach(($matrixSearch ?? []) as $matrix)
+              <input type="hidden" name="matrixSearch[]" value="{{ $matrix }}">
+            @endforeach
+
             {{-- Type of Numeric Quantity Search --}}
             @foreach(($typeOfNumericQuantitySearch ?? []) as $quantity)
               <input type="hidden" name="typeOfNumericQuantitySearch[]" value="{{ $quantity }}">
@@ -42,6 +47,11 @@
             {{-- File Search --}}
             @foreach(($fileSearch ?? []) as $file)
               <input type="hidden" name="fileSearch[]" value="{{ $file }}">
+            @endforeach
+
+            {{-- Project Search --}}
+            @foreach(($projectSearch ?? []) as $project)
+              <input type="hidden" name="projectSearch[]" value="{{ $project }}">
             @endforeach
 
             {{-- Substances --}}
@@ -153,6 +163,10 @@
                     @if ($record->substance && $record->substance->name)
                       <div class="max-w-xs truncate" title="{{ $record->substance->name }}">
                         {{ $record->substance->name }}
+                      </div>
+                    @elseif ($record->chemical_name)
+                      <div class="max-w-xs truncate text-gray-600 italic" title="Original name: {{ $record->chemical_name }}">
+                        original name: {{ $record->chemical_name }}
                       </div>
                     @else
                       <span class="text-gray-400">N/A</span>

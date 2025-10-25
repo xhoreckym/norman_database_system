@@ -7,11 +7,13 @@ use App\Models\DatabaseEntity;
 use App\Models\Backend\QueryLog;
 use App\Http\Controllers\Controller;
 use App\Models\Backend\ExportDownload;
+use App\Models\Backend\Project;
 use App\Models\Literature\LiteratureTempMain;
 use App\Models\Literature\Species;
 use App\Models\Literature\TypeOfNumericQuantity;
 use App\Models\List\Country;
 use App\Models\List\Tissue;
+use App\Models\List\Matrix;
 use App\Models\Susdat\Substance;
 use App\Models\Susdat\Category;
 use Illuminate\Support\Facades\Auth;
@@ -90,6 +92,33 @@ class LiteratureController extends Controller
             $tissueList[$t->id] = $t->name;
         }
 
+        // Get all matrices that have literature records
+        $matrices = Matrix::query()
+            ->join('literature_temp_main', 'list_matrices.id', '=', 'literature_temp_main.matrix_id')
+            ->select('list_matrices.id', 'list_matrices.name')
+            ->distinct()
+            ->orderBy('list_matrices.name', 'asc')
+            ->get();
+
+        $matrixList = [];
+        foreach ($matrices as $m) {
+            $matrixList[$m->id] = $m->name;
+        }
+
+        // Get all projects that have files associated with literature records
+        $projects = Project::query()
+            ->join('files', 'projects.id', '=', 'files.project_id')
+            ->join('file_literature_temp_main', 'files.id', '=', 'file_literature_temp_main.file_id')
+            ->select('projects.id', 'projects.name', 'projects.abbreviation')
+            ->distinct()
+            ->orderBy('projects.name', 'asc')
+            ->get();
+
+        $projectList = [];
+        foreach ($projects as $project) {
+            $projectList[$project->id] = $project->name;
+        }
+
         // Get all categories (from SUSDAT)
         $categories = Category::orderBy('name', 'asc')
             ->select('id', 'name', 'abbreviation')
@@ -103,6 +132,8 @@ class LiteratureController extends Controller
             'typeOfNumericQuantityList' => $typeOfNumericQuantityList,
             'classList' => $classList,
             'tissueList' => $tissueList,
+            'matrixList' => $matrixList,
+            'projectList' => $projectList,
             'categories' => $categories,
         ]);
     }
@@ -117,8 +148,10 @@ class LiteratureController extends Controller
                 'typeOfNumericQuantitySearch' => [],
                 'classSearch' => [],
                 'tissueSearch' => [],
+                'matrixSearch' => [],
                 'categoriesSearch' => [],
                 'fileSearch' => [],
+                'projectSearch' => [],
             ];
 
             // Process all search inputs
@@ -135,8 +168,10 @@ class LiteratureController extends Controller
                 ->byTypeOfNumericQuantity($searchInputs['typeOfNumericQuantitySearch'])
                 ->byClasses($searchInputs['classSearch'])
                 ->byTissues($searchInputs['tissueSearch'])
+                ->byMatrices($searchInputs['matrixSearch'])
                 ->byCategories($searchInputs['categoriesSearch'])
-                ->byFiles($searchInputs['fileSearch']);
+                ->byFiles($searchInputs['fileSearch'])
+                ->byProjects($searchInputs['projectSearch']);
 
             // Build search parameters for display
             $searchParameters = $this->buildSearchParameters($searchInputs, $request);
@@ -252,6 +287,11 @@ class LiteratureController extends Controller
             $searchParameters['tissueSearch'] = Tissue::whereIn('id', $searchInputs['tissueSearch'])->pluck('name');
         }
 
+        // Matrix parameters
+        if (!empty($searchInputs['matrixSearch'])) {
+            $searchParameters['matrixSearch'] = Matrix::whereIn('id', $searchInputs['matrixSearch'])->pluck('name');
+        }
+
         // Substance parameters
         if (!empty($request->input('substances'))) {
             $searchParameters['substances'] = Substance::whereIn('id', $request->input('substances'))->pluck('name');
@@ -265,6 +305,11 @@ class LiteratureController extends Controller
         // File parameters
         if (!empty($searchInputs['fileSearch'])) {
             $searchParameters['fileSearch'] = \App\Models\Backend\File::whereIn('id', $searchInputs['fileSearch'])->pluck('name');
+        }
+
+        // Project parameters
+        if (!empty($searchInputs['projectSearch'])) {
+            $searchParameters['projectSearch'] = Project::whereIn('id', $searchInputs['projectSearch'])->pluck('name');
         }
 
         return $searchParameters;

@@ -11,6 +11,7 @@ use App\Models\List\HabitatType;
 use App\Models\List\ConcentrationUnit;
 use App\Models\List\CommonName;
 use App\Models\List\UseCategory;
+use App\Models\List\Matrix;
 use App\Models\Susdat\Substance;
 use App\Models\Backend\File;
 use Illuminate\Database\Eloquent\Model;
@@ -57,6 +58,7 @@ class LiteratureTempMain extends Model
         'last_pesticide_treatment',
         'pesticide_used_in_treatment',
         'tissue_id',
+        'matrix_id',
         'basis_of_measurement',
         'analytical_method',
         'storage_temp_c',
@@ -80,6 +82,7 @@ class LiteratureTempMain extends Model
         'country_id' => 'integer',
         'habitat_type_id' => 'integer',
         'tissue_id' => 'integer',
+        'matrix_id' => 'integer',
         'concentration_units_id' => 'integer',
         'use_chem_id' => 'integer',
         'individual_id' => 'integer',
@@ -127,6 +130,14 @@ class LiteratureTempMain extends Model
     public function tissue()
     {
         return $this->belongsTo(Tissue::class, 'tissue_id');
+    }
+
+    /**
+     * Get the matrix associated with this record.
+     */
+    public function matrix()
+    {
+        return $this->belongsTo(Matrix::class, 'matrix_id');
     }
 
     /**
@@ -287,6 +298,18 @@ class LiteratureTempMain extends Model
     }
 
     /**
+     * Scope to filter by matrices
+     */
+    public function scopeByMatrices($query, array $matrixIds)
+    {
+        if (empty($matrixIds)) {
+            return $query;
+        }
+
+        return $query->whereIn('matrix_id', $matrixIds);
+    }
+
+    /**
      * Scope to filter by files
      */
     public function scopeByFiles($query, array $fileIds)
@@ -297,6 +320,20 @@ class LiteratureTempMain extends Model
 
         return $query->whereHas('files', function ($q) use ($fileIds) {
             $q->whereIn('files.id', $fileIds);
+        });
+    }
+
+    /**
+     * Scope to filter by projects (through files relationship)
+     */
+    public function scopeByProjects($query, array $projectIds)
+    {
+        if (empty($projectIds)) {
+            return $query;
+        }
+
+        return $query->whereHas('files', function ($q) use ($projectIds) {
+            $q->whereIn('files.project_id', $projectIds);
         });
     }
 
