@@ -31,7 +31,7 @@
                            name="displayOption"
                            value="0"
                            @if (request('displayOption', '1') === '0') checked @endif>
-                    <span class="ml-2">Data output with page links (might be slow)</span>
+                    <span class="ml-2">Structured data with pagination (might be slow)</span>
                   </label>
                 </div>
               </div>
@@ -42,7 +42,7 @@
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2 flex items-center space-x-2">
                   <i class="fas fa-file text-gray-600" aria-hidden="true"></i>
-                  <span>File criteria:</span>
+                  <span>File:</span>
                 </div>
                 <div aria-describedby="file-help">
                   @livewire('literature.file-search', ['existingFiles' => request('fileSearch', [])])
@@ -60,7 +60,7 @@
             <div id="searchProjects">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Project criteria:
+                  Project:
                 </div>
                 <div aria-describedby="project-help">
                   @include('_t.form-apline-multiselect', [
@@ -79,7 +79,7 @@
                 <div class="flex flex-col lg:flex-row">
                   <div class="w-full">
                     <div class="font-bold mb-2">
-                      Country criteria:
+                      Country:
                     </div>
                     <div>
                       @include('_t.form-apline-multiselect', [
@@ -92,24 +92,10 @@
               </div>
             </div>
 
-            <div id="searchSpecies">
-              <div class="bg-gray-100 p-2">
-                <div class="font-bold mb-2">
-                  Species criteria:
-                </div>
-                <div>
-                  @include('_t.form-apline-multiselect', [
-                    'tag' => 'speciesSearch', 'list' => $speciesList,
-                    'active_ids' => isset($request->speciesSearch) ? $request->speciesSearch : [],
-                  ])
-                </div>
-              </div>
-            </div>
-
             <div id="searchClass">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Class criteria:
+                  Class:
                 </div>
                 <div>
                   @include('_t.form-apline-multiselect', [
@@ -120,10 +106,24 @@
               </div>
             </div>
 
+            <div id="searchSpecies">
+              <div class="bg-gray-100 p-2">
+                <div class="font-bold mb-2">
+                  Species:
+                </div>
+                <div>
+                  @include('_t.form-apline-multiselect', [
+                    'tag' => 'speciesSearch', 'list' => $speciesList,
+                    'active_ids' => isset($request->speciesSearch) ? $request->speciesSearch : [],
+                  ])
+                </div>
+              </div>
+            </div>
+
             <div id="searchTissue">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Tissue criteria:
+                  Tissue:
                 </div>
                 <div>
                   @include('_t.form-apline-multiselect', [
@@ -137,7 +137,7 @@
             <div id="searchMatrix">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Ecosystem criteria:
+                  Ecosystem:
                 </div>
                 <div aria-describedby="matrix-help">
                   @include('_t.form-apline-multiselect', [
@@ -152,7 +152,7 @@
             <div id="searchTypeOfNumericQuantity">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Type of numeric quantity criteria:
+                  Type of numeric quantity:
                 </div>
                 <div>
                   @include('_t.form-apline-multiselect', [
@@ -166,7 +166,7 @@
             <div id="searchSubstance">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Substance criteria:
+                  Substance:
                 </div>
                 <div>
                   @livewire('empodat.substance-search', ['existingSubstances' => $request->substances])
