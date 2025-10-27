@@ -5,21 +5,22 @@ namespace App\Models\List;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Tissue extends Model
+class TissueSubcategory extends Model
 {
     use HasFactory;
 
-    protected $table = 'list_tissues';
+    protected $table = 'list_tissues_subcategory';
 
     protected $fillable = [
+        'tissue_id',
         'name',
     ];
 
     /**
-     * Get the subcategories for this tissue
+     * Get the parent tissue
      */
-    public function subcategories()
+    public function tissue()
     {
-        return $this->hasMany(TissueSubcategory::class, 'tissue_id');
+        return $this->belongsTo(Tissue::class, 'tissue_id');
     }
 }

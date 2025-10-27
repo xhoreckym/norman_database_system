@@ -10,7 +10,7 @@ class TissueController extends Controller
 {
     public function index()
     {
-        $tissues = Tissue::orderBy('id')->paginate(25);
+        $tissues = Tissue::with('subcategories')->orderBy('id')->paginate(25);
         return view('literature.tissues.index', compact('tissues'));
     }
 

@@ -34,6 +34,7 @@
                 <tr class="bg-gray-600 text-white">
                   <th class="py-2 px-4 text-left">ID</th>
                   <th class="py-2 px-4 text-left">Name</th>
+                  <th class="py-2 px-4 text-left">Subcategories</th>
                   <th class="py-2 px-4 text-center">Actions</th>
                 </tr>
               </thead>
@@ -46,6 +47,15 @@
                     <td class="py-2 px-4">
                       <span class="font-medium text-gray-900">{{ $tissue->name }}</span>
                     </td>
+                    <td class="py-2 px-4">
+                      <span class="text-sm text-gray-700">
+                        @if($tissue->subcategories && $tissue->subcategories->count() > 0)
+                          {{ $tissue->subcategories->pluck('name')->implode('; ') }}
+                        @else
+                          <span class="text-gray-400 italic">No subcategories</span>
+                        @endif
+                      </span>
+                    </td>
                     <td class="py-2 px-4 text-center">
                       <div class="flex justify-center space-x-2">
                         <a href="{{ route('literature.tissues.edit', $tissue) }}" class="text-gray-600 hover:text-gray-900 text-sm px-2 py-1">
@@ -56,7 +66,7 @@
                   </tr>
                 @empty
                   <tr class="bg-slate-100">
-                    <td colspan="3" class="py-6 px-4 text-center text-gray-500">
+                    <td colspan="4" class="py-6 px-4 text-center text-gray-500">
                       <p class="text-base">No tissues found</p>
                       <p class="text-sm mt-1">Click "Add New Tissue" to create one.</p>
                     </td>
