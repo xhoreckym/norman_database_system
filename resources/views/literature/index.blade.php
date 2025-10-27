@@ -136,7 +136,7 @@
                 <th>LOD<br>(ng/g ww)</th>
                 <th>LOQ<br>(ng/g ww)</th>
                 <th>Standard Deviation<br>(ng/g ww)</th>
-                <th>Species Class</th>
+                <th>Species (Class)</th>
                 <th>Sampling Start</th>
                 <th>Sampling End</th>
                 <th>Country</th>
@@ -201,8 +201,19 @@
                     @endif
                   </td>
                   <td class="p-1 text-center">
-                    @if ($record->species && $record->species->class)
-                      {{ $record->species->class }}
+                    @if ($record->species)
+                      @php
+                        $speciesDisplay = $record->species->name ?? '';
+                        if ($record->species->name_latin) {
+                          $speciesDisplay .= ' (' . $record->species->name_latin . ')';
+                        }
+                        if ($record->species->class) {
+                          $speciesDisplay .= ' [' . $record->species->class . ']';
+                        }
+                      @endphp
+                      <div class="max-w-xs truncate" title="{{ $speciesDisplay }}">
+                        {{ $speciesDisplay }}
+                      </div>
                     @else
                       <span class="text-gray-400">N/A</span>
                     @endif

@@ -42,14 +42,29 @@ class LiteratureController extends Controller
         // Get all species that have literature records
         $species = Species::query()
             ->join('literature_temp_main', 'list_species.id', '=', 'literature_temp_main.species_id')
-            ->select('list_species.id', 'list_species.name_latin', 'list_species.name')
+            ->select('list_species.id', 'list_species.name_latin', 'list_species.name', 'list_species.class')
             ->distinct()
             ->orderBy('list_species.name', 'asc')
             ->get();
 
         $speciesList = [];
+        $speciesWithClass = [];
         foreach ($species as $s) {
-            $speciesList[$s->id] = $s->name . ($s->name_latin ? ' (' . $s->name_latin . ')' : '');
+            // Build label: Name (Latin) [Class]
+            $label = $s->name;
+            if ($s->name_latin) {
+                $label .= ' (' . $s->name_latin . ')';
+            }
+            if ($s->class) {
+                $label .= ' [' . $s->class . ']';
+            }
+
+            $speciesList[$s->id] = $label;
+            $speciesWithClass[] = [
+                'id' => $s->id,
+                'label' => $label,
+                'class' => $s->class,
+            ];
         }
 
         // Get all type of numeric quantities that have literature records
@@ -129,6 +144,7 @@ class LiteratureController extends Controller
             'request' => $request,
             'countryList' => $countryList,
             'speciesList' => $speciesList,
+            'speciesWithClass' => $speciesWithClass,
             'typeOfNumericQuantityList' => $typeOfNumericQuantityList,
             'classList' => $classList,
             'tissueList' => $tissueList,

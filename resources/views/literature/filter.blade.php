@@ -111,14 +111,100 @@
                 <div class="font-bold mb-2">
                   Species:
                 </div>
-                <div>
-                  @include('_t.form-apline-multiselect', [
-                    'tag' => 'speciesSearch', 'list' => $speciesList,
-                    'active_ids' => isset($request->speciesSearch) ? $request->speciesSearch : [],
-                  ])
+                <div x-data="speciesFilter()" x-init="init()">
+                  <div :key="speciesKey">
+                    @include('_t.form-apline-multiselect', [
+                      'tag' => 'speciesSearch',
+                      'list' => $speciesList,
+                      'active_ids' => isset($request->speciesSearch) ? $request->speciesSearch : [],
+                    ])
+                  </div>
                 </div>
               </div>
             </div>
+
+            <script>
+              function speciesFilter() {
+                return {
+                  allSpecies: @json($speciesWithClass),
+                  selectedClasses: [],
+                  speciesKey: 0,
+
+                  init() {
+                    // Wait for the multiselect component to be fully initialized
+                    this.$nextTick(() => {
+                      // Watch for class selection changes
+                      const classInput = document.querySelector('input[name="classSearch"]');
+                      if (classInput) {
+                        const observer = new MutationObserver(() => {
+                          this.updateSpeciesList();
+                        });
+                        observer.observe(classInput, { attributes: true, attributeFilter: ['value'] });
+
+                        // Initial update after a short delay to ensure Alpine is ready
+                        setTimeout(() => {
+                          this.updateSpeciesList();
+                        }, 100);
+                      }
+                    });
+                  },
+
+                  updateSpeciesList() {
+                    const classInput = document.querySelector('input[name="classSearch"]');
+                    if (!classInput) return;
+
+                    try {
+                      this.selectedClasses = JSON.parse(classInput.value || '[]');
+
+                      // Filter species based on selected classes
+                      let filteredSpecies = this.allSpecies;
+                      if (this.selectedClasses.length > 0) {
+                        filteredSpecies = this.allSpecies.filter(s =>
+                          this.selectedClasses.includes(s.class)
+                        );
+                      }
+
+                      // Rebuild the multiselect with filtered species
+                      this.rebuildMultiselect(filteredSpecies);
+                    } catch (e) {
+                      console.error('Error updating species list:', e);
+                    }
+                  },
+
+                  rebuildMultiselect(filteredSpecies) {
+                    // Find the multiselect container
+                    const container = this.$el.querySelector('[x-data^="multiselect"]');
+                    if (!container) return;
+
+                    // Get the Alpine component instance
+                    const alpineData = Alpine.$data(container);
+                    if (!alpineData) return;
+
+                    // Ensure selectedItems exists (might not be initialized yet)
+                    if (!alpineData.selectedItems) {
+                      alpineData.selectedItems = [];
+                    }
+
+                    // Update the items in the multiselect
+                    alpineData.items = filteredSpecies.map(s => ({
+                      label: s.label,
+                      value: s.id,
+                      selected: alpineData.selectedItems && alpineData.selectedItems.some(item => item.value == s.id)
+                    }));
+
+                    // Reset allItems
+                    alpineData.allItems = [...alpineData.items];
+
+                    // Filter out selected items that are no longer in the list
+                    if (alpineData.selectedItems && Array.isArray(alpineData.selectedItems)) {
+                      alpineData.selectedItems = alpineData.selectedItems.filter(selected =>
+                        alpineData.items.some(item => item.value == selected.value)
+                      );
+                    }
+                  }
+                }
+              }
+            </script>
 
             <div id="searchTissue">
               <div class="bg-gray-100 p-2">
