@@ -57,7 +57,7 @@
 
           {{-- Complete Record Details --}}
           <div class="w-full">
-            <div class="flex justify-between items-center">
+            {{-- <div class="flex justify-between items-center">
               <span class="text-xl font-bold">Complete Literature Record Details</span>
               @auth
                 @role('super_admin|admin|literature')
@@ -66,7 +66,7 @@
                   </a>
                 @endrole
               @endauth
-            </div>
+            </div> --}}
 
             <table class="table-auto w-full border-separate border-spacing-1 text-xs mt-4">
               @foreach ($record->toArray() as $key => $value)
