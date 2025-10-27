@@ -210,6 +210,7 @@ class LiteratureController extends Controller
                 'species',
                 'substance',
                 'tissue',
+                'concentrationUnit',
                 'sex',
                 'lifeStage',
                 'habitatType',
@@ -420,10 +421,393 @@ class LiteratureController extends Controller
             return back();
         }
 
-        // TODO: Implement download logic once database table is created
-        
-        session()->flash('error', 'Download functionality not yet implemented.');
-        return back();
+        try {
+            // Get the query log record
+            $queryLog = QueryLog::findOrFail($query_log_id);
+
+            // Generate filename
+            $filename = 'literature_export_uid_' . Auth::id() . '_' . now()->format('YmdHis') . '.csv';
+
+            // Get request information for logging
+            $ip = request()->ip();
+            $userAgent = request()->userAgent();
+
+            // Create an export download record for tracking
+            $exportDownload = ExportDownload::create([
+                'user_id' => Auth::id(),
+                'filename' => $filename,
+                'format' => 'csv',
+                'ip_address' => $ip,
+                'user_agent' => $userAgent,
+                'database_key' => 'literature',
+                'status' => 'processing',
+                'started_at' => Carbon::now()
+            ]);
+
+            // Associate with the query log
+            $exportDownload->queryLogs()->attach($query_log_id);
+
+            // Process the export directly (no queue needed for small dataset)
+            $startTime = microtime(true);
+            $directory = 'exports/literature';
+
+            // Make sure the directory exists
+            Storage::makeDirectory($directory);
+
+            $path = Storage::path("{$directory}/{$filename}");
+            $handle = fopen($path, 'w');
+
+            if (!$handle) {
+                throw new \Exception("Unable to open file for writing: {$path}");
+            }
+
+            // Write CSV headers - ALL fields from the database
+            $headers = [
+                'ID',
+                'Row ID',
+                'Norman SUS ID',
+                'Chemical Name',
+                'Species',
+                'Species (Latin)',
+                'Common Name',
+                'Title',
+                'First Author',
+                'Year',
+                'DOI',
+                'Sex',
+                'Diet as Described in Paper',
+                'Trophic Level as Described in Paper',
+                'Life Stage',
+                'Age in Days',
+                'Number of Replicates',
+                'Type of Monitoring',
+                'Active/Passive Sampling',
+                'Country',
+                'Region/City',
+                'Health Status',
+                'Habitat Type',
+                'Reported Distance to Industry',
+                'Last Pesticide Treatment',
+                'Pesticide Used in Treatment',
+                'Tissue',
+                'Matrix',
+                'Basis of Measurement',
+                'Analytical Method',
+                'Storage Temperature (°C)',
+                'LOD',
+                'LOD Unit',
+                'LOQ',
+                'LOQ Unit',
+                'Pooled',
+                'Number of Subsamples',
+                'Standard Deviation',
+                'Type of Numeric Quantity',
+                'Range Min',
+                'Range Max',
+                'Reported Range Min',
+                'Type of Range Max',
+                'Concentration Unit',
+                'Frequency of Detection',
+                'Raw Data Available',
+                'Comment',
+                'Nest Field if Not Discernable',
+                'Chain ID if Paper Has Chain',
+                'Sampling Start Day',
+                'Sampling Start Month',
+                'Sampling Start Year',
+                'Sampling End Day',
+                'Sampling End Month',
+                'Sampling End Year',
+                'Imputed Coordinates',
+                'Latitude (Decimal)',
+                'Longitude (Decimal)',
+                'Latitude 1',
+                'Latitude 2',
+                'Latitude 3',
+                'Latitude 4',
+                'Latitude 5',
+                'Latitude 6',
+                'Latitude 7',
+                'Latitude 8',
+                'Latitude 9',
+                'Latitude 10',
+                'Longitude 1',
+                'Longitude 2',
+                'Longitude 3',
+                'Longitude 4',
+                'Longitude 5',
+                'Longitude 6',
+                'Longitude 7',
+                'Longitude 8',
+                'Longitude 9',
+                'Longitude 10',
+                'Habitat Class',
+                'Dietary Preference',
+                'Individual ID',
+                'Unique Measurement',
+                'Concentration Level',
+                'Sample ID',
+                'Reported Concentration',
+                'Frequency (Numeric)',
+                'Number of Negative Hits (n_0)',
+                'Kingdom',
+                'Phylum',
+                'Order',
+                'Genus',
+                'Class (Phylogenetic)',
+                'Source Trait',
+                'Class (Chemical)',
+                'Source Chem',
+                'Use Category',
+                'Is Transformation Product',
+                'Parent',
+                'Is Group',
+                'Water Content (%)',
+                'Concentration (ng/g ww)',
+                'LOD (ng/g ww)',
+                'LOQ (ng/g ww)',
+                'SD (ng/g ww)',
+                'Imputed LOD',
+                'All Means Without 0',
+                'All Means With 0',
+                'Created At',
+                'Updated At',
+                'Export Date'
+            ];
+            fputcsv($handle, $headers);
+
+            // Build the query from the query log
+            $baseQuery = LiteratureTempMain::query();
+            $content = json_decode($queryLog->content, true);
+            $requestData = $content['request'] ?? [];
+
+            // Process search fields to handle JSON strings properly
+            $countrySearch = is_array($requestData['countrySearch'] ?? null)
+                ? $requestData['countrySearch']
+                : json_decode($requestData['countrySearch'] ?? '[]', true);
+
+            $speciesSearch = is_array($requestData['speciesSearch'] ?? null)
+                ? $requestData['speciesSearch']
+                : json_decode($requestData['speciesSearch'] ?? '[]', true);
+
+            $classSearch = is_array($requestData['classSearch'] ?? null)
+                ? $requestData['classSearch']
+                : json_decode($requestData['classSearch'] ?? '[]', true);
+
+            $tissueSearch = is_array($requestData['tissueSearch'] ?? null)
+                ? $requestData['tissueSearch']
+                : json_decode($requestData['tissueSearch'] ?? '[]', true);
+
+            $matrixSearch = is_array($requestData['matrixSearch'] ?? null)
+                ? $requestData['matrixSearch']
+                : json_decode($requestData['matrixSearch'] ?? '[]', true);
+
+            $typeOfNumericQuantitySearch = is_array($requestData['typeOfNumericQuantitySearch'] ?? null)
+                ? $requestData['typeOfNumericQuantitySearch']
+                : json_decode($requestData['typeOfNumericQuantitySearch'] ?? '[]', true);
+
+            $categoriesSearch = is_array($requestData['categoriesSearch'] ?? null)
+                ? $requestData['categoriesSearch']
+                : json_decode($requestData['categoriesSearch'] ?? '[]', true);
+
+            $fileSearch = is_array($requestData['fileSearch'] ?? null)
+                ? $requestData['fileSearch']
+                : json_decode($requestData['fileSearch'] ?? '[]', true);
+
+            $projectSearch = is_array($requestData['projectSearch'] ?? null)
+                ? $requestData['projectSearch']
+                : json_decode($requestData['projectSearch'] ?? '[]', true);
+
+            $substances = is_array($requestData['substances'] ?? null)
+                ? $requestData['substances']
+                : json_decode($requestData['substances'] ?? '[]', true);
+
+            // Apply the same filters as in the search method
+            $baseQuery = $baseQuery
+                ->byCountries($countrySearch)
+                ->bySubstances($substances)
+                ->bySpecies($speciesSearch)
+                ->byTypeOfNumericQuantity($typeOfNumericQuantitySearch)
+                ->byClasses($classSearch)
+                ->byTissues($tissueSearch)
+                ->byMatrices($matrixSearch)
+                ->byCategories($categoriesSearch)
+                ->byFiles($fileSearch)
+                ->byProjects($projectSearch);
+
+            // Process records in chunks to manage memory
+            $totalExported = 0;
+            $exportDate = Carbon::now()->format('Y-m-d H:i:s');
+
+            $baseQuery->with([
+                'country',
+                'species',
+                'substance',
+                'tissue',
+                'matrix',
+                'sex',
+                'lifeStage',
+                'habitatType',
+                'commonName',
+                'useCategory',
+                'concentrationUnit',
+                'typeOfNumericQuantity',
+            ])->chunk(500, function ($records) use ($handle, $exportDate, &$totalExported) {
+                foreach ($records as $record) {
+                    $row = [
+                        $record->id,
+                        $record->rowid ?? '',
+                        $record->substance && $record->substance->code ? 'NS' . $record->substance->code : '',
+                        $record->substance->name ?? $record->chemical_name ?? '',
+                        $record->species->name ?? '',
+                        $record->species->name_latin ?? '',
+                        $record->commonName->name ?? '',
+                        $record->title ?? '',
+                        $record->first_author ?? '',
+                        $record->year ?? '',
+                        $record->doi ?? '',
+                        $record->sex->name ?? '',
+                        $record->diet_as_described_in_paper ?? '',
+                        $record->trophic_level_as_described_in_paper ?? '',
+                        $record->lifeStage->name ?? '',
+                        $record->age_in_days ?? '',
+                        $record->x_of_replicates ?? '',
+                        $record->type_of_monitoring ?? '',
+                        $record->active_passive_sampling ?? '',
+                        $record->country->name ?? '',
+                        $record->region_city ?? '',
+                        $record->health_status ?? '',
+                        $record->habitatType->name ?? '',
+                        $record->reported_distance_to_industry ?? '',
+                        $record->last_pesticide_treatment ?? '',
+                        $record->pesticide_used_in_treatment ?? '',
+                        $record->tissue->name ?? '',
+                        $record->matrix->name ?? '',
+                        $record->basis_of_measurement ?? '',
+                        $record->analytical_method ?? '',
+                        $record->storage_temp_c ?? '',
+                        $record->lod ?? '',
+                        $record->lod_unit ?? '',
+                        $record->loq ?? '',
+                        $record->loq_unit ?? '',
+                        $record->pooled ?? '',
+                        $record->x_of_subsamples ?? '',
+                        $record->sd ?? '',
+                        $record->typeOfNumericQuantity->name ?? '',
+                        $record->range_min ?? '',
+                        $record->range_max ?? '',
+                        $record->reported_range_min ?? '',
+                        $record->type_of_range_max ?? '',
+                        $record->concentrationUnit->abbreviation ?? $record->concentrationUnit->name ?? '',
+                        $record->frequency_of_detection ?? '',
+                        $record->raw_data_available ?? '',
+                        $record->comment ?? '',
+                        $record->nest_field_if_not_dicernable ?? '',
+                        $record->chain_id_if_paper_has_chain ?? '',
+                        $record->start_of_sampling_day ?? '',
+                        $record->start_of_sampling_month ?? '',
+                        $record->start_of_sampling_year ?? '',
+                        $record->end_of_sampling_day ?? '',
+                        $record->end_of_sampling_month ?? '',
+                        $record->end_of_sampling_year ?? '',
+                        $record->imputed_coordinates ?? '',
+                        $record->latitude_decimal ?? '',
+                        $record->longitude_decimal ?? '',
+                        $record->latitude_1 ?? '',
+                        $record->latitude_2 ?? '',
+                        $record->latitude_3 ?? '',
+                        $record->latitude_4 ?? '',
+                        $record->latitude_5 ?? '',
+                        $record->latitude_6 ?? '',
+                        $record->latitude_7 ?? '',
+                        $record->latitude_8 ?? '',
+                        $record->latitude_9 ?? '',
+                        $record->latitude_10 ?? '',
+                        $record->longitude_1 ?? '',
+                        $record->longitude_2 ?? '',
+                        $record->longitude_3 ?? '',
+                        $record->longitude_4 ?? '',
+                        $record->longitude_5 ?? '',
+                        $record->longitude_6 ?? '',
+                        $record->longitude_7 ?? '',
+                        $record->longitude_8 ?? '',
+                        $record->longitude_9 ?? '',
+                        $record->longitude_10 ?? '',
+                        $record->habitat_class ?? '',
+                        $record->dietary_preference ?? '',
+                        $record->individual_id ?? '',
+                        $record->unique_measurement ?? '',
+                        $record->concentrationlevel ?? '',
+                        $record->sample_id ?? '',
+                        $record->reported_concentration ?? '',
+                        $record->freq_numeric ?? '',
+                        $record->n_0 ?? '',
+                        $record->kingdom ?? '',
+                        $record->phylum ?? '',
+                        $record->order ?? '',
+                        $record->genus ?? '',
+                        $record->class_phyl ?? '',
+                        $record->source_trait ?? '',
+                        $record->class ?? '',
+                        $record->source_chem ?? '',
+                        $record->useCategory->name ?? '',
+                        $record->is_transformation_product ?? '',
+                        $record->parent ?? '',
+                        $record->is_group ?? '',
+                        $record->water_content ?? '',
+                        $record->ww_conc_ng !== null ? number_format($record->ww_conc_ng, 4, '.', '') : '',
+                        $record->ww_lod_ng ?? '',
+                        $record->ww_loq_ng ?? '',
+                        $record->ww_sd_ng ?? '',
+                        $record->imputed_lod ?? '',
+                        $record->all_means_without_0 ?? '',
+                        $record->all_means_with_0 ?? '',
+                        $record->created_at ?? '',
+                        $record->updated_at ?? '',
+                        $exportDate
+                    ];
+                    fputcsv($handle, $row);
+                    $totalExported++;
+                }
+            });
+
+            fclose($handle);
+
+            // Get file size and processing time
+            $fileSize = Storage::size("{$directory}/{$filename}");
+            $formattedFileSize = $this->formatBytes($fileSize);
+            $processingTime = round(microtime(true) - $startTime, 2);
+
+            // Update the export download record with completion metrics
+            $exportDownload->update([
+                'status' => 'completed',
+                'record_count' => $totalExported,
+                'file_size_bytes' => $fileSize,
+                'file_size_formatted' => $formattedFileSize,
+                'processing_time_seconds' => $processingTime,
+                'completed_at' => Carbon::now()
+            ]);
+
+            Log::info("Literature export complete: {$totalExported} records exported in {$processingTime} seconds. File size: {$formattedFileSize}");
+
+            // Redirect directly to download since processing is complete
+            return redirect()->route('literature.csv.download', ['filename' => $filename]);
+
+        } catch (\Exception $e) {
+            Log::error("Literature export failed: " . $e->getMessage());
+
+            // Update export download record if it exists
+            if (isset($exportDownload)) {
+                $exportDownload->update([
+                    'status' => 'failed',
+                    'message' => $e->getMessage(),
+                    'completed_at' => Carbon::now()
+                ]);
+            }
+
+            session()->flash('error', 'Export failed: ' . $e->getMessage());
+            return back();
+        }
     }
 
     public function downloadCsv($filename)
@@ -450,6 +834,7 @@ class LiteratureController extends Controller
             'species',
             'substance',
             'tissue',
+            'matrix',
             'sex',
             'lifeStage',
             'habitatType',

@@ -107,6 +107,13 @@
                 </span>
               </div>
             @endif
+
+            @auth
+              <a href="{{ route('literature.search.download', ['query_log_id' => $query_log_id]) }}"
+                class="btn-download">Download</a>
+            @else
+              <div class="text-gray-400">Downloads are available for registered users only</div>
+            @endauth
           </div>
 
           @if(isset($searchParameters) && !empty($searchParameters))
@@ -132,13 +139,12 @@
                 <th>ID</th>
                 <th>Norman SUS ID</th>
                 <th>Chemical Name</th>
+                <th>Reported<br>Concentration</th>
                 <th>Concentration<br>(ng/g ww)</th>
-                <th>LOD<br>(ng/g ww)</th>
-                <th>LOQ<br>(ng/g ww)</th>
-                <th>Standard Deviation<br>(ng/g ww)</th>
-                <th>Species (Class)</th>
+                <th>Class</th>
+                <th>Species</th>
+                <th>Tissue</th>
                 <th>Sampling Start</th>
-                <th>Sampling End</th>
                 <th>Country</th>
               </tr>
             </thead>
@@ -146,9 +152,17 @@
               @forelse ($literatureRecords as $record)
                 <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif ">
                   <td class="p-1 text-center">
-                    <a href="{{ route('literature.search.show', $record->id) }}" class="font-mono text-teal-800 hover:text-teal-600 hover:underline">
-                      {!! number_format($record->id, 0, '', '&nbsp;') !!}
-                    </a>
+                    <div class="flex items-center justify-center space-x-2">
+                      <a href="{{ route('literature.search.show', $record->id) }}"
+                         target="_blank"
+                         class="text-teal-600 hover:text-teal-800 transition-colors"
+                         title="View full record details">
+                        <i class="fas fa-search text-sm"></i>
+                      </a>
+                      <a href="{{ route('literature.search.show', $record->id) }}" class="font-mono text-teal-800 hover:text-teal-600 hover:underline">
+                        {!! number_format($record->id, 0, '', '&nbsp;') !!}
+                      </a>
+                    </div>
                   </td>
                   <td class="p-1 text-center">
                     @if ($record->substance && $record->substance->code)
@@ -173,6 +187,15 @@
                     @endif
                   </td>
                   <td class="p-1 text-center">
+                    @if ($record->reported_concentration !== null && $record->concentrationUnit)
+                      {{ $record->reported_concentration }} {{ $record->concentrationUnit->abbreviation ?? $record->concentrationUnit->name ?? '' }}
+                    @elseif ($record->reported_concentration !== null)
+                      {{ $record->reported_concentration }}
+                    @else
+                      <span class="text-gray-400">N/A</span>
+                    @endif
+                  </td>
+                  <td class="p-1 text-center">
                     @if ($record->ww_conc_ng !== null)
                       {{ number_format($record->ww_conc_ng, 4) }}
                     @else
@@ -180,22 +203,8 @@
                     @endif
                   </td>
                   <td class="p-1 text-center">
-                    @if ($record->ww_lod_ng !== null)
-                      {{ number_format($record->ww_lod_ng, 4) }}
-                    @else
-                      <span class="text-gray-400">N/A</span>
-                    @endif
-                  </td>
-                  <td class="p-1 text-center">
-                    @if ($record->ww_loq_ng !== null)
-                      {{ number_format($record->ww_loq_ng, 4) }}
-                    @else
-                      <span class="text-gray-400">N/A</span>
-                    @endif
-                  </td>
-                  <td class="p-1 text-center">
-                    @if ($record->ww_sd_ng !== null)
-                      {{ number_format($record->ww_sd_ng, 4) }}
+                    @if ($record->species && $record->species->class)
+                      {{ $record->species->class }}
                     @else
                       <span class="text-gray-400">N/A</span>
                     @endif
@@ -207,13 +216,17 @@
                         if ($record->species->name_latin) {
                           $speciesDisplay .= ' (' . $record->species->name_latin . ')';
                         }
-                        if ($record->species->class) {
-                          $speciesDisplay .= ' [' . $record->species->class . ']';
-                        }
                       @endphp
                       <div class="max-w-xs truncate" title="{{ $speciesDisplay }}">
                         {{ $speciesDisplay }}
                       </div>
+                    @else
+                      <span class="text-gray-400">N/A</span>
+                    @endif
+                  </td>
+                  <td class="p-1 text-center">
+                    @if ($record->tissue && $record->tissue->name)
+                      {{ $record->tissue->name }}
                     @else
                       <span class="text-gray-400">N/A</span>
                     @endif
@@ -228,15 +241,6 @@
                     @endphp
                   </td>
                   <td class="p-1 text-center">
-                    @php
-                      $endDate = [];
-                      if ($record->end_of_sampling_year) $endDate[] = $record->end_of_sampling_year;
-                      if ($record->end_of_sampling_month) $endDate[] = $record->end_of_sampling_month;
-                      if ($record->end_of_sampling_day) $endDate[] = $record->end_of_sampling_day;
-                      echo !empty($endDate) ? implode('-', $endDate) : '<span class="text-gray-400">N/A</span>';
-                    @endphp
-                  </td>
-                  <td class="p-1 text-center">
                     @if ($record->country && $record->country->name)
                       {{ $record->country->name }}
                     @else
@@ -246,7 +250,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="11" class="p-4 text-center text-gray-500">
+                  <td colspan="10" class="p-4 text-center text-gray-500">
                     No records found. Please adjust your search criteria.
                   </td>
                 </tr>
