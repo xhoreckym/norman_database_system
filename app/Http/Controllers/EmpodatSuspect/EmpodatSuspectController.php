@@ -2,182 +2,273 @@
 
 namespace App\Http\Controllers\EmpodatSuspect;
 
+use App\Models\List\Matrix;
+use App\Models\List\Country;
 use Illuminate\Http\Request;
 use App\Models\DatabaseEntity;
 use App\Models\Backend\QueryLog;
-use App\Http\Controllers\Controller;
-use App\Models\Backend\ExportDownload;
-use App\Models\EmpodatSuspect\EmpodatSuspectMain;
-use App\Models\Empodat\EmpodatStation;
-use App\Models\Susdat\Substance;
 use App\Models\Susdat\Category;
+use App\Models\Susdat\Substance;
+use App\Models\Empodat\SearchMatrix;
+use App\Http\Controllers\Controller;
+use App\Models\Empodat\SearchCountries;
+use App\Models\List\ConcentrationIndicator;
+use App\Models\EmpodatSuspect\EmpodatSuspectMain;
+use App\Models\SLE\SuspectListExchangeSource;
+use App\Models\List\AnalyticalMethod;
+use App\Models\List\DataSourceLaboratory;
+use App\Models\List\DataSourceOrganisation;
+use App\Models\List\QualityEmpodatAnalyticalMethods;
+use App\Models\List\TypeDataSource;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class EmpodatSuspectController extends Controller
 {
+    /**
+     * Show the filter form for Empodat Suspect search
+     * Mimics the Empodat filter functionality
+     */
     public function filter(Request $request)
     {
-        // Get all stations that have empodat_suspect records
-        $stations = EmpodatStation::query()
-            ->join('empodat_suspect_main', 'empodat_stations.id', '=', 'empodat_suspect_main.station_id')
-            ->select('empodat_stations.id', 'empodat_stations.name', 'empodat_stations.short_sample_code')
-            ->distinct()
-            ->orderBy('empodat_stations.short_sample_code', 'asc')
+        // Get countries that have empodat_suspect data (via the materialized view)
+        $countries = SearchCountries::with('country')
+            ->whereIn('country_id', function($query) {
+                $query->select('country_id')
+                      ->from('empodat_suspect_station_filters')
+                      ->distinct();
+            })
+            ->orderBy('country_id', 'asc')
             ->get();
 
-        $stationList = [];
-        foreach ($stations as $station) {
-            $stationList[$station->id] = ($station->short_sample_code ?? '') . ' - ' . ($station->name ?? '');
+        $countryList = [];
+        foreach ($countries as $s) {
+            $countryList[$s->country_id] = $s->country->name . ' - ' . $s->country->code;
         }
 
-        // Get all categories (from SUSDAT)
+        // Get matrices that have empodat_suspect data (via the materialized view)
+        $matrices = SearchMatrix::with('matrix')
+            ->whereIn('matrix_id', function($query) {
+                $query->select('matrix_id')
+                      ->from('empodat_suspect_station_filters')
+                      ->distinct();
+            })
+            ->orderBy('matrix_id', 'asc')
+            ->get();
+
+        $matrixList = [];
+        foreach ($matrices as $s) {
+            $matrixList[$s->matrix_id] = $s->matrix->name;
+        }
+
+        // Get SLE sources
+        $sources = SuspectListExchangeSource::select('id', 'code', 'name')->get()->keyBy('id');
+        $sourceList = [];
+        foreach ($sources as $s) {
+            $code = preg_replace('/[^a-zA-Z0-9]/', '', $s->code);
+            $name = preg_replace('/[^a-zA-Z0-9]/', '', $s->name);
+            $sourceList[$s->id] = $code . ' - ' . $name;
+        }
+
+        // Get categories
         $categories = Category::orderBy('name', 'asc')
             ->select('id', 'name', 'abbreviation')
             ->get()
             ->keyBy('id');
 
+        // Get type data sources
+        $typeDataSourcesList = [];
+        $typeSources = TypeDataSource::all();
+        foreach ($typeSources as $s) {
+            $typeDataSourcesList[$s->id] = $s->name;
+        }
+
+        // Get concentration indicators
+        $concentrationIndicatorList = [];
+        $concentrationIndicator = ConcentrationIndicator::all();
+        foreach ($concentrationIndicator as $s) {
+            $concentrationIndicatorList[$s->id] = $s->name;
+        }
+
+        // Get analytical methods
+        $analyticalMethodsList = [];
+        $analyticalMethods = AnalyticalMethod::all();
+        foreach ($analyticalMethods as $s) {
+            $analyticalMethodsList[$s->id] = $s->name;
+        }
+
+        // Get quality analytical methods
+        $qualityAnalyticalMethodsList = [];
+        $qualityAnalyticalMethods = QualityEmpodatAnalyticalMethods::all();
+        foreach ($qualityAnalyticalMethods as $method) {
+            $qualityAnalyticalMethodsList[$method->id] = $method->name;
+        }
+
+        // Get data source laboratories
+        $dataSourceLaboratoryList = [];
+        $dataSourceLaboratories = DataSourceLaboratory::all();
+        foreach ($dataSourceLaboratories as $laboratory) {
+            $dataSourceLaboratoryList[$laboratory->id] = $laboratory->name;
+        }
+
+        // Get data source organisations
+        $dataSourceOrganisationList = [];
+        $dataSourceOrganisations = DataSourceOrganisation::all();
+        foreach ($dataSourceOrganisations as $organisation) {
+            $dataSourceOrganisationList[$organisation->id] = $organisation->name;
+        }
+
         return view('empodat_suspect.filter', [
             'request' => $request,
-            'stationList' => $stationList,
+            'countryList' => $countryList,
+            'matrixList' => $matrixList,
+            'sourceList' => $sourceList,
             'categories' => $categories,
+            'analyticalMethodsList' => $analyticalMethodsList,
+            'concentrationIndicatorList' => $concentrationIndicatorList,
+            'dataSourceLaboratoryList' => $dataSourceLaboratoryList,
+            'typeDataSourcesList' => $typeDataSourcesList,
+            'qualityAnalyticalMethodsList' => $qualityAnalyticalMethodsList,
+            'dataSourceOrganisationList' => $dataSourceOrganisationList,
         ]);
     }
 
+    /**
+     * Search Empodat Suspect data using the materialized view
+     * Mimics the Empodat search functionality
+     */
     public function search(Request $request)
     {
         try {
-            $stationSearch = $request->input('stationSearch', []);
-            $substances = $request->input('substances', []);
-
-            // Decode JSON strings if needed (from Alpine multiselect)
-            if (is_string($stationSearch)) {
-                $decoded = json_decode($stationSearch, true);
-                $stationSearch = is_array($decoded) ? $decoded : [];
+            // Set database timeout
+            try {
+                DB::statement('SET statement_timeout = 300000'); // 5 minutes timeout
+            } catch (\Exception $timeoutError) {
+                Log::warning('Database timeout setting not supported: ' . $timeoutError->getMessage());
             }
 
-            if (is_string($substances)) {
-                $decoded = json_decode($substances, true);
-                $substances = is_array($decoded) ? $decoded : [];
+            // Define search fields with their default values
+            $searchFields = [
+                'countrySearch' => [],
+                'matrixSearch' => [],
+                'sourceSearch' => [],
+                'analyticalMethodSearch' => [],
+                'categoriesSearch' => [],
+                'typeDataSourcesSearch' => [],
+                'concentrationIndicatorSearch' => [],
+                'qualityAnalyticalMethodsSearch' => [],
+                'dataSourceLaboratorySearch' => [],
+                'dataSourceOrganisationSearch' => [],
+                'year_from' => null,
+                'year_to' => null,
+            ];
+
+            // Process all search inputs
+            $searchInputs = $this->processSearchInput($request, $searchFields);
+
+            // STEP 1: Query the materialized view to get filtered station IDs
+            // This is the key optimization - we filter on the small materialized view first
+            $stationFiltersQuery = DB::table('empodat_suspect_station_filters');
+
+            // Apply filters to the materialized view
+            if (!empty($searchInputs['countrySearch'])) {
+                $stationFiltersQuery->whereIn('country_id', $searchInputs['countrySearch']);
             }
 
-            // Ensure they are arrays
-            if (!is_array($stationSearch)) {
-                $stationSearch = [];
+            if (!empty($searchInputs['matrixSearch'])) {
+                $stationFiltersQuery->whereIn('matrix_id', $searchInputs['matrixSearch']);
             }
 
-            if (!is_array($substances)) {
-                $substances = [];
+            if (!empty($request->input('substances'))) {
+                $stationFiltersQuery->whereIn('substance_id', $request->input('substances'));
             }
 
-            // Logic:
-            // - If only station selected: show only that station's columns
-            // - If substance + station: show only that station's columns for that substance
-            // - If only substance: show all stations for that substance
-
-            // Get station mappings for column headers
-            $stationMappingsQuery = DB::table('empodat_suspect_xlsx_stations_mapping')
-                ->orderBy('xlsx_name');
-
-            // If stations are filtered, only show those station columns
-            if (!empty($stationSearch)) {
-                $stationMappingsQuery->whereIn('station_id', $stationSearch);
+            if (!empty($searchInputs['concentrationIndicatorSearch'])) {
+                $stationFiltersQuery->whereIn('concentration_indicator_id', $searchInputs['concentrationIndicatorSearch']);
             }
 
-            $stationMappings = $stationMappingsQuery->get();
-
-            // Build query for substances with records
-            $query = DB::table('empodat_suspect_main')
-                ->join('susdat_substances', 'empodat_suspect_main.substance_id', '=', 'susdat_substances.id')
-                ->select(
-                    'susdat_substances.id as substance_id',
-                    'susdat_substances.code',
-                    'susdat_substances.name',
-                    'susdat_substances.smiles',
-                    DB::raw('MAX(empodat_suspect_main.ip) as ip'),
-                    DB::raw('MAX(empodat_suspect_main.ip_max) as ip_max'),
-                    DB::raw('MAX(CASE WHEN empodat_suspect_main.based_on_hrms_library THEN 1 ELSE 0 END) as based_on_hrms_library'),
-                    DB::raw('MAX(empodat_suspect_main.units) as units')
-                )
-                ->groupBy('susdat_substances.id', 'susdat_substances.code', 'susdat_substances.name', 'susdat_substances.smiles');
-
-            // Apply filters
-            if (!empty($stationSearch)) {
-                $query->whereIn('empodat_suspect_main.station_id', $stationSearch);
+            if (!empty($searchInputs['year_from'])) {
+                $stationFiltersQuery->where('sampling_date_year', '>=', $searchInputs['year_from']);
             }
 
-            if (!empty($substances)) {
-                $query->whereIn('susdat_substances.id', $substances);
+            if (!empty($searchInputs['year_to'])) {
+                $stationFiltersQuery->where('sampling_date_year', '<=', $searchInputs['year_to']);
             }
 
-            // Get substances
-            $substancesData = $query->get();
-
-            // Get concentration data for filtered substances
-            $concentrationsQuery = DB::table('empodat_suspect_main')
-                ->join('empodat_suspect_xlsx_stations_mapping', 'empodat_suspect_main.xlsx_station_mapping_id', '=', 'empodat_suspect_xlsx_stations_mapping.id')
-                ->whereIn('empodat_suspect_main.substance_id', $substancesData->pluck('substance_id'))
-                ->select(
-                    'empodat_suspect_main.substance_id',
-                    'empodat_suspect_xlsx_stations_mapping.xlsx_name',
-                    'empodat_suspect_main.concentration'
-                );
-
-            // Also filter concentrations by station if stations are selected
-            if (!empty($stationSearch)) {
-                $concentrationsQuery->whereIn('empodat_suspect_main.station_id', $stationSearch);
+            if (!empty($searchInputs['typeDataSourcesSearch'])) {
+                $stationFiltersQuery->whereIn('data_source_id', $searchInputs['typeDataSourcesSearch']);
             }
 
-            $concentrations = $concentrationsQuery->get()->groupBy('substance_id');
-
-            // Build pivoted data
-            $pivotedData = [];
-            foreach ($substancesData as $index => $substance) {
-                $row = [
-                    'num' => $index + 1,
-                    'norman_id' => $substance->code ? 'NS' . $substance->code : 'N/A',
-                    'name' => $substance->name ?? 'N/A',
-                    'smiles' => $substance->smiles ?? 'N/A',
-                    'ip' => $substance->ip ?? 'N/A',
-                    'ip_max' => $substance->ip_max ?? 'N/A',
-                    'based_on_hrms_library' => $substance->based_on_hrms_library ? 'TRUE' : 'FALSE',
-                    'units' => $substance->units ?? 'N/A',
-                    'stations' => []
-                ];
-
-                // Add concentration for each station
-                foreach ($stationMappings as $mapping) {
-                    $concentration = 'NA';
-                    if (isset($concentrations[$substance->substance_id])) {
-                        $stationData = $concentrations[$substance->substance_id]
-                            ->where('xlsx_name', $mapping->xlsx_name)
-                            ->first();
-                        if ($stationData) {
-                            $concentration = $stationData->concentration;
-                        }
-                    }
-                    $row['stations'][$mapping->xlsx_name] = $concentration;
-                }
-
-                $pivotedData[] = $row;
+            if (!empty($searchInputs['analyticalMethodSearch'])) {
+                $stationFiltersQuery->whereIn('method_id', $searchInputs['analyticalMethodSearch']);
             }
 
-            // Get total count of records in database
-            $totalCount = $this->getDatabaseEntityCount('empodat_suspect');
+            // Get distinct station_ids from the filtered materialized view
+            $filteredStationIds = $stationFiltersQuery->distinct()->pluck('station_id');
 
-            return view('empodat_suspect.index', [
-                'pivotedData' => $pivotedData,
-                'stationMappings' => $stationMappings,
-                'matchedCount' => count($pivotedData),
-                'totalCount' => $totalCount,
-                'stationSearch' => $stationSearch,
-                'substances' => $substances,
-                'displayOption' => $request->input('displayOption', '1'),
-                'request' => $request,
+            // STEP 2: Now query empodat_suspect_main with the filtered station IDs
+            // This is fast because we're only querying a subset of stations
+            // Add a subquery to get the sampling year from the materialized view
+            $empodatSuspects = EmpodatSuspectMain::query()
+                ->select('empodat_suspect_main.*')
+                ->selectSub(function ($query) {
+                    $query->select('sampling_date_year')
+                          ->from('empodat_suspect_station_filters')
+                          ->whereColumn('empodat_suspect_station_filters.station_id', 'empodat_suspect_main.station_id')
+                          ->limit(1);
+                }, 'sampling_year')
+                ->whereIn('station_id', $filteredStationIds);
+
+            // Apply additional filters specific to empodat_suspect_main
+            if (!empty($request->input('substances'))) {
+                $empodatSuspects->whereIn('substance_id', $request->input('substances'));
+            }
+
+            // Apply category filter (via substance relationship)
+            if (!empty($searchInputs['categoriesSearch'])) {
+                $empodatSuspects->whereHas('substance.categories', function ($q) use ($searchInputs) {
+                    $q->whereIn('susdat_categories.id', $searchInputs['categoriesSearch']);
+                });
+            }
+
+            // Apply SLE source filter (via substance relationship)
+            if (!empty($searchInputs['sourceSearch'])) {
+                $empodatSuspects->whereHas('substance', function ($q) use ($searchInputs) {
+                    $q->whereHas('sources', function ($sourceQuery) use ($searchInputs) {
+                        $sourceQuery->whereIn('sle_sources.id', $searchInputs['sourceSearch']);
+                    });
+                });
+            }
+
+            // Build search parameters for display
+            $searchParameters = $this->buildSearchParameters($searchInputs, $request);
+
+            // Prepare request data for logging
+            $mainRequest = $this->prepareRequestData($request, $searchInputs);
+
+            // Log query if not paginated request
+            $queryLogId = $this->logQuery($empodatSuspects, $mainRequest, $request);
+
+            // Apply pagination
+            $empodatSuspects = $this->applyPagination($empodatSuspects, $request);
+
+            // Eager load relationships
+            $empodatSuspects->load([
+                'substance',
+                'station.country',
             ]);
+
+            // Get total count
+            $empodatSuspectsCount = $this->getDatabaseEntityCount('empodat_suspect');
+
+            return view('empodat_suspect.index', array_merge([
+                'empodatSuspects' => $empodatSuspects,
+                'empodatSuspectsCount' => $empodatSuspectsCount,
+                'query_log_id' => $queryLogId,
+                'searchParameters' => $searchParameters,
+            ], $mainRequest));
 
         } catch (\Exception $e) {
             Log::error('Empodat Suspect search failed: ' . $e->getMessage(), [
@@ -186,12 +277,12 @@ class EmpodatSuspectController extends Controller
             ]);
 
             return redirect()->route('empodat_suspect.search.filter')
-                ->with('error', 'Search failed: ' . $e->getMessage());
+                ->with('error', 'Search failed due to a database error. Please try again with fewer filters or contact support.');
         }
     }
 
     /**
-     * Process search inputs from request
+     * Process search inputs from request, handling both array and JSON string formats
      */
     private function processSearchInput(Request $request, array $fields): array
     {
@@ -205,6 +296,8 @@ class EmpodatSuspectController extends Controller
             } elseif (is_array($value)) {
                 $processed[$field] = $value;
             } else {
+                // For simple string values (like year), use the value directly
+                // Only try JSON decoding for fields that might contain JSON arrays
                 if (str_ends_with($field, 'Search') || str_ends_with($field, '[]')) {
                     $decoded = json_decode($value, true);
                     $processed[$field] = $decoded ?? $defaultValue;
@@ -218,36 +311,72 @@ class EmpodatSuspectController extends Controller
     }
 
     /**
-     * Build search parameters for display
+     * Build search parameters for display in the view
      */
     private function buildSearchParameters(array $searchInputs, Request $request): array
     {
         $searchParameters = [];
 
-        // Station parameters
-        if (!empty($searchInputs['stationSearch'])) {
-            $searchParameters['stationSearch'] = EmpodatStation::whereIn('id', $searchInputs['stationSearch'])
-                ->pluck('name');
+        // Country parameters
+        if (!empty($searchInputs['countrySearch'])) {
+            $searchParameters['countrySearch'] = Country::whereIn('id', $searchInputs['countrySearch'])->pluck('name');
+        }
+
+        // Matrix parameters
+        if (!empty($searchInputs['matrixSearch'])) {
+            $searchParameters['matrixSearch'] = Matrix::whereIn('id', $searchInputs['matrixSearch'])->pluck('name');
         }
 
         // Substance parameters
         if (!empty($request->input('substances'))) {
-            $searchParameters['substances'] = Substance::whereIn('id', $request->input('substances'))
-                ->pluck('name');
+            $searchParameters['substances'] = Substance::whereIn('id', $request->input('substances'))->pluck('name');
+        }
+
+        // Data source parameters
+        if (!empty($searchInputs['typeDataSourcesSearch'])) {
+            $searchParameters['typeDataSourcesSearch'] = TypeDataSource::whereIn('id', $searchInputs['typeDataSourcesSearch'])->pluck('name');
+        }
+
+        if (!empty($searchInputs['dataSourceLaboratorySearch'])) {
+            $searchParameters['dataSourceLaboratorySearch'] = DataSourceLaboratory::whereIn('id', $searchInputs['dataSourceLaboratorySearch'])->pluck('name');
+        }
+
+        if (!empty($searchInputs['dataSourceOrganisationSearch'])) {
+            $searchParameters['dataSourceOrganisationSearch'] = DataSourceOrganisation::whereIn('id', $searchInputs['dataSourceOrganisationSearch'])->pluck('name');
+        }
+
+        // Analytical method parameters
+        if (!empty($searchInputs['analyticalMethodSearch'])) {
+            $searchParameters['analyticalMethodSearch'] = AnalyticalMethod::whereIn('id', $searchInputs['analyticalMethodSearch'])->pluck('name');
         }
 
         // Category parameters
         if (!empty($searchInputs['categoriesSearch'])) {
-            $searchParameters['categoriesSearch'] = Category::whereIn('id', $searchInputs['categoriesSearch'])
-                ->pluck('name');
+            $searchParameters['categoriesSearch'] = Category::whereIn('id', $searchInputs['categoriesSearch'])->pluck('name');
         }
 
-        // IP_max range
-        if (!empty($searchInputs['ipMaxMin']) || !empty($searchInputs['ipMaxMax'])) {
-            $searchParameters['ipMaxRange'] = [
-                'min' => $searchInputs['ipMaxMin'],
-                'max' => $searchInputs['ipMaxMax'],
-            ];
+        // Concentration indicator parameters
+        if (!empty($searchInputs['concentrationIndicatorSearch'])) {
+            $searchParameters['concentrationIndicatorSearch'] = ConcentrationIndicator::whereIn('id', $searchInputs['concentrationIndicatorSearch'])->pluck('name');
+        }
+
+        // Source parameters
+        if (!empty($searchInputs['sourceSearch'])) {
+            $searchParameters['sourceSearch'] = SuspectListExchangeSource::whereIn('id', $searchInputs['sourceSearch'])->pluck('code');
+        }
+
+        // Quality parameters
+        if (!empty($searchInputs['qualityAnalyticalMethodsSearch'])) {
+            $searchParameters['ratings'] = QualityEmpodatAnalyticalMethods::whereIn('id', $searchInputs['qualityAnalyticalMethodsSearch'])->get();
+        }
+
+        // Year parameters
+        if (!is_null($request->input('year_from'))) {
+            $searchParameters['year_from'] = $request->input('year_from');
+        }
+
+        if (!is_null($request->input('year_to'))) {
+            $searchParameters['year_to'] = $request->input('year_to');
         }
 
         return $searchParameters;
@@ -259,6 +388,8 @@ class EmpodatSuspectController extends Controller
     private function prepareRequestData(Request $request, array $searchInputs): array
     {
         $requestData = array_merge($searchInputs, [
+            'year_from' => $request->input('year_from'),
+            'year_to' => $request->input('year_to'),
             'displayOption' => $request->input('displayOption'),
             'substances' => $request->input('substances'),
         ]);
@@ -267,7 +398,7 @@ class EmpodatSuspectController extends Controller
     }
 
     /**
-     * Log the query
+     * Log the query for analytics and caching
      */
     private function logQuery($query, array $mainRequest, Request $request): ?int
     {
@@ -276,14 +407,15 @@ class EmpodatSuspectController extends Controller
         }
 
         $databaseKey = 'empodat_suspect';
-        $suspectCount = $this->getDatabaseEntityCount($databaseKey);
+        $empodatSuspectsCount = $this->getDatabaseEntityCount($databaseKey);
         $now = now();
         $bindings = $query->getBindings();
         $sql = vsprintf(str_replace('?', "'%s'", $query->toSql()), $bindings);
         $queryHash = hash('sha256', $sql);
 
+        // Check for existing query with same hash
         $actualCount = QueryLog::where('query_hash', $queryHash)
-                               ->where('total_count', $suspectCount)
+                               ->where('total_count', $empodatSuspectsCount)
                                ->value('actual_count');
 
         try {
@@ -291,7 +423,7 @@ class EmpodatSuspectController extends Controller
                 'content' => json_encode(['request' => $mainRequest, 'bindings' => $bindings]),
                 'query' => $sql,
                 'user_id' => Auth::id(),
-                'total_count' => $suspectCount,
+                'total_count' => $empodatSuspectsCount,
                 'actual_count' => $actualCount,
                 'database_key' => $databaseKey,
                 'query_hash' => $queryHash,
@@ -302,13 +434,18 @@ class EmpodatSuspectController extends Controller
             return QueryLog::orderBy('id', 'desc')->first()->id;
 
         } catch (\Exception $e) {
-            Log::error('Query logging failed: ' . $e->getMessage());
+            Log::error('Query logging failed: ' . $e->getMessage(), [
+                'query_hash' => $queryHash,
+                'user_id' => Auth::id()
+            ]);
+
+            session()->flash('error', 'An error occurred while processing your request.');
             return null;
         }
     }
 
     /**
-     * Apply pagination
+     * Apply pagination based on display option
      */
     private function applyPagination($query, Request $request)
     {
@@ -327,83 +464,5 @@ class EmpodatSuspectController extends Controller
     private function getDatabaseEntityCount(string $databaseKey): int
     {
         return DatabaseEntity::where('code', $databaseKey)->value('number_of_records') ?? 0;
-    }
-
-    public function startDownloadJob($query_log_id)
-    {
-        if (!Auth::check()) {
-            session()->flash('error', 'You must be logged in to download the CSV file.');
-            return back();
-        }
-
-        session()->flash('error', 'Download functionality not yet implemented.');
-        return back();
-    }
-
-    public function downloadCsv($filename)
-    {
-        $directory = 'exports/empodat_suspect';
-        $path = Storage::path("{$directory}/{$filename}");
-
-        if (!file_exists($path)) {
-            return response()->json([
-                'error' => 'File not found',
-                'message' => 'The requested CSV file does not exist.',
-            ], 404);
-        }
-
-        return response()->download($path, $filename, [
-            'Content-Type' => 'text/csv',
-        ]);
-    }
-
-    public function show($id)
-    {
-        return view('empodat_suspect.show', [
-            'id' => $id,
-        ]);
-    }
-
-    public function edit($id)
-    {
-        if (!auth()->check() ||
-            !(auth()->user()->hasRole('super_admin') ||
-              auth()->user()->hasRole('admin') ||
-              auth()->user()->hasRole('empodat_suspect'))) {
-            session()->flash('error', 'You do not have permission to edit Empodat Suspect records.');
-            return redirect()->route('empodat_suspect.search.search');
-        }
-
-        return view('empodat_suspect.edit', [
-            'id' => $id,
-        ]);
-    }
-
-    public function update(Request $request, $id)
-    {
-        if (!auth()->check() ||
-            !(auth()->user()->hasRole('super_admin') ||
-              auth()->user()->hasRole('admin') ||
-              auth()->user()->hasRole('empodat_suspect'))) {
-            session()->flash('error', 'You do not have permission to update Empodat Suspect records.');
-            return redirect()->route('empodat_suspect.search.search');
-        }
-
-        session()->flash('success', 'Empodat Suspect record updated successfully.');
-
-        return redirect()->route('empodat_suspect.search.show', $id);
-    }
-
-    protected function formatBytes($bytes, $precision = 2): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-
-        $bytes /= (1 << (10 * $pow));
-
-        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }

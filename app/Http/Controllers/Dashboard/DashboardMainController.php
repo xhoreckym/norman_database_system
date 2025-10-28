@@ -171,6 +171,11 @@ class DashboardMainController extends Controller
                         'route' => 'ecotox.countAll',
                         'method' => 'GET',
                     ],
+                    [
+                        'name' => 'Empodat Suspect',
+                        'route' => 'empodat_suspect.countAll',
+                        'method' => 'GET',
+                    ],
                 ],
             ],
         ];
