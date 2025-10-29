@@ -263,7 +263,7 @@
             <div id="searchCategory" class="">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Search Category:
+                  Search Use category:
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
                   @foreach ($categories as $category)
