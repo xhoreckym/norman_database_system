@@ -34,7 +34,7 @@
             @elseif($daysRemaining > 14) bg-yellow-500
             @else bg-red-500
             @endif"
-            style="width: {{ 100 - $progressPercentage }}%"></div>
+            style="width: {{ max(0, min(100, 100 - $progressPercentage)) }}%"></div>
         </div>
         @if($daysRemaining <= 14)
           <p class="text-xs text-red-600 mt-1">⚠️ Payment renewal needed soon</p>
