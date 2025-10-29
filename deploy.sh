@@ -92,13 +92,13 @@ ssh deployer@145.223.117.219 << 'EOF'
     git pull
     
     echo -e "\033[1;33mBuilding assets...\033[0m"
-    docker exec -it nds-app npm run build
+    docker exec nds-app npm run build
 
     echo -e "\033[1;33mBuilding API doc...\033[0m"
-    docker exec -it nds-app php artisan scribe:generate
-    
+    docker exec nds-app php artisan scribe:generate
+
     echo -e "\033[1;36mClearing Laravel views cache...\033[0m"
-    docker exec -it nds-app php artisan view:clear
+    docker exec nds-app php artisan view:clear
     
     echo -e "\033[1;32mServer deployment completed!\033[0m"
 EOF
