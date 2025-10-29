@@ -21,16 +21,19 @@
     <!-- Days Remaining Progress Bar -->
     @if($serverPayment->status === 'paid' && $daysRemaining !== null)
       <div>
-        <div class="flex justify-between text-sm text-gray-600 mb-1">
-          <span>Days Remaining</span>
-          <span>{{ $daysRemaining }} days (until {{ $serverPayment->period_end_date->format('Y-m-d') }})</span>
+        <div class="flex flex-col gap-1 mb-1">
+          <div class="flex justify-between text-sm text-gray-600">
+            <span>Days Remaining</span>
+            <span class="font-medium">{{ $daysRemaining }} days</span>
+          </div>
+          <span class="text-xs text-gray-500">until {{ $serverPayment->period_end_date->format('Y-m-d') }}</span>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-2">
-          <div class="h-2 rounded-full 
+          <div class="h-2 rounded-full
             @if($daysRemaining > 30) bg-green-500
             @elseif($daysRemaining > 14) bg-yellow-500
             @else bg-red-500
-            @endif" 
+            @endif"
             style="width: {{ 100 - $progressPercentage }}%"></div>
         </div>
         @if($daysRemaining <= 14)
