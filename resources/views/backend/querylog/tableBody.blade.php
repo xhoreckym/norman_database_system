@@ -25,7 +25,7 @@
                             'requestKey' => 'typeDataSourcesSearch',
                             'dataList' => $typeDataSources,
                         ],
-                        'Concetration Indicators' => [
+                        'Concentration Indicators' => [
                             'requestKey' => 'concentrationIndicatorSearch',
                             'dataList' => $concentrationIndicators,
                         ],

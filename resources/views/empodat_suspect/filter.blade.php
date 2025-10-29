@@ -218,7 +218,7 @@
               <div class="flex bg-gray-100 p-2">
                 <div class="w-full">
                   <div class="font-bold mb-2">
-                    Concetration Indicators:
+                    Concentration Indicators:
                   </div>
                   <div aria-describedby="concentration-help">
                     @include('_t.form-apline-multiselect', [

@@ -8,6 +8,7 @@ use App\Http\Controllers\ARBG\GeneController;
 use App\Http\Controllers\EmailTestController;
 use App\Http\Controllers\Sars\SarsController;
 use App\Http\Controllers\Backend\FileController;
+use App\Http\Controllers\Backend\SystemSettingsController;
 use App\Http\Controllers\ARBG\ARBGHomeController;
 use App\Http\Controllers\Literature\LiteratureController;
 use App\Http\Controllers\Literature\LiteratureHomeController;
@@ -74,6 +75,12 @@ Route::get('/test-public', function() {
 
 Route::prefix('backend')->middleware('auth')->group(function () {
     Route::get('overview', [DashboardMainController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+
+    // System Settings (admin and super_admin only)
+    Route::prefix('system-settings')->middleware('role:super_admin|admin')->group(function () {
+        Route::get('/', [SystemSettingsController::class, 'index'])->name('backend.system-settings.index');
+    });
+
     Route::resource('users', UserController::class);
     Route::get('/user-data', [UserController::class, 'getUserData'])->middleware('auth');
     

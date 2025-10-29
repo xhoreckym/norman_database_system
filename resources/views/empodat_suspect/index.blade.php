@@ -172,7 +172,7 @@
                 <th>HRMS Library</th>
                 <th>Country</th>
                 <th>Year</th>
-                <th>Station Code</th>
+                <th>Sample code</th>
                 <th>Sampling station</th>
               </tr>
             </thead>

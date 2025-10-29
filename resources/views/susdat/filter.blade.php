@@ -22,7 +22,7 @@
             <div class="bg-gray-50 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
               <div class="p-4">
                 <div class="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">
-                  Search Category:
+                  Search Use category:
                 </div>
                 <form name="searchAccordingToCategoryForm" id="searchAccordingToCategoryForm" action="{{route('substances.search.search')}}" method="GET" onsubmit="return validateCategorySelection()">
                   <input type="hidden" value="1" name="searchCategory">

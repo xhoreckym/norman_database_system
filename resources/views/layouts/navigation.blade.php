@@ -14,9 +14,16 @@
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     @auth
-                    <x-nav-link :href="route('dashboard')" :active="(request()->is('dashboard*') || request()->routeIs('dashboard') || request()->is('backend*'))">
+                    <x-nav-link :href="route('dashboard')" :active="(request()->is('dashboard*') || request()->routeIs('dashboard'))">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @hasanyrole('super_admin|admin')
+                    <x-nav-link :href="route('backend.system-settings.index')" :active="request()->is('backend/system-settings*')"
+                        :class="request()->is('backend/system-settings*') ? 'bg-purple-50 border-purple-500 text-gray-900' : 'hover:bg-purple-50'">
+                        {{ __('System Settings') }}
+                    </x-nav-link>
+                    @endhasanyrole
                     @endauth
                     
                     <x-nav-link :href="route('home')" :active="(request()->routeIs('home') || request()->routeIs('databases.index') || request()->is('landing') || request()->is('sle/*') || request()->is('arbg/*') || request()->is('indoor/*') || request()->is('passive/*') || request()->is('prioritisation/*') || request()->is('bioassays/*') || request()->is('sars/*') || request()->is('empodat/*') || request()->is('susdat/*') || request()->is('ecotox/*') || request()->is('factsheets/*'))">
@@ -104,6 +111,11 @@
         <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
             {{ __('Dashboard') }}
         </x-responsive-nav-link>
+        @hasanyrole('super_admin|admin')
+        <x-responsive-nav-link :href="route('backend.system-settings.index')" :active="request()->is('backend/system-settings*')">
+            {{ __('System Settings') }}
+        </x-responsive-nav-link>
+        @endhasanyrole
         <x-responsive-nav-link :href="route('export_downloads.index', ['user_id' => Auth::id()])" :active="request()->routeIs('export_downloads.index')">
             {{ __('My downloads') }}
         </x-responsive-nav-link>
