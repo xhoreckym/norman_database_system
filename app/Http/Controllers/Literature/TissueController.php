@@ -14,11 +14,11 @@ class TissueController extends Controller
         return view('literature.tissues.index', compact('tissues'));
     }
 
-    public function download()
+    public function downloadCategories()
     {
         $tissues = Tissue::orderBy('id')->get();
 
-        $filename = 'tissues_' . date('Y-m-d_His') . '.csv';
+        $filename = 'tissue_categories_' . date('Y-m-d_His') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
@@ -35,6 +35,61 @@ class TissueController extends Controller
                 fputcsv($file, [
                     $item->id,
                     $item->name,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function downloadSubcategories()
+    {
+        $tissues = Tissue::with('subcategories')->orderBy('id')->get();
+
+        $filename = 'tissue_subcategories_' . date('Y-m-d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function() use ($tissues) {
+            $file = fopen('php://output', 'w');
+
+            // Add CSV headers
+            fputcsv($file, ['id', 'main_category_name', 'category_id', 'subcategory_name']);
+
+            // Collect all rows for sorting
+            $rows = [];
+            foreach ($tissues as $item) {
+                if ($item->subcategories && $item->subcategories->count() > 0) {
+                    foreach ($item->subcategories as $subcategory) {
+                        $rows[] = [
+                            'id' => $subcategory->id,
+                            'main_category_name' => $item->name, // tissue name from list_tissues
+                            'category_id' => $item->id,
+                            'subcategory_name' => $subcategory->name,
+                        ];
+                    }
+                }
+            }
+
+            // Sort by category_id first, then by subcategory_name alphabetically
+            usort($rows, function($a, $b) {
+                if ($a['category_id'] === $b['category_id']) {
+                    return strcasecmp($a['subcategory_name'], $b['subcategory_name']);
+                }
+                return $a['category_id'] - $b['category_id'];
+            });
+
+            // Write sorted rows to CSV
+            foreach ($rows as $row) {
+                fputcsv($file, [
+                    $row['id'],
+                    $row['main_category_name'],
+                    $row['category_id'],
+                    $row['subcategory_name'],
                 ]);
             }
 

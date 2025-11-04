@@ -11,8 +11,11 @@
           <div class="mb-6 flex justify-between items-center">
             <h2 class="text-xl font-semibold text-gray-800">Tissues</h2>
             <div class="flex space-x-3">
-              <a href="{{ route('literature.tissues.download') }}" class="btn-submit">
-                Download CSV
+              <a href="{{ route('literature.tissues.download_categories') }}" class="btn-submit">
+                Download Categories CSV
+              </a>
+              <a href="{{ route('literature.tissues.download_subcategories') }}" class="btn-submit">
+                Download Subcategories CSV
               </a>
               <a href="{{ route('literature.tissues.create') }}" class="btn-create">
                 Add New Tissue

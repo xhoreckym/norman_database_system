@@ -584,7 +584,8 @@ Route::prefix('literature')->group(function () {
         ]);
 
         // Tissues
-        Route::get('tissues/download', [\App\Http\Controllers\Literature\TissueController::class, 'download'])->name('literature.tissues.download');
+        Route::get('tissues/download-categories', [\App\Http\Controllers\Literature\TissueController::class, 'downloadCategories'])->name('literature.tissues.download_categories');
+        Route::get('tissues/download-subcategories', [\App\Http\Controllers\Literature\TissueController::class, 'downloadSubcategories'])->name('literature.tissues.download_subcategories');
         Route::resource('tissues', \App\Http\Controllers\Literature\TissueController::class)->except(['destroy'])->names([
             'index' => 'literature.tissues.index',
             'create' => 'literature.tissues.create',
