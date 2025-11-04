@@ -11,12 +11,12 @@
           
           <!-- Title -->
           <h1 class="text-2xl font-bold text-gray-800 mb-4">
-            Literature Database
+            Literature Chemical Exposure Database
           </h1>
           
           <!-- Description -->
           <p class="text-gray-700 leading-relaxed mb-4">
-            Welcome to the Literature module. Content will be added soon.
+            Welcome to the Literature Chemical Exposure database module. Content will be added soon.
           </p>
           
         </div>

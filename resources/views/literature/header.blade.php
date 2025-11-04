@@ -1,6 +1,6 @@
 <div class="px-4 sm:px-6 lg:px-8">
   <span class="mr-12 font-bold text-lime-700">
-    Literature
+    Literature Chemical Exposure Database
   </span>
 
   <x-nav-link-header :href="route('literature.home.index')" :active="request()->is('*home*')">
