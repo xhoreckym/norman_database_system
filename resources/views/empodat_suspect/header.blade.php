@@ -11,17 +11,21 @@
     Search
   </x-nav-link-header>
 
+  <x-nav-link-header :href="route('empodat_suspect.statistics.index')" :active="request()->is('*statistics*')">
+    Statistics
+  </x-nav-link-header>
+
   <x-nav-link-header :href="route('templates.specific.index', ['code' => 'empodat_suspect'])" :active="request()->is('backend/templates/entity/empodat_suspect*')">
     DCT Download
   </x-nav-link-header>
 
   @role('super_admin')
   <x-nav-link-header :href="route('querylog.index', ['module' => 'empodat_suspect'])" :active="request()->is('*querylog*')">
-    History of search
+    History of Search
   </x-nav-link-header>
   @else
   <x-nav-link-header>
-    History of search <i class="fas fa-lock ml-2"></i>
+    History of Search <i class="fas fa-lock ml-2"></i>
   </x-nav-link-header>
   @endrole
 </div>

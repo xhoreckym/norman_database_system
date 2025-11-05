@@ -14,6 +14,7 @@ use App\Http\Controllers\Literature\LiteratureController;
 use App\Http\Controllers\Literature\LiteratureHomeController;
 use App\Http\Controllers\EmpodatSuspect\EmpodatSuspectController;
 use App\Http\Controllers\EmpodatSuspect\EmpodatSuspectHomeController;
+use App\Http\Controllers\EmpodatSuspect\StatisticsController as EmpodatSuspectStatisticsController;
 
 use App\Http\Controllers\ARBG\BacteriaController;
 use App\Http\Controllers\Ecotox\EcotoxController;
@@ -651,6 +652,21 @@ Route::prefix('empodat_suspect')->group(function () {
 
     // Count all records
     Route::get('empodat_suspect/countAll', [EmpodatSuspectHomeController::class, 'countAll'])->middleware('auth')->name('empodat_suspect.countAll');
+
+    // Statistics
+    Route::prefix('statistics')->group(function () {
+        // Main statistics overview
+        Route::get('/', [EmpodatSuspectStatisticsController::class, 'index'])->name('empodat_suspect.statistics.index');
+
+        // Generate all statistics
+        Route::post('generate', [EmpodatSuspectStatisticsController::class, 'generateStatistics'])->name('empodat_suspect.statistics.generate');
+
+        // Individual statistic views
+        Route::get('substances-by-sample-code', [EmpodatSuspectStatisticsController::class, 'substancesBySampleCode'])->name('empodat_suspect.statistics.substancesBySampleCode');
+        Route::get('records-by-sample-code', [EmpodatSuspectStatisticsController::class, 'recordsBySampleCode'])->name('empodat_suspect.statistics.recordsBySampleCode');
+        Route::get('substances-by-country', [EmpodatSuspectStatisticsController::class, 'substancesByCountry'])->name('empodat_suspect.statistics.substancesByCountry');
+        Route::get('records-by-country', [EmpodatSuspectStatisticsController::class, 'recordsByCountry'])->name('empodat_suspect.statistics.recordsByCountry');
+    });
 
 });
 

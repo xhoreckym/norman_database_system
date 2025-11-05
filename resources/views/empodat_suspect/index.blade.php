@@ -124,7 +124,7 @@
 
               @if ($empodatSuspectsCount > 0)
                 <div class="py-2">
-                  of <span> {{ number_format($empodatSuspectsCount, 0, ' ', ' ') }}
+                  of <span> {{ number_format($empodatSuspectsCount, 0, '.', ' ') }}
                     @if (is_numeric($empodatSuspects->total()))
                       @if (($empodatSuspects->total() / $empodatSuspectsCount) * 100 < 0.01)
                         which is &le; 0.01% of total records.
@@ -172,8 +172,8 @@
                 <th>HRMS Library</th>
                 <th>Country</th>
                 <th>Year</th>
-                <th>Sample code</th>
-                <th>Sampling station</th>
+                <th>Sample Code</th>
+                <th>Sampling Station</th>
               </tr>
             </thead>
             <tbody>
