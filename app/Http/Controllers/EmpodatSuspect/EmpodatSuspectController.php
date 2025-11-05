@@ -465,4 +465,21 @@ class EmpodatSuspectController extends Controller
     {
         return DatabaseEntity::where('code', $databaseKey)->value('number_of_records') ?? 0;
     }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $record = EmpodatSuspectMain::with([
+            'substance',
+            'station.country',
+            'xlsxStationMapping',
+            'files',
+        ])->findOrFail($id);
+
+        return view('empodat_suspect.show', [
+            'record' => $record,
+        ]);
+    }
 }

@@ -86,7 +86,16 @@ class EmpodatSuspectHomeController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $record = EmpodatSuspectMain::with([
+            'substance',
+            'station.country',
+            'xlsxStationMapping',
+            'files',
+        ])->findOrFail($id);
+
+        return view('empodat_suspect.show', [
+            'record' => $record,
+        ]);
     }
 
     /**
