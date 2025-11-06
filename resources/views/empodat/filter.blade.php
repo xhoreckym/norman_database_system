@@ -73,13 +73,13 @@
                 <div class="mb-3">
                   <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                     <label class="inline-flex items-center">
-                      <input type="radio" 
-                             class="form-radio text-slate-600" 
-                             name="id_type" 
-                             value="empodat_id" 
+                      <input type="radio"
+                             class="form-radio text-slate-600"
+                             name="id_type"
+                             value="empodat_id"
                              @if (request('id_type', 'empodat_id') == 'empodat_id') checked @endif
                              aria-describedby="empodat-id-desc">
-                      <span class="ml-2">Empodat ID</span>
+                      <span class="ml-2">EMPODAT ID</span>
                     </label>
                     <label class="inline-flex items-start sm:items-center">
                       <input type="radio" 
@@ -161,7 +161,7 @@
                 <div class="flex flex-col lg:flex-row">
                   <div class="w-full">
                     <div class="font-bold mb-2">
-                      Geography criteria:
+                      Country:
                     </div>
                     <div aria-describedby="country-help">
                       @include('_t.form-apline-multiselect', [
@@ -174,7 +174,7 @@
                   
                   <div class="w-full mt-4 lg:mt-0">
                     <div class="font-bold mb-2">
-                      Ecosystem criteria:
+                      Ecosystem:
                     </div>
                     <div aria-describedby="matrix-help">
                       @include('_t.form-apline-multiselect', [
@@ -191,7 +191,7 @@
             <div id="searchSubstance">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Substance criteria:
+                  Substance:
                 </div>
                 <div aria-describedby="substance-help">
                   @livewire('empodat.substance-search', ['existingSubstances' => $request->substances])
@@ -203,7 +203,7 @@
             <div id="searchSource" class="">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  SLE Source criteria:
+                  SLE Source:
                 </div>
                 <div class="w-full" aria-describedby="source-help">
                   @include('_t.form-apline-multiselect', [
@@ -412,7 +412,7 @@
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2 flex items-center space-x-2">
                   <i class="fas fa-file text-gray-600" aria-hidden="true"></i>
-                  <span>File criteria:</span>
+                  <span>File:</span>
                 </div>
                 <div aria-describedby="file-help">
                   {{-- <livewire:empodat.file-search :existing-files="$request->files" /> --}}

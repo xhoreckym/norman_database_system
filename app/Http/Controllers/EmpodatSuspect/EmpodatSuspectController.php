@@ -170,49 +170,17 @@ class EmpodatSuspectController extends Controller
             // Process all search inputs
             $searchInputs = $this->processSearchInput($request, $searchFields);
 
-            // STEP 1: Query the materialized view to get filtered station IDs
-            // This is the key optimization - we filter on the small materialized view first
-            $stationFiltersQuery = DB::table('empodat_suspect_station_filters');
+            // STEP 1: Determine if we should use the materialized view
+            // The materialized view is useful for filtering by station-level attributes
+            // (country, matrix, year, etc.) but doesn't contain all substances.
+            $hasNonSubstanceFilters = !empty($searchInputs['countrySearch'])
+                || !empty($searchInputs['matrixSearch'])
+                || !empty($searchInputs['concentrationIndicatorSearch'])
+                || !empty($searchInputs['year_from'])
+                || !empty($searchInputs['year_to'])
+                || !empty($searchInputs['typeDataSourcesSearch'])
+                || !empty($searchInputs['analyticalMethodSearch']);
 
-            // Apply filters to the materialized view
-            if (!empty($searchInputs['countrySearch'])) {
-                $stationFiltersQuery->whereIn('country_id', $searchInputs['countrySearch']);
-            }
-
-            if (!empty($searchInputs['matrixSearch'])) {
-                $stationFiltersQuery->whereIn('matrix_id', $searchInputs['matrixSearch']);
-            }
-
-            if (!empty($request->input('substances'))) {
-                $stationFiltersQuery->whereIn('substance_id', $request->input('substances'));
-            }
-
-            if (!empty($searchInputs['concentrationIndicatorSearch'])) {
-                $stationFiltersQuery->whereIn('concentration_indicator_id', $searchInputs['concentrationIndicatorSearch']);
-            }
-
-            if (!empty($searchInputs['year_from'])) {
-                $stationFiltersQuery->where('sampling_date_year', '>=', $searchInputs['year_from']);
-            }
-
-            if (!empty($searchInputs['year_to'])) {
-                $stationFiltersQuery->where('sampling_date_year', '<=', $searchInputs['year_to']);
-            }
-
-            if (!empty($searchInputs['typeDataSourcesSearch'])) {
-                $stationFiltersQuery->whereIn('data_source_id', $searchInputs['typeDataSourcesSearch']);
-            }
-
-            if (!empty($searchInputs['analyticalMethodSearch'])) {
-                $stationFiltersQuery->whereIn('method_id', $searchInputs['analyticalMethodSearch']);
-            }
-
-            // Get distinct station_ids from the filtered materialized view
-            $filteredStationIds = $stationFiltersQuery->distinct()->pluck('station_id');
-
-            // STEP 2: Now query empodat_suspect_main with the filtered station IDs
-            // This is fast because we're only querying a subset of stations
-            // Add a subquery to get the sampling year from the materialized view
             $empodatSuspects = EmpodatSuspectMain::query()
                 ->select('empodat_suspect_main.*')
                 ->selectSub(function ($query) {
@@ -220,8 +188,51 @@ class EmpodatSuspectController extends Controller
                           ->from('empodat_suspect_station_filters')
                           ->whereColumn('empodat_suspect_station_filters.station_id', 'empodat_suspect_main.station_id')
                           ->limit(1);
-                }, 'sampling_year')
-                ->whereIn('station_id', $filteredStationIds);
+                }, 'sampling_year');
+
+            // Only use materialized view if there are non-substance filters
+            if ($hasNonSubstanceFilters) {
+                $stationFiltersQuery = DB::table('empodat_suspect_station_filters');
+
+                // Apply filters to the materialized view
+                if (!empty($searchInputs['countrySearch'])) {
+                    $stationFiltersQuery->whereIn('country_id', $searchInputs['countrySearch']);
+                }
+
+                if (!empty($searchInputs['matrixSearch'])) {
+                    $stationFiltersQuery->whereIn('matrix_id', $searchInputs['matrixSearch']);
+                }
+
+                // NOTE: We do NOT filter by substance_id here because the materialized view
+                // only contains a subset of substances (2,649 out of 92,901 total).
+                // Substance filtering is applied later on empodat_suspect_main.
+
+                if (!empty($searchInputs['concentrationIndicatorSearch'])) {
+                    $stationFiltersQuery->whereIn('concentration_indicator_id', $searchInputs['concentrationIndicatorSearch']);
+                }
+
+                if (!empty($searchInputs['year_from'])) {
+                    $stationFiltersQuery->where('sampling_date_year', '>=', $searchInputs['year_from']);
+                }
+
+                if (!empty($searchInputs['year_to'])) {
+                    $stationFiltersQuery->where('sampling_date_year', '<=', $searchInputs['year_to']);
+                }
+
+                if (!empty($searchInputs['typeDataSourcesSearch'])) {
+                    $stationFiltersQuery->whereIn('data_source_id', $searchInputs['typeDataSourcesSearch']);
+                }
+
+                if (!empty($searchInputs['analyticalMethodSearch'])) {
+                    $stationFiltersQuery->whereIn('method_id', $searchInputs['analyticalMethodSearch']);
+                }
+
+                // Get distinct station_ids from the filtered materialized view
+                $filteredStationIds = $stationFiltersQuery->distinct()->pluck('station_id');
+
+                // Filter empodat_suspect_main by station IDs
+                $empodatSuspects->whereIn('station_id', $filteredStationIds);
+            }
 
             // Apply additional filters specific to empodat_suspect_main
             if (!empty($request->input('substances'))) {

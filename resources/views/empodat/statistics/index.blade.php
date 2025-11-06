@@ -1,13 +1,13 @@
 @extends('empodat.statistics.layout')
 
-@section('page-title', 'Empodat Statistics Overview')
+@section('page-title', 'EMPODAT Statistics Overview')
 
 @section('main-content')
   <!-- Database Overview Card -->
   <div class="bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg p-6 mb-6">
     <div class="flex justify-between items-center">
       <div>
-        <h3 class="text-2xl font-bold mb-2">Empodat Database</h3>
+        <h3 class="text-2xl font-bold mb-2">EMPODAT Database</h3>
         <p class="text-slate-200">Chemical occurrence monitoring data</p>
       </div>
       <div class="text-right">

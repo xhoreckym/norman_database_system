@@ -50,7 +50,7 @@
                 <div class="flex">
                   <div class="w-full">
                     <div class="font-bold mb-2">
-                      Geography criteria:
+                      Country:
                     </div>
                     @include('_t.form-apline-multiselect', [
                     'tag' => 'countrySearch', 'list' => $countryList,

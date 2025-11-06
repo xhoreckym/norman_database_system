@@ -49,7 +49,7 @@
                 <div class="flex">
                   <div class="w-full">
                     <div class="font-bold mb-2">
-                      Geography criteria:
+                      Country:
                     </div>
                     @include('_t.form-apline-multiselect', [
                     'tag' => 'countrySearch', 'list' => $countryList,
@@ -58,7 +58,7 @@
                   </div>
                   <div class="w-full">
                     <div class="font-bold mb-2">
-                      Matrix criteria:
+                      Matrix:
                     </div>
                     @include('_t.form-apline-multiselect', [
                     'tag' => 'matrixSearch', 'list' => $matrixList,
@@ -74,7 +74,7 @@
                 <div class="flex">
                   <div class="w-full">
                     <div class="font-bold mb-2">
-                      Environment Type criteria:
+                      Environment Type:
                     </div>
                     @include('_t.form-apline-multiselect', [
                     'tag' => 'environmentTypeSearch', 'list' => $environmentTypeList,
@@ -86,7 +86,7 @@
                 
                   <div class="w-full">
                     <div class="font-bold mb-2">
-                      Environment Category criteria:
+                      Environment Category:
                     </div>
                     @include('_t.form-apline-multiselect', [
                     'tag' => 'environmentCategorySearch', 'list' => $environmentCategoryList,

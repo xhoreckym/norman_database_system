@@ -11,7 +11,7 @@
           <!-- Header -->
           <div class="mb-6">
             <h2 class="text-3xl font-bold text-gray-800 mb-4">
-              @yield('page-title', 'Empodat Statistics Overview')
+              @yield('page-title', 'EMPODAT Statistics Overview')
             </h2>
             @hasSection('page-subtitle')
               <p class="text-gray-600">@yield('page-subtitle')</p>

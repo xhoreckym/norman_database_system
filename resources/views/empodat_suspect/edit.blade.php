@@ -9,7 +9,7 @@
         <div class="p-6 text-gray-900">
 
           <h1 class="text-2xl font-bold text-gray-800 mb-4">
-            Empodat Suspect - Edit Record
+            EMPODAT Suspect - Edit Record
           </h1>
 
           <p class="text-gray-700 leading-relaxed mb-4">

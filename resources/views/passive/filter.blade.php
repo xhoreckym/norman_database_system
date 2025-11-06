@@ -49,7 +49,7 @@
                 <div class="flex">
                   <div class="w-full">
                     <div class="font-bold mb-2">
-                      Geography criteria:
+                      Country:
                     </div>
                     @include('_t.form-apline-multiselect', [
                     'tag' => 'countrySearch', 'list' => $countryList,
@@ -58,7 +58,7 @@
                   </div>
                   <div class="w-full">
                     <div class="font-bold mb-2">
-                      Matrix criteria:
+                      Matrix:
                     </div>
                     @include('_t.form-apline-multiselect', [
                     'tag' => 'matrixSearch', 'list' => $matrixList,
@@ -85,7 +85,7 @@
             <div id="searchSubstance">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Substance criteria:
+                  Substance:
                 </div>
                 <div>
                   @livewire('backend.substance-search', ['existingSubstances' => $request->substances])

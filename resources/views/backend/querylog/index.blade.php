@@ -99,7 +99,7 @@
 
                     <td class="py-1 px-2 text-xs">
                       @if (str_starts_with($moduleKey, 'empodat'))
-                        {{-- Empodat module specific display --}}
+                        {{-- EMPODAT module specific display --}}
                         @foreach ($fields as $label => $field)
                           @php
                             $values = (array) data_get($request, $field['requestKey'], []);

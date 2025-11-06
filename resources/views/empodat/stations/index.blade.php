@@ -17,7 +17,7 @@
 
                     <!-- Header with Create Button -->
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-lg font-medium text-gray-900">Empodat Stations</h3>
+                        <h3 class="text-lg font-medium text-gray-900">EMPODAT Stations</h3>
                         <a href="{{ route('backend.empodat.stations.create') }}" class="btn-submit inline-flex items-center px-4 py-2 bg-slate-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-slate-700 focus:bg-slate-700 active:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             Create New Station
                         </a>

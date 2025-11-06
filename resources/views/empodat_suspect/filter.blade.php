@@ -99,7 +99,7 @@
                 <div class="flex flex-col lg:flex-row">
                   <div class="w-full">
                     <div class="font-bold mb-2">
-                      Geography Criteria:
+                      Country:
                     </div>
                     <div aria-describedby="country-help">
                       @include('_t.form-apline-multiselect', [
@@ -112,7 +112,7 @@
 
                   <div class="w-full mt-4 lg:mt-0">
                     <div class="font-bold mb-2">
-                      Ecosystem Criteria:
+                      Ecosystem:
                     </div>
                     <div aria-describedby="matrix-help">
                       @include('_t.form-apline-multiselect', [
@@ -129,7 +129,7 @@
             <div id="searchSubstance">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Substance Criteria:
+                  Substance:
                 </div>
                 <div aria-describedby="substance-help">
                   @livewire('empodat.substance-search', ['existingSubstances' => $request->substances])
@@ -141,7 +141,7 @@
             <div id="searchSource" class="">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  SLE Source Criteria:
+                  SLE Source:
                 </div>
                 <div class="w-full" aria-describedby="source-help">
                   @include('_t.form-apline-multiselect', [

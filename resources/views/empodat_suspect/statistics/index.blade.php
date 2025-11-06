@@ -1,13 +1,13 @@
 @extends('empodat_suspect.statistics.layout')
 
-@section('page-title', 'Empodat Suspect Statistics Overview')
+@section('page-title', 'EMPODAT Suspect Statistics Overview')
 
 @section('main-content')
   <!-- Database Overview Card -->
   <div class="bg-slate-600 text-white rounded-lg p-6 mb-6">
     <div class="flex justify-between items-center">
       <div>
-        <h3 class="text-2xl font-bold mb-2">Empodat Suspect Database</h3>
+        <h3 class="text-2xl font-bold mb-2">EMPODAT Suspect Database</h3>
         <p class="text-slate-200">Suspect screening chemical occurrence data</p>
       </div>
       <div class="text-right">

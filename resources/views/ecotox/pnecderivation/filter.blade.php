@@ -129,7 +129,7 @@
             <div id="searchSubstance">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Substance criteria:
+                  Substance:
                 </div>
                 <div>
                   @livewire('ecotox.pnec-substance-search', ['existingSubstances' => $request->substances])

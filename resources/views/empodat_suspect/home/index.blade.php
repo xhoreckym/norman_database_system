@@ -11,12 +11,12 @@
 
           <!-- Title -->
           <h1 class="text-2xl font-bold text-gray-800 mb-4">
-            Empodat Suspect Database
+            EMPODAT Suspect Database
           </h1>
 
           <!-- Description -->
           <p class="text-gray-700 leading-relaxed mb-4">
-            Welcome to the Empodat Suspect screening results module. Content will be added soon.
+            Welcome to the EMPODAT Suspect screening results module. Content will be added soon.
           </p>
 
         </div>

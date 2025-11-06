@@ -23,9 +23,9 @@
             </div>
           </div>
 
-          {{-- Empodat Suspect Record Information at Glance --}}
+          {{-- EMPODAT Suspect Record Information at Glance --}}
           <div class="mb-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Empodat Suspect Record Information at Glance</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">EMPODAT Suspect Record Information at Glance</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               @if ($record->id)
                 <div>
