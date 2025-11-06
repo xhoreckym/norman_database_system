@@ -20,7 +20,9 @@ use App\Models\List\DataSourceLaboratory;
 use App\Models\List\DataSourceOrganisation;
 use App\Models\List\QualityEmpodatAnalyticalMethods;
 use App\Models\List\TypeDataSource;
+use App\Models\Backend\ExportDownload;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -481,5 +483,320 @@ class EmpodatSuspectController extends Controller
         return view('empodat_suspect.show', [
             'record' => $record,
         ]);
+    }
+
+    /**
+     * Start CSV download job
+     */
+    public function startDownloadJob($query_log_id)
+    {
+        if (!Auth::check()) {
+            session()->flash('error', 'You must be logged in to download the CSV file.');
+            return back();
+        }
+
+        // Increase memory limit for large exports
+        ini_set('memory_limit', '512M');
+
+        // Disable query log to save memory
+        DB::connection()->disableQueryLog();
+
+        // Disable debugbar to prevent memory issues
+        if (app()->has('debugbar')) {
+            app('debugbar')->disable();
+        }
+
+        try {
+            // Get the query log record
+            $queryLog = QueryLog::findOrFail($query_log_id);
+
+            // Generate filename
+            $filename = 'empodat_suspect_export_uid_' . Auth::id() . '_' . now()->format('YmdHis') . '.csv';
+
+            // Get request information for logging
+            $ip = request()->ip();
+            $userAgent = request()->userAgent();
+
+            // Create an export download record for tracking
+            $exportDownload = ExportDownload::create([
+                'user_id' => Auth::id(),
+                'filename' => $filename,
+                'format' => 'csv',
+                'ip_address' => $ip,
+                'user_agent' => $userAgent,
+                'database_key' => 'empodat_suspect',
+                'status' => 'processing',
+                'started_at' => Carbon::now()
+            ]);
+
+            // Associate with the query log
+            $exportDownload->queryLogs()->attach($query_log_id);
+
+            // Process the export directly
+            $startTime = microtime(true);
+            $directory = 'exports/empodat_suspect';
+
+            // Make sure the directory exists
+            Storage::makeDirectory($directory);
+
+            $path = Storage::path("{$directory}/{$filename}");
+            $handle = fopen($path, 'w');
+
+            if (!$handle) {
+                throw new \Exception("Unable to open file for writing: {$path}");
+            }
+
+            // Write CSV headers
+            $headers = [
+                'ID',
+                'Norman SUS ID',
+                'Substance Name',
+                'Concentration',
+                'Units',
+                'IP Max',
+                'Based on HRMS Library',
+                'Country Name',
+                'Country Code',
+                'Sampling Year',
+                'Sample Code',
+                'Sampling Station',
+                'Station ID',
+                'Export Date'
+            ];
+            fputcsv($handle, $headers);
+
+            // Build the query from the query log
+            $content = json_decode($queryLog->content, true);
+            $requestData = $content['request'] ?? [];
+
+            // Process search fields
+            $countrySearch = is_array($requestData['countrySearch'] ?? null)
+                ? $requestData['countrySearch']
+                : json_decode($requestData['countrySearch'] ?? '[]', true);
+
+            $matrixSearch = is_array($requestData['matrixSearch'] ?? null)
+                ? $requestData['matrixSearch']
+                : json_decode($requestData['matrixSearch'] ?? '[]', true);
+
+            $sourceSearch = is_array($requestData['sourceSearch'] ?? null)
+                ? $requestData['sourceSearch']
+                : json_decode($requestData['sourceSearch'] ?? '[]', true);
+
+            $analyticalMethodSearch = is_array($requestData['analyticalMethodSearch'] ?? null)
+                ? $requestData['analyticalMethodSearch']
+                : json_decode($requestData['analyticalMethodSearch'] ?? '[]', true);
+
+            $categoriesSearch = is_array($requestData['categoriesSearch'] ?? null)
+                ? $requestData['categoriesSearch']
+                : json_decode($requestData['categoriesSearch'] ?? '[]', true);
+
+            $typeDataSourcesSearch = is_array($requestData['typeDataSourcesSearch'] ?? null)
+                ? $requestData['typeDataSourcesSearch']
+                : json_decode($requestData['typeDataSourcesSearch'] ?? '[]', true);
+
+            $concentrationIndicatorSearch = is_array($requestData['concentrationIndicatorSearch'] ?? null)
+                ? $requestData['concentrationIndicatorSearch']
+                : json_decode($requestData['concentrationIndicatorSearch'] ?? '[]', true);
+
+            $substances = is_array($requestData['substances'] ?? null)
+                ? $requestData['substances']
+                : json_decode($requestData['substances'] ?? '[]', true);
+
+            $yearFrom = $requestData['year_from'] ?? null;
+            $yearTo = $requestData['year_to'] ?? null;
+
+            // STEP 1: Query the materialized view to get filtered station IDs
+            $stationFiltersQuery = DB::table('empodat_suspect_station_filters');
+
+            // Apply filters
+            if (!empty($countrySearch)) {
+                $stationFiltersQuery->whereIn('country_id', $countrySearch);
+            }
+
+            if (!empty($matrixSearch)) {
+                $stationFiltersQuery->whereIn('matrix_id', $matrixSearch);
+            }
+
+            if (!empty($substances)) {
+                $stationFiltersQuery->whereIn('substance_id', $substances);
+            }
+
+            if (!empty($concentrationIndicatorSearch)) {
+                $stationFiltersQuery->whereIn('concentration_indicator_id', $concentrationIndicatorSearch);
+            }
+
+            if (!empty($yearFrom)) {
+                $stationFiltersQuery->where('sampling_date_year', '>=', $yearFrom);
+            }
+
+            if (!empty($yearTo)) {
+                $stationFiltersQuery->where('sampling_date_year', '<=', $yearTo);
+            }
+
+            if (!empty($typeDataSourcesSearch)) {
+                $stationFiltersQuery->whereIn('data_source_id', $typeDataSourcesSearch);
+            }
+
+            if (!empty($analyticalMethodSearch)) {
+                $stationFiltersQuery->whereIn('method_id', $analyticalMethodSearch);
+            }
+
+            // Get distinct station_ids
+            $filteredStationIds = $stationFiltersQuery->distinct()->pluck('station_id');
+
+            // STEP 2: Query empodat_suspect_main with filtered station IDs
+            $baseQuery = EmpodatSuspectMain::query()
+                ->select('empodat_suspect_main.*')
+                ->selectSub(function ($query) {
+                    $query->select('sampling_date_year')
+                          ->from('empodat_suspect_station_filters')
+                          ->whereColumn('empodat_suspect_station_filters.station_id', 'empodat_suspect_main.station_id')
+                          ->limit(1);
+                }, 'sampling_year')
+                ->whereIn('station_id', $filteredStationIds);
+
+            // Apply additional filters
+            if (!empty($substances)) {
+                $baseQuery->whereIn('substance_id', $substances);
+            }
+
+            // Apply category filter
+            if (!empty($categoriesSearch)) {
+                $baseQuery->whereHas('substance.categories', function ($q) use ($categoriesSearch) {
+                    $q->whereIn('susdat_categories.id', $categoriesSearch);
+                });
+            }
+
+            // Apply SLE source filter
+            if (!empty($sourceSearch)) {
+                $baseQuery->whereHas('substance', function ($q) use ($sourceSearch) {
+                    $q->whereHas('sources', function ($sourceQuery) use ($sourceSearch) {
+                        $sourceQuery->whereIn('sle_sources.id', $sourceSearch);
+                    });
+                });
+            }
+
+            // Process records in chunks
+            $totalExported = 0;
+            $exportDate = Carbon::now()->format('Y-m-d H:i:s');
+
+            $baseQuery->with([
+                'substance',
+                'station.country',
+            ])->chunk(500, function ($records) use ($handle, $exportDate, &$totalExported) {
+                foreach ($records as $record) {
+                    // Get country information safely
+                    $countryName = '';
+                    $countryCode = '';
+                    if ($record->station && $record->station->country_id) {
+                        $country = $record->station->getRelation('country');
+                        if ($country) {
+                            $countryName = $country->name ?? '';
+                            $countryCode = $country->code ?? '';
+                        }
+                    }
+
+                    $row = [
+                        $record->id,
+                        $record->substance && $record->substance->code ? 'NS' . $record->substance->code : '',
+                        $record->substance->name ?? '',
+                        $record->concentration ?? '',
+                        $record->units ?? '',
+                        $record->ip_max ?? '',
+                        $record->based_on_hrms_library ? 'TRUE' : 'FALSE',
+                        $countryName,
+                        $countryCode,
+                        $record->sampling_year ?? '',
+                        $record->station->short_sample_code ?? '',
+                        $record->station->name ?? '',
+                        $record->station_id ?? '',
+                        $exportDate
+                    ];
+                    fputcsv($handle, $row);
+                    $totalExported++;
+                }
+
+                // Free memory after each chunk
+                unset($records);
+                gc_collect_cycles();
+            });
+
+            fclose($handle);
+
+            // Get file size and processing time
+            $fileSize = Storage::size("{$directory}/{$filename}");
+            $formattedFileSize = $this->formatBytes($fileSize);
+            $processingTime = round(microtime(true) - $startTime, 2);
+
+            // Update the export download record
+            $exportDownload->update([
+                'status' => 'completed',
+                'record_count' => $totalExported,
+                'file_size_bytes' => $fileSize,
+                'file_size_formatted' => $formattedFileSize,
+                'processing_time_seconds' => $processingTime,
+                'completed_at' => Carbon::now()
+            ]);
+
+            Log::info("Empodat Suspect export complete: {$totalExported} records exported in {$processingTime} seconds. File size: {$formattedFileSize}");
+
+            // Clear any remaining memory
+            gc_collect_cycles();
+
+            // Redirect to download with success message
+            session()->flash('success', "Export complete: {$totalExported} records exported in {$processingTime} seconds.");
+            return redirect()->route('empodat_suspect.csv.download', ['filename' => $filename]);
+
+        } catch (\Exception $e) {
+            Log::error("Empodat Suspect export failed: " . $e->getMessage());
+
+            // Update export download record if it exists
+            if (isset($exportDownload)) {
+                $exportDownload->update([
+                    'status' => 'failed',
+                    'message' => $e->getMessage(),
+                    'completed_at' => Carbon::now()
+                ]);
+            }
+
+            session()->flash('error', 'Export failed: ' . $e->getMessage());
+            return back();
+        }
+    }
+
+    /**
+     * Download CSV file
+     */
+    public function downloadCsv($filename)
+    {
+        $directory = 'exports/empodat_suspect';
+        $path = Storage::path("{$directory}/{$filename}");
+
+        if (!file_exists($path)) {
+            return response()->json([
+                'error' => 'File not found',
+                'message' => 'The requested CSV file does not exist.',
+            ], 404);
+        }
+
+        return response()->download($path, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+    /**
+     * Format bytes to human-readable string
+     */
+    protected function formatBytes($bytes, $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+
+        $bytes /= (1 << (10 * $pow));
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }

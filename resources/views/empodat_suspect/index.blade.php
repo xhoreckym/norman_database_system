@@ -161,6 +161,15 @@
           </div>
           @endif
 
+          <div class="mt-4 mb-4">
+            @auth
+              <a href="{{ route('empodat_suspect.search.download', ['query_log_id' => $query_log_id]) }}"
+                class="btn-download">Download CSV</a>
+            @else
+              <div class="text-gray-400">Downloads are available for registered users only</div>
+            @endauth
+          </div>
+
           <table class="table-standard">
             <thead>
               <tr class="bg-gray-600 text-white">
@@ -215,10 +224,15 @@
                     {{ $e->based_on_hrms_library ? 'TRUE' : 'FALSE' }}
                   </td>
                   <td class="p-1 text-center">
-                    @if ($e->station && $e->station->country && is_object($e->station->country))
-                      {{ $e->station->country->name ?? 'N/A' }} - {{ $e->station->country->code ?? 'N/A' }}
-                    @elseif($e->station && $e->station->country)
-                      {{ $e->station->country ?? 'N/A' }}
+                    @if ($e->station && $e->station->country_id)
+                      @php
+                        $country = $e->station->getRelation('country');
+                      @endphp
+                      @if ($country)
+                        {{ $country->name ?? '' }} - {{ $country->code ?? '' }}
+                      @else
+                        N/A
+                      @endif
                     @else
                       N/A
                     @endif
