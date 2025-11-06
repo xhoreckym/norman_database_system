@@ -30,6 +30,51 @@ use Carbon\Carbon;
 class EmpodatSuspectController extends Controller
 {
     /**
+     * Create a new controller instance.
+     */
+    public function __construct()
+    {
+        $this->checkModuleAccess();
+    }
+
+    /**
+     * Check if user has access to the EmpodatSuspect module
+     */
+    private function checkModuleAccess(): void
+    {
+        $databaseEntity = DatabaseEntity::where('code', 'empodat_suspect')->first();
+
+        if (!$databaseEntity) {
+            abort(403, 'Module not found.');
+        }
+
+        // If module is public, allow access to everyone
+        if ($databaseEntity->is_public === true) {
+            return;
+        }
+
+        // Module is private - check if user is logged in
+        if (!Auth::check()) {
+            abort(403, 'You must be logged in to access this module.');
+        }
+
+        $user = Auth::user();
+
+        // Always allow admin and super_admin
+        if ($user->hasRole('admin') || $user->hasRole('super_admin')) {
+            return;
+        }
+
+        // Check if user has the specific module role
+        if ($user->hasRole('empodat_suspect')) {
+            return;
+        }
+
+        // User doesn't have permission
+        abort(403, 'You do not have permission to access this module.');
+    }
+
+    /**
      * Show the filter form for Empodat Suspect search
      * Mimics the Empodat filter functionality
      */

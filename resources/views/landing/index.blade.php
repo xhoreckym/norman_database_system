@@ -10,17 +10,17 @@
           
           <div class="grid lg:grid-cols-3 gap-8 rounded-none ">
             @foreach ($databases as $d)
-              @if($d->is_public || (auth()->check() && (auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('admin'))))
-                @php
-                $external = false;
-                  if (str_starts_with($d->dashboard_route_name, 'https')){
-                    $external = true;
-                    $link = $d->dashboard_route_name;
-                  } else {
-                    $link = route($d->dashboard_route_name);
-                  }
-                @endphp
-                <a href="{{ $link }}" @if($external == true) target="_blank"@endif>
+              {{-- Authorization is now handled in the controller, no need to check here --}}
+              @php
+              $external = false;
+                if (str_starts_with($d->dashboard_route_name, 'https')){
+                  $external = true;
+                  $link = $d->dashboard_route_name;
+                } else {
+                  $link = route($d->dashboard_route_name);
+                }
+              @endphp
+              <a href="{{ $link }}" @if($external == true) target="_blank"@endif>
                   <div class="rounded-none bg-white border-gray-100 shadow-lg rounded-md overflow-hidden border-b-2 border-white @if($external == true) hover:border-cyan-500 hover:text-cyan-500 @else   hover:border-lime-400 hover:text-lime-500 @endif">
                     <div class="flex rounded-0">
                       <div id="icon" class="flex items-top justify-center py-4 px-4 mt-2 ">
@@ -48,7 +48,6 @@
                     </div>
                   </div>
                 </a>
-              @endif
             @endforeach
           </div>
         </div>
