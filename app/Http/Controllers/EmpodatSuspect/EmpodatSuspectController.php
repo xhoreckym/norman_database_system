@@ -92,7 +92,7 @@ class EmpodatSuspectController extends Controller
 
         $countryList = [];
         foreach ($countries as $s) {
-            $countryList[$s->country_id] = $s->country->name . ' - ' . $s->country->code;
+            $countryList[$s->country_id] = $s->country->name;
         }
 
         // Get matrices that have empodat_suspect data (via the materialized view)

@@ -81,7 +81,7 @@ class LiteratureController extends Controller
 
         $countryList = [];
         foreach ($countries as $country) {
-            $countryList[$country->id] = $country->name . ' - ' . $country->code;
+            $countryList[$country->id] = $country->name;
         }
 
         // Get all species that have literature records
