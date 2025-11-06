@@ -27,60 +27,78 @@
           <div class="mb-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Empodat Suspect Record Information at Glance</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Record ID</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $record->id ?? 'N/A' }}</p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Norman SUS ID</h3>
-                <p class="text-sm text-teal-800 font-mono">
-                  @if ($record->substance && $record->substance->code)
+              @if ($record->id)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Record ID</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $record->id }}</p>
+                </div>
+              @endif
+              @if ($record->substance && $record->substance->code)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Norman SUS ID</h3>
+                  <p class="text-sm text-teal-800 font-mono">
                     <a href="{{ route('substances.show', $record->substance->id) }}" class="link-lime-text">
                       NS{{ $record->substance->code }}
                     </a>
-                  @else
-                    N/A
-                  @endif
-                </p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Substance Name</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $record->substance->name ?? 'N/A' }}</p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Concentration</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $record->concentration ?? 'N/A' }}</p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Units</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $record->units ?? 'N/A' }}</p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">IP Max</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $record->ip_max ?? 'N/A' }}</p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Based on HRMS Library</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $record->based_on_hrms_library ? 'TRUE' : 'FALSE' }}</p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Country</h3>
-                <p class="text-sm text-teal-800 font-mono">
-                  @if ($record->station && $record->station->country)
-                    {{ $record->station->country->name ?? 'N/A' }} - {{ $record->station->country->code ?? 'N/A' }}
-                  @else
-                    N/A
-                  @endif
-                </p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Sampling Station</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $record->station->name ?? 'N/A' }}</p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Sample Code</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $record->station->short_sample_code ?? 'N/A' }}</p>
-              </div>
+                  </p>
+                </div>
+              @endif
+              @if ($record->substance && $record->substance->name)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Substance Name</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $record->substance->name }}</p>
+                </div>
+              @endif
+              @if ($record->concentration)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Concentration</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $record->concentration }}</p>
+                </div>
+              @endif
+              @if ($record->units)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Units</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $record->units }}</p>
+                </div>
+              @endif
+              @if ($record->ip_max)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">IP Max</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $record->ip_max }}</p>
+                </div>
+              @endif
+              @if ($record->based_on_hrms_library !== null)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Based on HRMS Library</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $record->based_on_hrms_library ? 'TRUE' : 'FALSE' }}</p>
+                </div>
+              @endif
+              @if ($record->station && $record->station->country_id)
+                @php
+                  // Access the relationship using getRelation to avoid attribute conflict
+                  $country = $record->station->getRelation('country');
+                @endphp
+                @if ($country)
+                  <div>
+                    <h3 class="text-sm font-medium text-gray-800 mb-1">Country</h3>
+                    <p class="text-sm text-teal-800 font-mono">
+                      {{ $country->name }}@if ($country->name && $country->code) - @endif{{ $country->code }}
+                    </p>
+                  </div>
+                @endif
+              @endif
+              @if ($record->station && $record->station->name)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Sampling Station</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $record->station->name }}</p>
+                </div>
+              @endif
+              @if ($record->station && $record->station->short_sample_code)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Sample Code</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $record->station->short_sample_code }}</p>
+                </div>
+              @endif
             </div>
           </div>
 
@@ -98,25 +116,26 @@
                   @continue
                 @endif
 
+                {{-- Skip null values and empty arrays --}}
+                @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && $value === ''))
+                  @continue
+                @endif
+
                 <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
                   <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">{{ $key }}</td>
                   <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">
                     @if (is_array($value))
-                      @if (!empty($value))
-                        {{-- Check if this is a relationship array (has 'name' key) --}}
-                        @if (isset($value['name']))
-                          {{ $value['name'] }}
-                        @else
-                          {{-- For other arrays, show each item --}}
-                          @foreach ($value as $item)
-                            <div class="py-1">{{ is_array($item) ? json_encode($item) : $item }}</div>
-                          @endforeach
-                        @endif
+                      {{-- Check if this is a relationship array (has 'name' key) --}}
+                      @if (isset($value['name']))
+                        {{ $value['name'] }}
                       @else
-                        <span class="text-gray-500">No data available</span>
+                        {{-- For other arrays, show each item --}}
+                        @foreach ($value as $item)
+                          <div class="py-1">{{ is_array($item) ? json_encode($item) : $item }}</div>
+                        @endforeach
                       @endif
                     @else
-                      {{ $value ?? '' }}
+                      {{ $value }}
                     @endif
                   </td>
                 </tr>
@@ -131,38 +150,50 @@
                   @if ($key === 'country')
                     @continue
                   @endif
+
+                  {{-- Skip null values and empty arrays --}}
+                  @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && $value === ''))
+                    @continue
+                  @endif
+
                   <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
                     <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">station.{{ $key }}</td>
                     <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">
                       @if (is_array($value))
-                        @if (!empty($value))
-                          @if (isset($value['name']))
-                            {{ $value['name'] }}
-                          @else
-                            @foreach ($value as $item)
-                              <div class="py-1">{{ is_array($item) ? json_encode($item) : $item }}</div>
-                            @endforeach
-                          @endif
+                        @if (isset($value['name']))
+                          {{ $value['name'] }}
                         @else
-                          <span class="text-gray-500">No data available</span>
+                          @foreach ($value as $item)
+                            <div class="py-1">{{ is_array($item) ? json_encode($item) : $item }}</div>
+                          @endforeach
                         @endif
                       @else
-                        {{ $value ?? '' }}
+                        {{ $value }}
                       @endif
                     </td>
                   </tr>
                 @endforeach
 
                 {{-- Add country information if available --}}
-                @if ($record->station->country)
-                  <tr class="bg-slate-100">
-                    <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">station.country.name</td>
-                    <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">{{ $record->station->country->name ?? 'N/A' }}</td>
-                  </tr>
-                  <tr class="bg-slate-200">
-                    <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">station.country.code</td>
-                    <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">{{ $record->station->country->code ?? 'N/A' }}</td>
-                  </tr>
+                @if ($record->station->country_id)
+                  @php
+                    // Access the relationship using getRelation to avoid attribute conflict
+                    $stationCountry = $record->station->getRelation('country');
+                  @endphp
+                  @if ($stationCountry)
+                    @if ($stationCountry->name)
+                      <tr class="bg-slate-100">
+                        <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">station.country.name</td>
+                        <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">{{ $stationCountry->name }}</td>
+                      </tr>
+                    @endif
+                    @if ($stationCountry->code)
+                      <tr class="bg-slate-200">
+                        <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">station.country.code</td>
+                        <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">{{ $stationCountry->code }}</td>
+                      </tr>
+                    @endif
+                  @endif
                 @endif
               @endif
 
@@ -171,26 +202,28 @@
                 <tr class="bg-gray-300">
                   <td colspan="2" class="p-2 font-bold text-center">Substance Information</td>
                 </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">substance.id</td>
-                  <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">{{ $record->substance->id ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">substance.code</td>
-                  <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">
-                    @if ($record->substance->code)
+                @if ($record->substance->id)
+                  <tr class="bg-slate-100">
+                    <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">substance.id</td>
+                    <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">{{ $record->substance->id }}</td>
+                  </tr>
+                @endif
+                @if ($record->substance->code)
+                  <tr class="bg-slate-200">
+                    <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">substance.code</td>
+                    <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">
                       <a href="{{ route('substances.show', $record->substance->id) }}" class="link-lime-text">
                         NS{{ $record->substance->code }}
                       </a>
-                    @else
-                      N/A
-                    @endif
-                  </td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">substance.name</td>
-                  <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">{{ $record->substance->name ?? 'N/A' }}</td>
-                </tr>
+                    </td>
+                  </tr>
+                @endif
+                @if ($record->substance->name)
+                  <tr class="bg-slate-100">
+                    <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">substance.name</td>
+                    <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">{{ $record->substance->name }}</td>
+                  </tr>
+                @endif
               @endif
             </table>
 
