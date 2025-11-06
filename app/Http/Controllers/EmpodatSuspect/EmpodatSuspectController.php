@@ -565,161 +565,69 @@ class EmpodatSuspectController extends Controller
             ];
             fputcsv($handle, $headers);
 
-            // Build the query from the query log
-            $content = json_decode($queryLog->content, true);
-            $requestData = $content['request'] ?? [];
+            // OPTIMIZED APPROACH: Use the stored SQL query from QueryLog
+            // This ensures exact match with search results and better performance
 
-            // Process search fields
-            $countrySearch = is_array($requestData['countrySearch'] ?? null)
-                ? $requestData['countrySearch']
-                : json_decode($requestData['countrySearch'] ?? '[]', true);
-
-            $matrixSearch = is_array($requestData['matrixSearch'] ?? null)
-                ? $requestData['matrixSearch']
-                : json_decode($requestData['matrixSearch'] ?? '[]', true);
-
-            $sourceSearch = is_array($requestData['sourceSearch'] ?? null)
-                ? $requestData['sourceSearch']
-                : json_decode($requestData['sourceSearch'] ?? '[]', true);
-
-            $analyticalMethodSearch = is_array($requestData['analyticalMethodSearch'] ?? null)
-                ? $requestData['analyticalMethodSearch']
-                : json_decode($requestData['analyticalMethodSearch'] ?? '[]', true);
-
-            $categoriesSearch = is_array($requestData['categoriesSearch'] ?? null)
-                ? $requestData['categoriesSearch']
-                : json_decode($requestData['categoriesSearch'] ?? '[]', true);
-
-            $typeDataSourcesSearch = is_array($requestData['typeDataSourcesSearch'] ?? null)
-                ? $requestData['typeDataSourcesSearch']
-                : json_decode($requestData['typeDataSourcesSearch'] ?? '[]', true);
-
-            $concentrationIndicatorSearch = is_array($requestData['concentrationIndicatorSearch'] ?? null)
-                ? $requestData['concentrationIndicatorSearch']
-                : json_decode($requestData['concentrationIndicatorSearch'] ?? '[]', true);
-
-            $substances = is_array($requestData['substances'] ?? null)
-                ? $requestData['substances']
-                : json_decode($requestData['substances'] ?? '[]', true);
-
-            $yearFrom = $requestData['year_from'] ?? null;
-            $yearTo = $requestData['year_to'] ?? null;
-
-            // STEP 1: Query the materialized view to get filtered station IDs
-            $stationFiltersQuery = DB::table('empodat_suspect_station_filters');
-
-            // Apply filters
-            if (!empty($countrySearch)) {
-                $stationFiltersQuery->whereIn('country_id', $countrySearch);
-            }
-
-            if (!empty($matrixSearch)) {
-                $stationFiltersQuery->whereIn('matrix_id', $matrixSearch);
-            }
-
-            if (!empty($substances)) {
-                $stationFiltersQuery->whereIn('substance_id', $substances);
-            }
-
-            if (!empty($concentrationIndicatorSearch)) {
-                $stationFiltersQuery->whereIn('concentration_indicator_id', $concentrationIndicatorSearch);
-            }
-
-            if (!empty($yearFrom)) {
-                $stationFiltersQuery->where('sampling_date_year', '>=', $yearFrom);
-            }
-
-            if (!empty($yearTo)) {
-                $stationFiltersQuery->where('sampling_date_year', '<=', $yearTo);
-            }
-
-            if (!empty($typeDataSourcesSearch)) {
-                $stationFiltersQuery->whereIn('data_source_id', $typeDataSourcesSearch);
-            }
-
-            if (!empty($analyticalMethodSearch)) {
-                $stationFiltersQuery->whereIn('method_id', $analyticalMethodSearch);
-            }
-
-            // Get distinct station_ids
-            $filteredStationIds = $stationFiltersQuery->distinct()->pluck('station_id');
-
-            // STEP 2: Query empodat_suspect_main with filtered station IDs
-            $baseQuery = EmpodatSuspectMain::query()
-                ->select('empodat_suspect_main.*')
-                ->selectSub(function ($query) {
-                    $query->select('sampling_date_year')
-                          ->from('empodat_suspect_station_filters')
-                          ->whereColumn('empodat_suspect_station_filters.station_id', 'empodat_suspect_main.station_id')
-                          ->limit(1);
-                }, 'sampling_year')
-                ->whereIn('station_id', $filteredStationIds);
-
-            // Apply additional filters
-            if (!empty($substances)) {
-                $baseQuery->whereIn('substance_id', $substances);
-            }
-
-            // Apply category filter
-            if (!empty($categoriesSearch)) {
-                $baseQuery->whereHas('substance.categories', function ($q) use ($categoriesSearch) {
-                    $q->whereIn('susdat_categories.id', $categoriesSearch);
-                });
-            }
-
-            // Apply SLE source filter
-            if (!empty($sourceSearch)) {
-                $baseQuery->whereHas('substance', function ($q) use ($sourceSearch) {
-                    $q->whereHas('sources', function ($sourceQuery) use ($sourceSearch) {
-                        $sourceQuery->whereIn('sle_sources.id', $sourceSearch);
-                    });
-                });
-            }
-
-            // Process records in chunks
             $totalExported = 0;
             $exportDate = Carbon::now()->format('Y-m-d H:i:s');
 
-            $baseQuery->with([
-                'substance',
-                'station.country',
-            ])->chunk(500, function ($records) use ($handle, $exportDate, &$totalExported) {
-                foreach ($records as $record) {
-                    // Get country information safely
-                    $countryName = '';
-                    $countryCode = '';
-                    if ($record->station && $record->station->country_id) {
-                        $country = $record->station->getRelation('country');
-                        if ($country) {
-                            $countryName = $country->name ?? '';
-                            $countryCode = $country->code ?? '';
+            // Get the stored SQL query
+            $storedSql = $queryLog->query;
+
+            // Extract only the IDs from the stored query using it as a subquery
+            // This approach processes records in chunks without loading all IDs into memory
+            DB::table(DB::raw("({$storedSql}) as filtered_results"))
+                ->select('id')
+                ->orderBy('id')
+                ->chunk(500, function ($idChunk) use ($handle, $exportDate, &$totalExported) {
+                    $ids = $idChunk->pluck('id')->toArray();
+
+                    // Load full records with relationships for this chunk only
+                    $records = EmpodatSuspectMain::with([
+                        'substance',
+                        'station.country',
+                    ])
+                    ->whereIn('id', $ids)
+                    ->orderBy('id')
+                    ->get();
+
+                    // Write to CSV
+                    foreach ($records as $record) {
+                        // Get country information safely
+                        $countryName = '';
+                        $countryCode = '';
+                        if ($record->station && $record->station->country_id) {
+                            $country = $record->station->getRelation('country');
+                            if ($country) {
+                                $countryName = $country->name ?? '';
+                                $countryCode = $country->code ?? '';
+                            }
                         }
+
+                        $row = [
+                            $record->id,
+                            $record->substance && $record->substance->code ? 'NS' . $record->substance->code : '',
+                            $record->substance->name ?? '',
+                            $record->concentration ?? '',
+                            $record->units ?? '',
+                            $record->ip_max ?? '',
+                            $record->based_on_hrms_library ? 'TRUE' : 'FALSE',
+                            $countryName,
+                            $countryCode,
+                            $record->sampling_year ?? '',
+                            $record->station->short_sample_code ?? '',
+                            $record->station->name ?? '',
+                            $record->station_id ?? '',
+                            $exportDate
+                        ];
+                        fputcsv($handle, $row);
+                        $totalExported++;
                     }
 
-                    $row = [
-                        $record->id,
-                        $record->substance && $record->substance->code ? 'NS' . $record->substance->code : '',
-                        $record->substance->name ?? '',
-                        $record->concentration ?? '',
-                        $record->units ?? '',
-                        $record->ip_max ?? '',
-                        $record->based_on_hrms_library ? 'TRUE' : 'FALSE',
-                        $countryName,
-                        $countryCode,
-                        $record->sampling_year ?? '',
-                        $record->station->short_sample_code ?? '',
-                        $record->station->name ?? '',
-                        $record->station_id ?? '',
-                        $exportDate
-                    ];
-                    fputcsv($handle, $row);
-                    $totalExported++;
-                }
-
-                // Free memory after each chunk
-                unset($records);
-                gc_collect_cycles();
-            });
+                    // Free memory after each chunk
+                    unset($records, $ids, $idChunk);
+                    gc_collect_cycles();
+                });
 
             fclose($handle);
 
