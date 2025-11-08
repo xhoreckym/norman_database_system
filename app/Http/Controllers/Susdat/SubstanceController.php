@@ -239,6 +239,11 @@ class SubstanceController extends Controller
 
         $substancesSearch = is_array($request->input('substancesSearch')) ? $request->input('substancesSearch') : json_decode($request->input('substancesSearch')) ?? [];
 
+        // Filter to keep only valid positive integers
+        $categoriesSearch = array_filter(array_map('intval', $categoriesSearch), fn($id) => $id > 0);
+        $sourcesSearch = array_filter(array_map('intval', $sourcesSearch), fn($id) => $id > 0);
+        $substancesSearch = array_filter(array_map('intval', $substancesSearch), fn($id) => $id > 0);
+
         // Get all categories and sources (cached)
         $allCategories = Cache::remember('all_category_ids', 300, function () {
             return Category::pluck('id')->toArray();
@@ -583,9 +588,14 @@ class SubstanceController extends Controller
                 : json_decode($requestData['sourcesSearch'] ?? '[]', true);
 
             $substancesSearch = is_array($requestData['substancesSearch'] ?? null)
-                ? $requestData['substancesSearch'] 
+                ? $requestData['substancesSearch']
                 : json_decode($requestData['substancesSearch'] ?? '[]', true);
-            
+
+            // Filter to keep only valid positive integers
+            $categoriesSearch = array_filter(array_map('intval', $categoriesSearch), fn($id) => $id > 0);
+            $sourcesSearch = array_filter(array_map('intval', $sourcesSearch), fn($id) => $id > 0);
+            $substancesSearch = array_filter(array_map('intval', $substancesSearch), fn($id) => $id > 0);
+
             // Apply the same filters as in the search method
             if ($requestData['searchCategory'] == 1 && !empty($categoriesSearch)) {
                 $baseQuery->whereHas('categories', function ($query) use ($categoriesSearch) {
