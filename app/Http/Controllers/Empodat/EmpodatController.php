@@ -321,6 +321,7 @@ class EmpodatController extends Controller
     // Separate items into regular and special (NR/Other)
     $regular = [];
     $special = [];
+    
 
     foreach ($list as $id => $name) {
       $nameLower = strtolower($name);
