@@ -310,21 +310,62 @@ class EmpodatController extends Controller
     ]);
   }
 
+  /**
+   * Helper method to sort dropdown lists alphabetically with NR/Other at the bottom
+   *
+   * @param array $list The associative array to sort (id => name)
+   * @return array Sorted array
+   */
+  private function sortDropdownList(array $list): array
+  {
+    // Separate items into regular and special (NR/Other)
+    $regular = [];
+    $special = [];
+
+    foreach ($list as $id => $name) {
+      $nameLower = strtolower($name);
+      // Check if the name contains 'nr' or 'other' as whole words or standalone
+      if (preg_match('/\b(nr|other)\b/i', $name) ||
+          preg_match('/^(nr|other)$/i', trim($name))) {
+        $special[$id] = $name;
+      } else {
+        $regular[$id] = $name;
+      }
+    }
+
+    // Sort regular items alphabetically (case-insensitive)
+    uasort($regular, function($a, $b) {
+      return strcasecmp($a, $b);
+    });
+
+    // Sort special items alphabetically (case-insensitive)
+    uasort($special, function($a, $b) {
+      return strcasecmp($a, $b);
+    });
+
+    // Merge: regular items first, then special items
+    return $regular + $special;
+  }
+
   public function filter(Request $request)
   {
     // dd($request->all());
-    $countries = SearchCountries::with('country')->orderBy('country_id', 'asc')->get();
+    // =======
+    // Search fields
+    $countries = SearchCountries::with('country')->get();
 
     $countryList = [];
     foreach ($countries as $s) {
       $countryList[$s->country_id] = $s->country->name . ' - ' . $s->country->code;
     }
+    $countryList = $this->sortDropdownList($countryList);
 
-    $matrices = SearchMatrix::with('matrix')->orderBy('matrix_id', 'asc')->get();
+    $matrices = SearchMatrix::with('matrix')->get();
     $matrixList = [];
     foreach ($matrices as $s) {
       $matrixList[$s->matrix_id] = $s->matrix->name;
     }
+    $matrixList = $this->sortDropdownList($matrixList);
 
     $sources = SuspectListExchangeSource::select('id', 'code', 'name')->get()->keyBy('id');
     $sourceList = [];
@@ -334,36 +375,42 @@ class EmpodatController extends Controller
       $name = preg_replace('/[^a-zA-Z0-9]/', '', $s->name);
       $sourceList[$s->id] = $code . ' - ' . $name;
     }
+    $sourceList = $this->sortDropdownList($sourceList);
 
     $categoriesList = [];
-    $categories = Category::orderBy('name', 'asc')->select('id', 'name', 'abbreviation')->get()->keyBy('id');
+    $categories = Category::select('id', 'name', 'abbreviation')->get()->keyBy('id');
     foreach ($categories as $s) {
       $categoriesList[$s->id] = $s->name;
     }
+    $categoriesList = $this->sortDropdownList($categoriesList);
 
     $typeDataSourcesList = [];
     $typeSources = TypeDataSource::all();
     foreach ($typeSources as $s) {
       $typeDataSourcesList[$s->id] = $s->name;
     }
+    $typeDataSourcesList = $this->sortDropdownList($typeDataSourcesList);
 
     $concentrationIndicatorList = [];
     $concentrationIndicator = ConcentrationIndicator::all();
     foreach ($concentrationIndicator as $s) {
       $concentrationIndicatorList[$s->id] = $s->name;
     }
+    $concentrationIndicatorList = $this->sortDropdownList($concentrationIndicatorList);
 
     $analyticalMethodsList = [];
     $analyticalMethods = AnalyticalMethod::all();
     foreach ($analyticalMethods as $s) {
       $analyticalMethodsList[$s->id] = $s->name;
     }
+    $analyticalMethodsList = $this->sortDropdownList($analyticalMethodsList);
 
     $qualityAnalyticalMethodsList = [];
     $qualityAnalyticalMethods = QualityEmpodatAnalyticalMethods::all();
     foreach ($qualityAnalyticalMethods as $method) {
       $qualityAnalyticalMethodsList[$method->id] = $method->name;
     }
+    $qualityAnalyticalMethodsList = $this->sortDropdownList($qualityAnalyticalMethodsList);
 
 
     $dataSourceLaboratoryList = [];
@@ -371,16 +418,20 @@ class EmpodatController extends Controller
     foreach ($dataSourceLaboratories as $laboratory) {
       $dataSourceLaboratoryList[$laboratory->id] = $laboratory->name;
     }
+    $dataSourceLaboratoryList = $this->sortDropdownList($dataSourceLaboratoryList);
 
     $dataSourceOrganisationList = [];
     $dataSourceOrganisations = DataSourceOrganisation::all();
     foreach ($dataSourceOrganisations as $organisation) {
       $dataSourceOrganisationList[$organisation->id] = $organisation->name;
     }
+    $dataSourceOrganisationList = $this->sortDropdownList($dataSourceOrganisationList);
 
 
     $selectList = ['0' => 0, '1' => 1, '2' => 2];
 
+    // End of  Search fields
+    // =======
 
     return view('empodat.filter', [
       'request' => $request,
