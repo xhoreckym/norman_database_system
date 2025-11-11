@@ -66,7 +66,7 @@
               
               <!-- Pagination Links -->
               <div class="mt-4">
-                {{ $projects->links() }}
+                {{ $projects->links('pagination::tailwind') }}
               </div>
             @else
               <div class="bg-gray-100 p-4 rounded text-center">
