@@ -146,43 +146,45 @@
                   @endif
                 </div>
                 
-                <!-- Organization -->
-                <div>
-                  <label for="organisation" class="block text-sm font-medium text-gray-700">Organization</label>
-                  <input type="text" 
-                         name="organisation" 
-                         id="organisation" 
-                         value="{{ old('organisation', $user->organisation ?? '') }}" 
-                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm @error('organisation') border-red-500 @enderror">
-                  @error('organisation')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                  @enderror
-                </div>
-                
-                <!-- Organization Other -->
-                <div>
-                  <label for="organisation_other" class="block text-sm font-medium text-gray-700">Organization (Other)</label>
-                  <input type="text" 
-                         name="organisation_other" 
-                         id="organisation_other" 
-                         value="{{ old('organisation_other', $user->organisation_other ?? '') }}" 
-                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm @error('organisation_other') border-red-500 @enderror">
-                  @error('organisation_other')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                  @enderror
-                </div>
-                
-                <!-- Country -->
-                <div>
-                  <label for="country" class="block text-sm font-medium text-gray-700">Country</label>
-                  <input type="text" 
-                         name="country" 
-                         id="country" 
-                         value="{{ old('country', $user->country ?? '') }}" 
-                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm @error('country') border-red-500 @enderror">
-                  @error('country')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                  @enderror
+                <!-- Organization and Country -->
+                <div class="grid md:grid-cols-2 gap-4">
+                  <!-- Organization -->
+                  <div>
+                    <label for="organisation_id" class="block text-sm font-medium text-gray-700">Organization</label>
+                    <select name="organisation_id"
+                            id="organisation_id"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm @error('organisation_id') border-red-500 @enderror">
+                      <option value="">-- Select Organization --</option>
+                      @foreach($organisations as $organisation)
+                        <option value="{{ $organisation->id }}"
+                                {{ old('organisation_id', $user->organisation_id) == $organisation->id ? 'selected' : '' }}>
+                          {{ $organisation->name }}@if($organisation->acronym) ({{ $organisation->acronym }})@endif
+                        </option>
+                      @endforeach
+                    </select>
+                    @error('organisation_id')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
+
+                  <!-- Country -->
+                  <div>
+                    <label for="country_id" class="block text-sm font-medium text-gray-700">Country</label>
+                    <select name="country_id"
+                            id="country_id"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-slate-500 focus:ring-slate-500 sm:text-sm @error('country_id') border-red-500 @enderror">
+                      <option value="">-- Select Country --</option>
+                      @foreach($countries as $country)
+                        <option value="{{ $country->id }}"
+                                {{ old('country_id', $user->country_id) == $country->id ? 'selected' : '' }}>
+                          {{ $country->name }}
+                        </option>
+                      @endforeach
+                    </select>
+                    @error('country_id')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
                 </div>
                 
                 <!-- Form Actions -->

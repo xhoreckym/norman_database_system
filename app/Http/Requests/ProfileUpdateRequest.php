@@ -21,9 +21,8 @@ class ProfileUpdateRequest extends FormRequest
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($this->user()->id)],
             'username' => ['nullable', 'string', 'max:255'],
             'salutation' => ['nullable', 'string', 'max:10'],
-            'organisation' => ['nullable', 'string', 'max:255'],
-            'organisation_other' => ['nullable', 'string', 'max:255'],
-            'country' => ['nullable', 'string', 'max:255'],
+            'organisation_id' => ['nullable', 'integer', 'exists:list_data_source_organisations,id'],
+            'country_id' => ['nullable', 'integer', 'exists:list_countries,id'],
         ];
     }
 }

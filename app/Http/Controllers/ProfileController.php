@@ -16,8 +16,13 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $organisations = \App\Models\List\DataSourceOrganisation::orderBy('name')->get();
+        $countries = \App\Models\List\Country::orderBy('name')->get();
+
         return view('profile.edit', [
             'user' => $request->user(),
+            'organisations' => $organisations,
+            'countries' => $countries,
         ]);
     }
 
