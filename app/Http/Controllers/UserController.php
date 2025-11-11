@@ -121,10 +121,15 @@ class UserController extends Controller implements HasMiddleware
   public function create()
   {
     //
+    $countries = $this->getSortedCountries();
+    $organisations = $this->getSortedOrganisations();
+
     return view('dashboard.users.upsert', [
       'edit' => false,
       'roles' => \Spatie\Permission\Models\Role::all(),
       'projects' => Project::all(),
+      'countries' => $countries,
+      'organisations' => $organisations,
     ]);
   }
   
@@ -159,6 +164,11 @@ class UserController extends Controller implements HasMiddleware
     $user->last_name = $request['last_name'];
     $user->email = $request['email'];
     $user->password = bcrypt($temporary_password);
+    $user->username = $request['username'];
+    $user->salutation = $request['salutation'];
+    $user->country_id = $request['country_id'];
+    $user->organisation_id = $request['organisation_id'];
+    $user->active = $request->has('active') ? true : false;
     try {
       $user->save();
       // Assign roles after user is saved
@@ -222,12 +232,17 @@ class UserController extends Controller implements HasMiddleware
     public function edit(string $id)
     {
       //
+      $countries = $this->getSortedCountries();
+      $organisations = $this->getSortedOrganisations();
+
       return view('dashboard.users.upsert', [
         'edit' => true,
         'user' => User::with('projects')->find($id),
         'roles' => \Spatie\Permission\Models\Role::all(),
         'projects' => Project::all(),
-      ]);    
+        'countries' => $countries,
+        'organisations' => $organisations,
+      ]);
     }
     
     /**
@@ -257,6 +272,11 @@ class UserController extends Controller implements HasMiddleware
       $user->first_name = $request['first_name'];
       $user->last_name = $request['last_name'];
       $user->email = $request['email'];
+      $user->username = $request['username'];
+      $user->salutation = $request['salutation'];
+      $user->country_id = $request['country_id'];
+      $user->organisation_id = $request['organisation_id'];
+      $user->active = $request->has('active') ? true : false;
       // Ensure 'user' role is always included and cannot be removed
       $roles = $request['roles'] ?? [];
       if (!in_array('user', $roles)) {
@@ -361,6 +381,62 @@ class UserController extends Controller implements HasMiddleware
         'created_at',
         'updated_at',
       ];
+    }
+
+    /**
+     * Get countries sorted alphabetically with NR/Other at the bottom
+     */
+    private function getSortedCountries()
+    {
+      $countries = \App\Models\List\Country::all();
+
+      return $countries->sort(function ($a, $b) {
+        $aName = $a->name;
+        $bName = $b->name;
+
+        // Check if names contain 'nr' or 'other' as whole words
+        $aIsSpecial = preg_match('/\b(nr|other)\b/i', $aName) || preg_match('/^(nr|other)$/i', trim($aName));
+        $bIsSpecial = preg_match('/\b(nr|other)\b/i', $bName) || preg_match('/^(nr|other)$/i', trim($bName));
+
+        // If one is special and the other isn't, special goes to bottom
+        if ($aIsSpecial && !$bIsSpecial) {
+          return 1;
+        }
+        if (!$aIsSpecial && $bIsSpecial) {
+          return -1;
+        }
+
+        // Otherwise, sort alphabetically (case-insensitive)
+        return strcasecmp($aName, $bName);
+      })->values();
+    }
+
+    /**
+     * Get organisations sorted alphabetically with NR/Other at the bottom
+     */
+    private function getSortedOrganisations()
+    {
+      $organisations = \App\Models\List\DataSourceOrganisation::with('country')->get();
+
+      return $organisations->sort(function ($a, $b) {
+        $aName = $a->name;
+        $bName = $b->name;
+
+        // Check if names contain 'nr' or 'other' as whole words
+        $aIsSpecial = preg_match('/\b(nr|other)\b/i', $aName) || preg_match('/^(nr|other)$/i', trim($aName));
+        $bIsSpecial = preg_match('/\b(nr|other)\b/i', $bName) || preg_match('/^(nr|other)$/i', trim($bName));
+
+        // If one is special and the other isn't, special goes to bottom
+        if ($aIsSpecial && !$bIsSpecial) {
+          return 1;
+        }
+        if (!$aIsSpecial && $bIsSpecial) {
+          return -1;
+        }
+
+        // Otherwise, sort alphabetically (case-insensitive)
+        return strcasecmp($aName, $bName);
+      })->values();
     }
   }
   

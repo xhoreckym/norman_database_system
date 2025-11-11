@@ -131,45 +131,46 @@
               <!-- Organization & Roles -->
               <div class="bg-gray-50 rounded-lg shadow p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4 border-b pb-2">Organization & Roles</h3>
-                
-                <!-- Organization -->
-                <div class="mb-4">
-                  <label for="organisation" class="block text-sm font-medium text-gray-700">Organization</label>
-                  <input type="text" 
-                         name="organisation" 
-                         id="organisation" 
-                         value="{{ old('organisation', $user->organisation ?? '') }}" 
-                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                </div>
-                
-                <!-- Organization ID -->
-                <div class="mb-4">
-                  <label for="organisation_id" class="block text-sm font-medium text-gray-700">Organization ID</label>
-                  <input type="text" 
-                         name="organisation_id" 
-                         id="organisation_id" 
-                         value="{{ old('organisation_id', $user->organisation_id ?? '') }}" 
-                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                </div>
-                
-                <!-- Organization Other -->
-                <div class="mb-4">
-                  <label for="organisation_other" class="block text-sm font-medium text-gray-700">Organization (Other)</label>
-                  <input type="text" 
-                         name="organisation_other" 
-                         id="organisation_other" 
-                         value="{{ old('organisation_other', $user->organisation_other ?? '') }}" 
-                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                </div>
-                
+
                 <!-- Country -->
                 <div class="mb-4">
-                  <label for="country" class="block text-sm font-medium text-gray-700">Country</label>
-                  <input type="text" 
-                         name="country" 
-                         id="country" 
-                         value="{{ old('country', $user->country ?? '') }}" 
-                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                  <label for="country_id" class="block text-sm font-medium text-gray-700">Country</label>
+                  <select name="country_id"
+                          id="country_id"
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="">Select a country</option>
+                    @foreach ($countries as $country)
+                      <option value="{{ $country->id }}"
+                              {{ old('country_id', $user->country_id ?? '') == $country->id ? 'selected' : '' }}>
+                        {{ $country->name }} @if($country->code) - {{ $country->code }}@endif
+                      </option>
+                    @endforeach
+                  </select>
+                  @error('country_id')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                  @enderror
+                </div>
+
+                <!-- Organization -->
+                <div class="mb-4">
+                  <label for="organisation_id" class="block text-sm font-medium text-gray-700">Organization</label>
+                  <select name="organisation_id"
+                          id="organisation_id"
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <option value="">Select an organization</option>
+                    @foreach ($organisations as $organisation)
+                      <option value="{{ $organisation->id }}"
+                              {{ old('organisation_id', $user->organisation_id ?? '') == $organisation->id ? 'selected' : '' }}>
+                        {{ $organisation->name }}
+                        @if($organisation->city || $organisation->country)
+                          ({{ collect([$organisation->city, $organisation->country?->name])->filter()->implode(', ') }})
+                        @endif
+                      </option>
+                    @endforeach
+                  </select>
+                  @error('organisation_id')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                  @enderror
                 </div>
                 
                 <!-- Roles -->

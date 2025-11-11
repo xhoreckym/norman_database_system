@@ -30,10 +30,7 @@ class User extends Authenticatable
         'password',
         'username',
         'salutation',
-        'organisation',
         'organisation_id',
-        'organisation_other',
-        'country',
         'country_id',
         'active',
     ];
@@ -101,8 +98,7 @@ class User extends Authenticatable
      */
     public function organisation()
     {
-        // Assuming you have an Organisation model
-        return $this->belongsTo(Organisation::class);
+        return $this->belongsTo(\App\Models\List\DataSourceOrganisation::class, 'organisation_id');
     }
 
     /**
@@ -110,8 +106,7 @@ class User extends Authenticatable
      */
     public function country()
     {
-        // Assuming you have a Country model
-        return $this->belongsTo(Country::class);
+        return $this->belongsTo(\App\Models\List\Country::class, 'country_id');
     }
 
     /**
