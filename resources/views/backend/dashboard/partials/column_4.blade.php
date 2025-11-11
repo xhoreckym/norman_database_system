@@ -7,6 +7,6 @@
     <p class="text-xs text-gray-300 mt-1">super_admin, server_payment_admin, server_payment_viewer</p>
   </div>
   <div class="p-6 text-gray-900">
-    @include('dashboard.partials.server_payment_status')
+    @include('backend.dashboard.partials.server_payment_status')
   </div>
 </div>

@@ -16,7 +16,7 @@ class MainAPIController extends Controller
         $user = User::find(Auth::id());
 
         // dd($user->tokens);
-        return view('dashboard.apiresources.index', [
+        return view('backend.dashboard.apiresources.index', [
             'user' => $user,
         ]);
     }

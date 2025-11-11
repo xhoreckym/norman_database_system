@@ -34,20 +34,8 @@
   </x-nav-link-header>
 
   @role('super_admin')
-  <x-nav-link-header :href="route('backend.user-login-retention.filter')" :active="request()->is('*user-login-retention*')">
-    User Login Retention
-  </x-nav-link-header>
-  @endrole
-
-  @role('super_admin')
   <x-nav-link-header :href="route('backend.notifications.index')" :active="request()->is('*notifications*')">
     Notifications
   </x-nav-link-header>
   @endrole
-
-  @hasanyrole('super_admin|server_payment_admin|server_payment_viewer')
-  <x-nav-link-header :href="route('backend.server-payments.index')" :active="request()->is('*server-payments*')">
-    Server Payments
-  </x-nav-link-header>
-  @endhasanyrole
 </div>

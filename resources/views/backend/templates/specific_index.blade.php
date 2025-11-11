@@ -24,7 +24,7 @@
         @include('sars.header')
         @break
       @default
-        @include('dashboard.header')
+        @include('backend.dashboard.header')
     @endswitch
   </x-slot>
   

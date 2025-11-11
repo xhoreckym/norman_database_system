@@ -43,7 +43,7 @@ class UserController extends Controller implements HasMiddleware
     $superAdmins = User::role('super_admin')->orderBy('last_name')->get();
     $admins = User::role('admin')->orderBy('last_name')->get();
 
-    return view('dashboard.users.index', [
+    return view('backend.dashboard.users.index', [
       'users' => $users,
       'columns' => $this->getVisibleColumns(),
       'usersWithTokens' => $usersWithTokens,
@@ -124,7 +124,7 @@ class UserController extends Controller implements HasMiddleware
     $countries = $this->getSortedCountries();
     $organisations = $this->getSortedOrganisations();
 
-    return view('dashboard.users.upsert', [
+    return view('backend.dashboard.users.upsert', [
       'edit' => false,
       'roles' => \Spatie\Permission\Models\Role::all(),
       'projects' => Project::all(),
@@ -220,7 +220,7 @@ class UserController extends Controller implements HasMiddleware
       //                          ->take(5)
       //                          ->get();
       
-      return view('dashboard.users.show', [
+      return view('backend.dashboard.users.show', [
         'user' => $user,
         // 'recentActivity' => $recentActivity ?? [] 
       ]);
@@ -235,7 +235,7 @@ class UserController extends Controller implements HasMiddleware
       $countries = $this->getSortedCountries();
       $organisations = $this->getSortedOrganisations();
 
-      return view('dashboard.users.upsert', [
+      return view('backend.dashboard.users.upsert', [
         'edit' => true,
         'user' => User::with('projects')->find($id),
         'roles' => \Spatie\Permission\Models\Role::all(),
@@ -337,7 +337,7 @@ class UserController extends Controller implements HasMiddleware
       $user = User::findOrFail($id);
       $tokens = $user->tokens;
       
-      return view('dashboard.users.tokens', [
+      return view('backend.dashboard.users.tokens', [
         'user' => $user,
         'tokens' => $tokens,
       ]);

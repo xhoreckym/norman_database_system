@@ -1,6 +1,6 @@
 <x-app-layout>
   <x-slot name="header">
-    @include('dashboard.header')
+    @include('backend.dashboard.header')
   </x-slot>
   
   <div class="py-4">
@@ -11,24 +11,24 @@
           
           <div class="">
             <!-- FIRST COLUMN: Database Entities (All Users) -->
-            @include('dashboard.partials.column_1')
+            @include('backend.dashboard.partials.column_1')
           </div>
           
 
           <div class="">
             <!-- SECOND COLUMN: Templates & Messages (Admin/Super Admin) -->
-            @include('dashboard.partials.column_2')
+            @include('backend.dashboard.partials.column_2')
           </div>
 
           <div class="">
             <!-- THIRD COLUMN: Admin Tools (Super Admin Only) -->
-            @include('dashboard.partials.column_3')
+            @include('backend.dashboard.partials.column_3')
           </div>
 
           <div class="">
             <!-- FOURTH COLUMN: Server Status (Server Payment Roles Only) -->
             @role(['super_admin', 'server_payment_admin', 'server_payment_viewer'])
-              @include('dashboard.partials.column_4')
+              @include('backend.dashboard.partials.column_4')
             @endrole
           </div>
 
@@ -39,13 +39,13 @@
           
           <div class="">
             <!-- FIRST COLUMN: Database Entities (All Users) -->
-            @include('dashboard.partials.column_1')
+            @include('backend.dashboard.partials.column_1')
           </div>
           
 
           <div class="">
             <!-- SECOND COLUMN: API Access & Templates for regular users -->
-            @include('dashboard.partials.column_2')
+            @include('backend.dashboard.partials.column_2')
           </div>
 
         </div>

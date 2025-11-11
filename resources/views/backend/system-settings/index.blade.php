@@ -135,7 +135,7 @@
             <p class="text-xs text-slate-300 mt-1">Payment status and timeline</p>
           </div>
           <div class="p-4 text-gray-900">
-            @include('dashboard.partials.server_payment_status')
+            @include('backend.dashboard.partials.server_payment_status')
           </div>
         </div>
         @endhasanyrole

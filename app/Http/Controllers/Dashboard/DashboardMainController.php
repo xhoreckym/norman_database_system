@@ -206,7 +206,7 @@ class DashboardMainController extends Controller
             }
         }
 
-        return view('dashboard.index', [
+        return view('backend.dashboard.index', [
             'user' => $user,
             'databaseEntities' => $databaseEntities,
             'entitiesWithTemplates' => $entitiesWithTemplates,
