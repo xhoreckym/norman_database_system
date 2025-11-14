@@ -100,9 +100,9 @@
                 <div>
                   <span class="block text-sm font-medium text-gray-500">Country</span>
                   <span class="block mt-1 text-gray-900">
-                    @if($user->country_id && $user->country)
-                      {{ $user->country->name }}
-                    @elseif($user->country)
+                    @if($user->country_id && $user->getRelation('country'))
+                      {{ $user->getRelation('country')->name }}
+                    @elseif(is_string($user->country))
                       {{ $user->country }}
                     @else
                       Not specified

@@ -202,7 +202,7 @@ class UserController extends Controller implements HasMiddleware
       'roles',
       'projects',
       'organisation',
-      // 'country',
+      'country',
       'tokens'
       ])->findOrFail($id);
       
