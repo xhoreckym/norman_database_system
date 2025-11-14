@@ -3,9 +3,10 @@
 namespace Database\Seeders\EmpodatSuspect;
 
 use Carbon\Carbon;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Backend\File;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class EmpodatSuspectMainSeeder extends Seeder
 {
@@ -20,13 +21,24 @@ class EmpodatSuspectMainSeeder extends Seeder
     protected ?int $limitRows = null;
 
     // File tracking - set this to the file_id from the 'files' table
-    protected ?int $fileId = null; // TODO: Set to actual file_id when linking to file
+    protected ?int $fileId = 10000; // TODO: Set to actual file_id when linking to file
 
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
+
+        File::create([
+            'id' => 10000,
+            'original_name' => 'OK_LIFE APEX_suspect screening results_ng g dry weight_333.xlsx',
+            'name' => 'OK_LIFE APEX_suspect screening results_ng g dry weight_333',
+            'description' => 'OK_LIFE APEX_suspect screening results_ng g dry weight_333',
+            'file_path' => 'empodat_suspect/OK_LIFE APEX_suspect screening results_ng g dry weight_333.xlsx',
+            'mime_type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'uploaded_at' => Carbon::now(),
+            'is_deleted' => false,
+        ]);
         $target_table_name = 'empodat_suspect_main';
 
         $this->command->info('Truncating empodat_suspect_main table...');
@@ -79,7 +91,7 @@ class EmpodatSuspectMainSeeder extends Seeder
         }
 
         // Clean header - remove BOM, trim spaces
-        $header = array_map(function($h) {
+        $header = array_map(function ($h) {
             // Remove UTF-8 BOM if present
             $h = str_replace("\xEF\xBB\xBF", '', $h);
             return trim($h);
@@ -184,7 +196,6 @@ class EmpodatSuspectMainSeeder extends Seeder
 
             // Clear memory
             gc_collect_cycles();
-
         } catch (\Exception $e) {
             DB::rollBack();
             fclose($handle);
@@ -215,13 +226,7 @@ class EmpodatSuspectMainSeeder extends Seeder
             $this->command->info('Telescope recording re-enabled');
         }
 
-        // Link all seeded records to file if fileId is set
-        if ($this->fileId !== null) {
-            $this->linkRecordsToFile($this->fileId);
-        } else {
-            $this->command->warn("No file_id set. Records not linked to any file.");
-            $this->command->info("To link records to a file, set \$fileId property in the seeder.");
-        }
+        $this->command->info("All records seeded with file_id: {$this->fileId}");
     }
 
     /**
@@ -324,6 +329,7 @@ class EmpodatSuspectMainSeeder extends Seeder
             }
 
             $records[] = [
+                'file_id' => $this->fileId,
                 'substance_id' => $substanceId,
                 'xlsx_station_mapping_id' => $mappingData['mapping_id'],
                 'station_id' => $mappingData['station_id'],
@@ -338,58 +344,6 @@ class EmpodatSuspectMainSeeder extends Seeder
         }
 
         return $records;
-    }
-
-    /**
-     * Link all seeded records to a specific file
-     */
-    protected function linkRecordsToFile(int $fileId): void
-    {
-        $this->command->info("Linking empodat_suspect_main records to file_id {$fileId}...");
-
-        // First, remove any existing links for this file to avoid duplicates
-        DB::table('file_empodat_suspect_main')
-            ->where('file_id', $fileId)
-            ->delete();
-
-        // Get all empodat_suspect_main IDs
-        $recordIds = DB::table('empodat_suspect_main')
-            ->pluck('id')
-            ->toArray();
-
-        if (empty($recordIds)) {
-            $this->command->warn("No empodat_suspect_main records found to link.");
-            return;
-        }
-
-        $this->command->info("Found " . count($recordIds) . " records to link.");
-
-        // Create pivot records in batches
-        $now = Carbon::now();
-        $pivotRecords = [];
-        $batchSize = 1000;
-
-        foreach ($recordIds as $recordId) {
-            $pivotRecords[] = [
-                'file_id' => $fileId,
-                'empodat_suspect_main_id' => $recordId,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
-
-            // Insert batch when it reaches the batch size
-            if (count($pivotRecords) >= $batchSize) {
-                DB::table('file_empodat_suspect_main')->insert($pivotRecords);
-                $pivotRecords = [];
-            }
-        }
-
-        // Insert remaining records
-        if (!empty($pivotRecords)) {
-            DB::table('file_empodat_suspect_main')->insert($pivotRecords);
-        }
-
-        $this->command->info("Successfully linked " . count($recordIds) . " records to file_id {$fileId}.");
     }
 
     // Data cleaning methods

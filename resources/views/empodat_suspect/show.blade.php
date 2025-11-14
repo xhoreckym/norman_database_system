@@ -107,7 +107,7 @@
             <table class="table-auto w-full border-separate border-spacing-1 text-xs mt-4" style="table-layout: fixed;">
               @foreach ($record->toArray() as $key => $value)
                 {{-- Skip substance and station - already shown in "at Glance" section --}}
-                @if ($key === 'substance' || $key === 'station' || $key === 'xlsx_station_mapping' || $key === 'files')
+                @if ($key === 'substance' || $key === 'station' || $key === 'xlsx_station_mapping' || $key === 'file')
                   @continue
                 @endif
 

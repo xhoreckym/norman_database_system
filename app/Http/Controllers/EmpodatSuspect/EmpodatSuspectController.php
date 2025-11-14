@@ -533,7 +533,7 @@ class EmpodatSuspectController extends Controller
             'substance',
             'station.country',
             'xlsxStationMapping',
-            'files',
+            'file',
         ])->findOrFail($id);
 
         return view('empodat_suspect.show', [

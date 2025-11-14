@@ -99,6 +99,14 @@ class File extends Model
     }
 
     /**
+     * Get the empodat suspect records for this file.
+     */
+    public function empodatSuspectRecords()
+    {
+        return $this->hasMany(\App\Models\EmpodatSuspect\EmpodatSuspectMain::class, 'file_id');
+    }
+
+    /**
      * Scope to filter out deleted files.
      */
     public function scopeNotDeleted($query)

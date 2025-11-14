@@ -25,6 +25,7 @@ class EmpodatSuspectMain extends Model
      * @var array
      */
     protected $fillable = [
+        'file_id',
         'substance_id',
         'xlsx_station_mapping_id',
         'station_id',
@@ -41,6 +42,7 @@ class EmpodatSuspectMain extends Model
      * @var array
      */
     protected $casts = [
+        'file_id' => 'integer',
         'substance_id' => 'integer',
         'xlsx_station_mapping_id' => 'integer',
         'station_id' => 'integer',
@@ -74,16 +76,11 @@ class EmpodatSuspectMain extends Model
     }
 
     /**
-     * Get the files associated with this empodat_suspect record.
+     * Get the file associated with this empodat_suspect record.
      */
-    public function files()
+    public function file()
     {
-        return $this->belongsToMany(
-            File::class,
-            'file_empodat_suspect_main',
-            'empodat_suspect_main_id',
-            'file_id'
-        )->withTimestamps();
+        return $this->belongsTo(File::class, 'file_id');
     }
 
     /**
