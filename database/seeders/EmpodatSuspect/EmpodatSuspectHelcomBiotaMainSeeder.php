@@ -29,22 +29,6 @@ class EmpodatSuspectHelcomBiotaMainSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create or update the File record
-        $file = File::updateOrCreate(
-            ['id' => 10006],
-            [
-                'original_name' => 'OK_HELCOM PreEMPT_suspect screening results_ng g wet weight_1980 - BIOTA.xlsx',
-                'name' => 'HELCOM PreEMPT BIOTA Suspect Screening Results',
-                'description' => 'HELCOM PreEMPT suspect screening results - BIOTA data',
-                'file_path' => 'empodat_suspect/OK_HELCOM PreEMPT_suspect screening results_ng g wet weight_1980 - BIOTA.xlsx',
-                'mime_type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'uploaded_at' => Carbon::now(),
-                'is_deleted' => false,
-            ]
-        );
-
-        $this->command->info("File record (ID: {$file->id}) " . ($file->wasRecentlyCreated ? 'created' : 'updated'));
-
         // Increase PHP memory limit and execution time for large imports - MUST be set early
         ini_set('memory_limit', '16G');
         ini_set('max_execution_time', '7200'); // 2 hours

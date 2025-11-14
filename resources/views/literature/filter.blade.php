@@ -23,7 +23,7 @@
                            name="displayOption"
                            value="1"
                            @if (request('displayOption', '1') == 1) checked @endif>
-                    <span class="ml-2">Fast data preview</span>
+                    <span class="ml-2">Fast data preview (no page links)</span>
                   </label>
                   <label class="inline-flex items-start sm:items-center">
                     <input type="radio"

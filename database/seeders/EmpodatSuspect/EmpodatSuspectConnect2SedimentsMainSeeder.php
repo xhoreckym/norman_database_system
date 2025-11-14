@@ -29,22 +29,6 @@ class EmpodatSuspectConnect2SedimentsMainSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create or update the File record
-        $file = File::updateOrCreate(
-            ['id' => 10003],
-            [
-                'original_name' => 'OK_CONNECT 2_suspect screening results_ng g dry weight_1192 - SEDIMENTS.xlsx',
-                'name' => 'CONNECT 2 SEDIMENTS Suspect Screening Results',
-                'description' => 'OK_CONNECT 2 suspect screening results - SEDIMENTS data',
-                'file_path' => 'empodat_suspect/OK_CONNECT 2_suspect screening results_ng g dry weight_1192 - SEDIMENTS.xlsx',
-                'mime_type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'uploaded_at' => Carbon::now(),
-                'is_deleted' => false,
-            ]
-        );
-
-        $this->command->info("File record (ID: {$file->id}) " . ($file->wasRecentlyCreated ? 'created' : 'updated'));
-
         // Increase PHP memory limit and execution time for large imports - MUST be set early
         ini_set('memory_limit', '16G');
         ini_set('max_execution_time', '7200'); // 2 hours

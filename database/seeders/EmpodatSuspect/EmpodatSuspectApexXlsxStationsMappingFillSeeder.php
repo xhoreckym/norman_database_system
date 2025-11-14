@@ -6,7 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class EmpodatSuspectXlsxStationsMappingFillSeeder extends Seeder
+class EmpodatSuspectApexXlsxStationsMappingFillSeeder extends Seeder
 {
     use WithoutModelEvents;
 
@@ -166,4 +166,4 @@ WHERE m.id = subquery.mapping_id;
         $this->command->info('Investigation complete. Review the output above before executing the UPDATE query manually.');
     }
 }
-// php artisan db:seed --class=Database\\Seeders\\EmpodatSuspect\\EmpodatSuspectXlsxStationsMappingFillSeeder
+// php artisan db:seed --class=Database\\Seeders\\EmpodatSuspect\\EmpodatSuspectApexXlsxStationsMappingFillSeeder

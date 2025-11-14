@@ -64,7 +64,7 @@ class EmpodatSuspectHelcomBiotaXlsxStationsMappingSeeder extends Seeder
 
             $p[] = [
                 'xlsx_name'   => $cleanedValue,
-                'batch_id'    => 0,
+                'file_id'     => 10006,
                 'created_at'  => $now,
                 'updated_at'  => $now,
             ];

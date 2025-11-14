@@ -167,6 +167,24 @@ class EmpodatSuspectController extends Controller
             $dataSourceOrganisationList[$organisation->id] = $organisation->name;
         }
 
+        // Get files for empodat_suspect (database_entity_id = 18)
+        // Only for admin, super_admin, and empodat_suspect roles
+        $fileList = [];
+        $showFileFilter = false;
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->hasRole(['admin', 'super_admin', 'empodat_suspect'])) {
+                $showFileFilter = true;
+                $files = \App\Models\Backend\File::where('database_entity_id', 18)
+                    ->orderBy('id', 'asc')
+                    ->get();
+                foreach ($files as $file) {
+                    $fileList[$file->id] = $file->name;
+                }
+            }
+        }
+
         return view('empodat_suspect.filter', [
             'request' => $request,
             'countryList' => $countryList,
@@ -179,6 +197,8 @@ class EmpodatSuspectController extends Controller
             'typeDataSourcesList' => $typeDataSourcesList,
             'qualityAnalyticalMethodsList' => $qualityAnalyticalMethodsList,
             'dataSourceOrganisationList' => $dataSourceOrganisationList,
+            'fileList' => $fileList,
+            'showFileFilter' => $showFileFilter,
         ]);
     }
 
@@ -208,6 +228,7 @@ class EmpodatSuspectController extends Controller
                 'qualityAnalyticalMethodsSearch' => [],
                 'dataSourceLaboratorySearch' => [],
                 'dataSourceOrganisationSearch' => [],
+                'fileSearch' => [],
                 'year_from' => null,
                 'year_to' => null,
             ];
@@ -282,6 +303,11 @@ class EmpodatSuspectController extends Controller
             // Apply additional filters specific to empodat_suspect_main
             if (!empty($request->input('substances'))) {
                 $empodatSuspects->whereIn('substance_id', $request->input('substances'));
+            }
+
+            // Apply file filter (only for authorized users)
+            if (!empty($searchInputs['fileSearch'])) {
+                $empodatSuspects->whereIn('file_id', $searchInputs['fileSearch']);
             }
 
             // Apply category filter (via substance relationship)
@@ -435,6 +461,11 @@ class EmpodatSuspectController extends Controller
 
         if (!is_null($request->input('year_to'))) {
             $searchParameters['year_to'] = $request->input('year_to');
+        }
+
+        // File parameters (only for authorized users)
+        if (!empty($searchInputs['fileSearch'])) {
+            $searchParameters['fileSearch'] = \App\Models\Backend\File::whereIn('id', $searchInputs['fileSearch'])->pluck('name');
         }
 
         return $searchParameters;

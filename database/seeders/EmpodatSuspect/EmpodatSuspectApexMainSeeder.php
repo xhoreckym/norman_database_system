@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-class EmpodatSuspectMainSeeder extends Seeder
+class EmpodatSuspectApexMainSeeder extends Seeder
 {
     use WithoutModelEvents;
 
@@ -21,31 +21,17 @@ class EmpodatSuspectMainSeeder extends Seeder
     protected ?int $limitRows = null;
 
     // File tracking - set this to the file_id from the 'files' table
-    protected ?int $fileId = 10000; // TODO: Set to actual file_id when linking to file
+    protected ?int $fileId = 10007;
 
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-
-        File::create([
-            'id' => 10000,
-            'original_name' => 'OK_LIFE APEX_suspect screening results_ng g dry weight_333.xlsx',
-            'name' => 'OK_LIFE APEX_suspect screening results_ng g dry weight_333',
-            'description' => 'OK_LIFE APEX_suspect screening results_ng g dry weight_333',
-            'file_path' => 'empodat_suspect/OK_LIFE APEX_suspect screening results_ng g dry weight_333.xlsx',
-            'mime_type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'uploaded_at' => Carbon::now(),
-            'is_deleted' => false,
-        ]);
         $target_table_name = 'empodat_suspect_main';
 
-        $this->command->info('Truncating empodat_suspect_main table...');
-        DB::table($target_table_name)->truncate();
-
-        // Also truncate the pivot table to avoid orphaned links
-        DB::table('file_empodat_suspect_main')->truncate();
+        $this->command->info('Processing LIFE APEX data for empodat_suspect_main table...');
+        $this->command->warn('Note: This seeder adds to existing data. To start fresh, truncate tables manually.');
 
         $this->command->info('Loading lookup tables into cache...');
         $this->loadLookupCaches();
@@ -392,4 +378,4 @@ class EmpodatSuspectMainSeeder extends Seeder
         return $cleaned === '' || $cleaned === 'NA';
     }
 }
-// php artisan db:seed --class=Database\\Seeders\\EmpodatSuspect\\EmpodatSuspectMainSeeder
+// php artisan db:seed --class=Database\\Seeders\\EmpodatSuspect\\EmpodatSuspectApexMainSeeder

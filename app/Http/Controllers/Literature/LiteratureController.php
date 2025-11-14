@@ -243,7 +243,7 @@ class LiteratureController extends Controller
             // Log query if not paginated request
             $queryLogId = $this->logQuery($literatureRecords, $mainRequest, $request);
 
-            // Get the total count before pagination (for "Fast data preview" mode)
+            // Get the total count before pagination (for "Fast data preview (no page links)" mode)
             $literatureMatchedCount = $literatureRecords->count();
 
             // Apply pagination

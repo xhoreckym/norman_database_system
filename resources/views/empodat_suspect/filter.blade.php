@@ -75,7 +75,7 @@
                            value="1"
                            @if (request('displayOption', '1') == 1) checked @endif
                            aria-describedby="fast-preview-desc">
-                    <span class="ml-2">Fast data preview</span>
+                    <span class="ml-2">Fast data preview (no page links)</span>
                   </label>
                   <label class="inline-flex items-start sm:items-center">
                     <input type="radio"
@@ -93,6 +93,24 @@
                 </div>
               </div>
             </div>
+
+            @if($showFileFilter)
+            <div id="searchFile">
+              <div class="bg-gray-300 p-2">
+                <div class="font-bold mb-2">
+                  Source File:
+                </div>
+                <div class="w-full" aria-describedby="file-help">
+                  @include('_t.form-apline-multiselect', [
+                    'tag' => 'fileSearch',
+                    'list' => $fileList,
+                    'active_ids' => isset($request->fileSearch) ? $request->fileSearch : [],
+                  ])
+                </div>
+                <div id="file-help" class="sr-only">Select source files to filter results (admin only)</div>
+              </div>
+            </div>
+            @endif
 
             <div id="searchGeography">
               <div class="bg-gray-100 p-2">
@@ -214,7 +232,9 @@
               </div>
             </div>
 
-            <div id="concentrationIndicatorSearch" class="">
+
+
+            {{-- <div id="concentrationIndicatorSearch" class="">
               <div class="flex bg-gray-100 p-2">
                 <div class="w-full">
                   <div class="font-bold mb-2">
@@ -229,9 +249,9 @@
                   <div id="concentration-help" class="sr-only">Select concentration measurement indicators</div>
                 </div>
               </div>
-            </div>
+            </div> --}}
 
-            <div id="empodatDataSourcesSearch" class="">
+            {{-- <div id="empodatDataSourcesSearch" class="">
               <div class="flex flex-col lg:flex-row bg-gray-100 p-2">
                 <div class="w-full">
                   <div class="font-bold mb-2 flex items-center space-x-2">
@@ -292,9 +312,9 @@
                   <div id="lab-sources-help" class="sr-only">Select laboratories - this may slow down search performance</div>
                 </div>
               </div>
-            </div>
+            </div> --}}
 
-            <div id="analyticalMethodSearch" class="">
+            {{-- <div id="analyticalMethodSearch" class="">
               <div class="flex bg-gray-100 p-2">
                 <div class="w-full">
                   <div class="font-bold mb-2 flex items-center space-x-2">
@@ -315,9 +335,9 @@
                   <div id="analytical-method-help" class="sr-only">Select analytical methods - this may slow down search performance</div>
                 </div>
               </div>
-            </div>
+            </div> --}}
 
-            <div id="qualityAnalyticalMethodsSearch" class="">
+            {{-- <div id="qualityAnalyticalMethodsSearch" class="">
               <div class="flex bg-gray-100 p-2">
                 <div class="w-full">
                   <div class="font-bold mb-2">
@@ -332,7 +352,7 @@
                   <div id="quality-help" class="sr-only">Select quality information categories for analytical methods</div>
                 </div>
               </div>
-            </div>
+            </div> --}}
 
             <!-- Main Search form -->
             <div class="flex flex-col sm:flex-row justify-end m-2 gap-2">

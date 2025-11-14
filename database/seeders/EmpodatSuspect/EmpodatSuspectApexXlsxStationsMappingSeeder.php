@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Spatie\SimpleExcel\SimpleExcelReader;
 
-class EmpodatSuspectXlsxStationsMappingSeeder extends Seeder
+class EmpodatSuspectApexXlsxStationsMappingSeeder extends Seeder
 {
     use WithoutModelEvents;
 
@@ -18,7 +18,8 @@ class EmpodatSuspectXlsxStationsMappingSeeder extends Seeder
     public function run(): void
     {
         $target_table_name = 'empodat_suspect_xlsx_stations_mapping';
-        DB::table($target_table_name)->truncate();
+        // Note: Not truncating as we're adding to existing data
+        // DB::table($target_table_name)->truncate();
 
         $now = Carbon::now();
         $path = base_path() . '/database/seeders/seeds/empodat_suspect/apex_data_headers.csv';
@@ -28,7 +29,7 @@ class EmpodatSuspectXlsxStationsMappingSeeder extends Seeder
             return;
         }
 
-        $this->command->info('Seeding empodat_suspect_xlsx_stations_mapping table...');
+        $this->command->info('Seeding LIFE APEX stations to empodat_suspect_xlsx_stations_mapping table...');
 
         $rows = SimpleExcelReader::create($path)->getRows();
         $p = [];
@@ -51,9 +52,19 @@ class EmpodatSuspectXlsxStationsMappingSeeder extends Seeder
                 continue;
             }
 
+            // Check if this xlsx_name already exists
+            $exists = DB::table($target_table_name)
+                ->where('xlsx_name', $cleanedValue)
+                ->exists();
+
+            if ($exists) {
+                $this->command->info("Skipping duplicate: {$cleanedValue}");
+                continue;
+            }
+
             $p[] = [
                 'xlsx_name'   => $cleanedValue,
-                'batch_id'    => 0,
+                'file_id'     => 10007,
                 'created_at'  => $now,
                 'updated_at'  => $now,
             ];
@@ -65,13 +76,18 @@ class EmpodatSuspectXlsxStationsMappingSeeder extends Seeder
         $k = 0;
         $count = ceil(count($p) / $chunkSize);
 
+        if (empty($p)) {
+            $this->command->warn("No new records to insert. All stations already exist.");
+            return;
+        }
+
         foreach($chunks as $c){
             $this->command->info("Processing chunk " . ($k + 1) . "/{$count}");
             DB::table($target_table_name)->insert($c);
             $k++;
         }
 
-        $this->command->info("Successfully seeded {$rowCount} records into {$target_table_name} table.");
+        $this->command->info("Successfully seeded {$rowCount} new records into {$target_table_name} table.");
     }
 
     /**
@@ -97,4 +113,4 @@ class EmpodatSuspectXlsxStationsMappingSeeder extends Seeder
         return $cleaned;
     }
 }
-// php artisan db:seed --class=Database\\Seeders\\EmpodatSuspect\\EmpodatSuspectXlsxStationsMappingSeeder
+// php artisan db:seed --class=Database\\Seeders\\EmpodatSuspect\\EmpodatSuspectApexXlsxStationsMappingSeeder
