@@ -68,33 +68,7 @@
             <div id="searchId">
               <div class="bg-zinc-200 p-2">
                 <div class="font-bold mb-2">
-                  ID Search <span class="text-xs text-red-500">(only for super admin, other search parameters are ignored)</span>
-                </div>
-                <div class="mb-3">
-                  <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                    <label class="inline-flex items-center">
-                      <input type="radio"
-                             class="form-radio text-slate-600"
-                             name="id_type"
-                             value="empodat_id"
-                             @if (request('id_type', 'empodat_id') == 'empodat_id') checked @endif
-                             aria-describedby="empodat-id-desc">
-                      <span class="ml-2">EMPODAT ID</span>
-                    </label>
-                    <label class="inline-flex items-start sm:items-center">
-                      <input type="radio" 
-                             class="form-radio text-slate-600 mt-1 sm:mt-0" 
-                             name="id_type" 
-                             value="dct_analysis_id" 
-                             @if (request('id_type') == 'dct_analysis_id') checked @endif
-                             aria-describedby="dct-analysis-id-desc">
-                      <span class="ml-2">DCT Analysis ID</span>
-                    </label>
-                  </div>
-                  <div class="sr-only">
-                    <div id="empodat-id-desc">Search by Empodat main ID</div>
-                    <div id="dct-analysis-id-desc">Search by DCT Analysis ID</div>
-                  </div>
+                  EMPODAT ID Search <span class="text-xs text-red-500">(only for super admin, other search parameters are ignored)</span>
                 </div>
                 <div class="w-full" aria-describedby="id-help">
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-1">

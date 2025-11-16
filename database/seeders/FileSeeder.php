@@ -68,7 +68,7 @@ class FileSeeder extends Seeder
                         'uploaded_at' => $this->parseDate($r['list_date']) ?? $now,
                         'is_deleted' => $this->safeInt($r['list_deleted'], 0),
                         'project_id' => $this->safeInt($r['list_project_id']),
-                        'is_protected' => $this->safeInt($r['list_project_id']) !== null,
+                        'is_protected' => $this->safeInt($r['list_protected']) !== null,
                         'created_at' => $now,
                         'updated_at' => $now,
                     ];

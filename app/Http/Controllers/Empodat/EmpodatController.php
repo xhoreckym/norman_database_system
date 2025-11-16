@@ -478,7 +478,6 @@ class EmpodatController extends Controller
             'fileSearch' => [], // Only file IDs
             'id_from' => null,
             'id_to' => null,
-            'id_type' => 'empodat_id',
         ];
         
         // Process all search inputs
@@ -683,13 +682,9 @@ private function buildSearchParameters(array $searchInputs, Request $request): a
         if (!is_null($searchInputs['id_from'])) {
             $searchParameters['id_from'] = $searchInputs['id_from'];
         }
-        
+
         if (!is_null($searchInputs['id_to'])) {
             $searchParameters['id_to'] = $searchInputs['id_to'];
-        }
-        
-        if (!is_null($searchInputs['id_type'])) {
-            $searchParameters['id_type'] = $searchInputs['id_type'];
         }
     }
     
@@ -724,7 +719,6 @@ private function prepareRequestData(Request $request, array $searchInputs): arra
     if (Auth::check() && (Auth::user()->hasRole('super_admin') || Auth::user()->hasRole('admin'))) {
         $requestData['id_from'] = $request->input('id_from');
         $requestData['id_to'] = $request->input('id_to');
-        $requestData['id_type'] = $request->input('id_type');
     }
     
     return $requestData;
@@ -964,15 +958,14 @@ private function getFileStatistics($empodatRecords): array
   {
     $idFrom = $searchInputs['id_from'];
     $idTo = $searchInputs['id_to'];
-    $idType = $searchInputs['id_type'];
 
     // Only apply if at least one ID field is provided
     if (empty($idFrom) && empty($idTo)) {
       return $query;
     }
 
-    // Determine which field to search based on radio button selection
-    $fieldName = ($idType === 'dct_analysis_id') ? 'dct_analysis_id' : 'id';
+    // Always use 'id' field for searching
+    $fieldName = 'id';
 
     // Apply range filtering
     if (!empty($idFrom) && !empty($idTo)) {
@@ -1104,7 +1097,7 @@ private function getFileStatistics($empodatRecords): array
     ]);
     
     // Check each matrix relationship and return the first one that has data
-    // Since typically only one matrix table will have data for a given dct_analysis_id
+    // Since typically only one matrix table will have data for a given record
     if ($empodat->matrixAir && $empodat->matrixAir->code) {
       $matrixData = [
         'type' => 'air',

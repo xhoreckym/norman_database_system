@@ -6,6 +6,7 @@ use App\Models\Backend\File;
 use App\Models\Susdat\Substance;
 use App\Models\Empodat\AnalyticalMethod as EmpodatAnalyticalMethod;
 use App\Models\List\ConcentrationIndicator;
+use App\Models\List\Country;
 use App\Models\List\Matrix;
 use App\Models\Empodat\EmpodatMinor;
 use App\Models\Empodat\EmpodatMatrixAir;
@@ -37,7 +38,8 @@ class EmpodatMain extends Model
      * @var array
      */
     protected $fillable = [
-        'dct_analysis_id',
+        'country_id',
+        'file_id',
         'station_id',
         'matrix_id',
         'substance_id',
@@ -54,7 +56,8 @@ class EmpodatMain extends Model
      * @var array
      */
     protected $casts = [
-        'dct_analysis_id' => 'integer',
+        'country_id' => 'integer',
+        'file_id' => 'integer',
         'station_id' => 'integer',
         'matrix_id' => 'integer',
         'substance_id' => 'integer',
@@ -71,6 +74,22 @@ class EmpodatMain extends Model
     protected $appends = [
         'formatted_sampling_date',
     ];
+
+    /**
+     * Get the country associated with this record.
+     */
+    public function country()
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+
+    /**
+     * Get the file associated with this record.
+     */
+    public function file()
+    {
+        return $this->belongsTo(File::class, 'file_id');
+    }
 
     /**
      * Get the concentration indicator associated with this record.
@@ -390,6 +409,8 @@ class EmpodatMain extends Model
     public function scopeWithSearchRelations($query)
     {
         return $query->with([
+            'country',
+            'file',
             'concentrationIndicator',
             'substance',
             'matrix',
