@@ -27,6 +27,7 @@ class LiteratureSeeder_ULEI extends Seeder
 
     // Test mode - set to null for full processing
     protected ?int $limitRows = null;
+    protected ?int $fileId = 9000;
 
     /**
      * Run the database seeds.
@@ -189,7 +190,7 @@ class LiteratureSeeder_ULEI extends Seeder
         DB::connection()->enableQueryLog();
 
         // Link all seeded records to file_id 477 (ULEI data source)
-        $this->linkRecordsToFile(477);
+        $this->linkRecordsToFile($fileId);
     }
 
     /**

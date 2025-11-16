@@ -21,10 +21,10 @@ class FileSeeder extends Seeder
         $target_table_name = 'files';
         $now = Carbon::now();
         $startTime = microtime(true);
-        
+
         // Path to old system CSV file
         $csvPath = base_path() . '/database/seeders/seeds/dct_list.csv';
-        
+
         if (!file_exists($csvPath)) {
             $this->command->error("CSV file not found at: {$csvPath}");
             return;
@@ -32,6 +32,11 @@ class FileSeeder extends Seeder
 
         // Temporarily disable foreign key checks
         Schema::disableForeignKeyConstraints();
+
+        // Truncate the files table to reseed completely
+        $this->command->info('Truncating files table...');
+        DB::table($target_table_name)->truncate();
+        $this->command->info('Files table truncated successfully.');
         
         // Use lower memory usage options for SimpleExcelReader
         $reader = SimpleExcelReader::create($csvPath)
@@ -63,6 +68,7 @@ class FileSeeder extends Seeder
                         'uploaded_at' => $this->parseDate($r['list_date']) ?? $now,
                         'is_deleted' => $this->safeInt($r['list_deleted'], 0),
                         'project_id' => $this->safeInt($r['list_project_id']),
+                        'is_protected' => $this->safeInt($r['list_project_id']) !== null,
                         'created_at' => $now,
                         'updated_at' => $now,
                     ];
