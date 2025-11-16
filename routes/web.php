@@ -207,6 +207,7 @@ Route::prefix('susdat')->group(function () {
     Route::post('batch/convert', [App\Http\Controllers\Susdat\BatchConversionController::class, 'convert'])->name('susdat.batch.convert');
     Route::get('batch/update', [App\Http\Controllers\Susdat\BatchConversionController::class, 'update'])->name('susdat.batch.update');
     Route::get('batch/download/csv', [App\Http\Controllers\Susdat\BatchConversionController::class, 'downloadCsv'])->name('susdat.batch.download.csv');
+    Route::get('batch/download/xlsx', [App\Http\Controllers\Susdat\BatchConversionController::class, 'downloadXlsx'])->name('susdat.batch.download.xlsx');
 });
 
 Route::prefix('empodat')->group(function () {

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Susdat\Substance;
 use Illuminate\Support\Facades\DB;
+use Spatie\SimpleExcel\SimpleExcelWriter;
 
 class BatchConversionController extends Controller
 {
@@ -104,16 +105,16 @@ class BatchConversionController extends Controller
     public function downloadCsv(Request $request)
     {
         $results = session('batch_conversion_results', []);
-        
+
         if (empty($results)) {
             return redirect()->back()->with('error', 'No results available for download.');
         }
 
         $filename = 'batch_conversion_results_' . date('Y-m-d_H-i-s') . '.csv';
-        
+
         return response()->streamDownload(function () use ($results) {
             $output = fopen('php://output', 'w');
-            
+
             // Add header row with input identifier as first column
             fputcsv($output, [
                 'Input Identifier',
@@ -122,7 +123,7 @@ class BatchConversionController extends Controller
                 'CAS No.',
                 'StdInChIKey'
             ]);
-            
+
             // Add data rows with input identifier as first column
             foreach ($results as $result) {
                 if ($result['found']) {
@@ -135,11 +136,52 @@ class BatchConversionController extends Controller
                     ]);
                 }
             }
-            
+
             fclose($output);
         }, $filename, [
             'Content-Type' => 'text/csv',
         ]);
+    }
+
+    /**
+     * Download results as XLSX file
+     */
+    public function downloadXlsx(Request $request)
+    {
+        $results = session('batch_conversion_results', []);
+
+        if (empty($results)) {
+            return redirect()->back()->with('error', 'No results available for download.');
+        }
+
+        $filename = 'batch_conversion_results_' . date('Y-m-d_H-i-s') . '.xlsx';
+        $tempPath = storage_path('app/temp/' . $filename);
+
+        // Ensure temp directory exists
+        if (!file_exists(storage_path('app/temp'))) {
+            mkdir(storage_path('app/temp'), 0755, true);
+        }
+
+        // Prepare data for export
+        $exportData = [];
+        foreach ($results as $result) {
+            if ($result['found']) {
+                $exportData[] = [
+                    'Input Identifier' => $result['input'],
+                    'SUSDAT ID' => 'NS' . $result['susdat_id'],
+                    'Substance Name' => $result['substance_name'] ?? '-',
+                    'CAS No.' => $result['cas_no'] ?? '-',
+                    'StdInChIKey' => $result['std_inchikey'] ?? '-'
+                ];
+            }
+        }
+
+        // Create XLSX file
+        $writer = SimpleExcelWriter::create($tempPath);
+        $writer->addRows($exportData);
+        $writer->close();
+
+        return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
     }
 
     /**
