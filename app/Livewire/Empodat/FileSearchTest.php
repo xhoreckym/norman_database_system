@@ -11,11 +11,12 @@ class FileSearchTest extends Component
     public $selectedFileIds = [];       // Track selected file IDs
     public $selectedFiles = [];         // Store selected file data
     public $existingFiles = [];         // For initialization
+    public $currentResults = [];        // Store current search results
 
     public function mount($existingFiles = [])
     {
         if (!empty($existingFiles)) {
-            $this->selectedFileIds = $existingFiles;
+            $this->selectedFileIds = is_array($existingFiles) ? $existingFiles : [$existingFiles];
             $this->applyFileFilter();
         }
     }
@@ -25,13 +26,22 @@ class FileSearchTest extends Component
         $results = [];
         $resultsAvailable = false;
 
-        if (strlen($this->search) > 2) {
-            $results = File::orderBy('id', 'asc')
-                ->where('name', 'ilike', '%' . $this->search . '%')
-                ->limit(10)
+        // Trim the search string to remove any leading/trailing whitespace
+        $searchTerm = trim($this->search);
+
+        if (strlen($searchTerm) > 2) {
+            $results = File::orderBy('original_name', 'asc')
+                ->where(function($query) use ($searchTerm) {
+                    $query->where('name', 'ilike', '%' . $searchTerm . '%')
+                          ->orWhere('original_name', 'ilike', '%' . $searchTerm . '%');
+                })
+                ->limit(20)
                 ->get();
 
             $resultsAvailable = true;
+
+            // Store current results for select all functionality
+            $this->currentResults = $results->pluck('id')->toArray();
         }
 
         return view('livewire.empodat.file-search-test', [
@@ -43,12 +53,15 @@ class FileSearchTest extends Component
 
     public function applyFileFilter()
     {
+        // Remove duplicates
+        $this->selectedFileIds = array_unique($this->selectedFileIds);
+
         $this->selectedFiles = File::whereIn('id', $this->selectedFileIds)
             ->get()
             ->map(function ($file) {
                 return [
                     'id' => $file->id,
-                    'name' => $file->name,
+                    'name' => $file->original_name ?: $file->name,
                     'size' => $this->formatFileSize($file->file_size),
                     'type' => $file->mime_type,
                     'uploaded_at' => optional($file->uploaded_at)->format('Y-m-d'),
@@ -57,6 +70,18 @@ class FileSearchTest extends Component
             ->toArray();
 
         $this->search = '';
+        $this->currentResults = [];
+    }
+
+    public function selectAllDisplayed()
+    {
+        // Merge current results with already selected IDs
+        $this->selectedFileIds = array_unique(array_merge(
+            $this->selectedFileIds,
+            $this->currentResults
+        ));
+
+        $this->applyFileFilter();
     }
 
     public function removeFile($fileId)
@@ -64,6 +89,9 @@ class FileSearchTest extends Component
         $this->selectedFileIds = array_filter($this->selectedFileIds, function ($id) use ($fileId) {
             return (string) $id !== (string) $fileId;
         });
+
+        // Re-index array to avoid gaps
+        $this->selectedFileIds = array_values($this->selectedFileIds);
 
         $this->applyFileFilter();
     }
@@ -73,6 +101,7 @@ class FileSearchTest extends Component
         $this->search = '';
         $this->selectedFileIds = [];
         $this->selectedFiles = [];
+        $this->currentResults = [];
     }
 
     private function formatFileSize($bytes)

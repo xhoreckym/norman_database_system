@@ -392,15 +392,13 @@ class EmpodatMain extends Model
         if (!is_array($fileIds)) {
             $fileIds = [$fileIds];
         }
-        
+
         if (empty($fileIds)) {
             return $query;
         }
 
-        return $query->join('empodat_main_file', 'empodat_main.id', '=', 'empodat_main_file.empodat_main_id')
-                    ->whereIn('empodat_main_file.file_id', $fileIds)
-                    ->select('empodat_main.*')
-                    ->distinct();
+        // Filter by direct relationship via empodat_main.file_id
+        return $query->whereIn('empodat_main.file_id', $fileIds);
     }
 
     /**

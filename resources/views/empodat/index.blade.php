@@ -103,6 +103,14 @@
               <input type="hidden" name="qualityAnalyticalMethodsSearch" value="{{ $qualityAnalyticalMethodsSearch }}">
             @endif
 
+            @if(is_array($fileSearch))
+              @foreach($fileSearch as $file)
+                <input type="hidden" name="fileSearch[]" value="{{ $file }}">
+              @endforeach
+            @elseif(!empty($fileSearch))
+              <input type="hidden" name="fileSearch" value="{{ $fileSearch }}">
+            @endif
+
             <input type="hidden" name="query_log_id" value="{{ $query_log_id }}">
             @if(request('id_type'))
               <input type="hidden" name="id_type" value="{{ request('id_type') }}">

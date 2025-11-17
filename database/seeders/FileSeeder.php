@@ -35,7 +35,7 @@ class FileSeeder extends Seeder
 
         // Truncate the files table to reseed completely
         $this->command->info('Truncating files table...');
-        DB::table($target_table_name)->truncate();
+        // DB::table($target_table_name)->truncate();
         $this->command->info('Files table truncated successfully.');
         
         // Use lower memory usage options for SimpleExcelReader
@@ -68,7 +68,7 @@ class FileSeeder extends Seeder
                         'uploaded_at' => $this->parseDate($r['list_date']) ?? $now,
                         'is_deleted' => $this->safeInt($r['list_deleted'], 0),
                         'project_id' => $this->safeInt($r['list_project_id']),
-                        'is_protected' => $this->safeInt($r['list_protected']) !== null,
+                        'is_protected' => (bool) $this->safeInt($r['list_protected'], 0),
                         'created_at' => $now,
                         'updated_at' => $now,
                     ];
