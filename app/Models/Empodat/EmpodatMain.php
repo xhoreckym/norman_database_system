@@ -152,7 +152,7 @@ class EmpodatMain extends Model
      */
     public function matrixAir()
     {
-        return $this->hasOne(EmpodatMatrixAir::class, 'dct_analysis_id', 'dct_analysis_id');
+        return $this->hasOne(EmpodatMatrixAir::class, 'id', 'id');
     }
 
     /**
@@ -160,7 +160,7 @@ class EmpodatMain extends Model
      */
     public function matrixBiota()
     {
-        return $this->hasOne(EmpodatMatrixBiota::class, 'dct_analysis_id', 'dct_analysis_id');
+        return $this->hasOne(EmpodatMatrixBiota::class, 'id', 'id');
     }
 
     /**
@@ -168,7 +168,7 @@ class EmpodatMain extends Model
      */
     public function matrixSediments()
     {
-        return $this->hasOne(EmpodatMatrixSediments::class, 'dct_analysis_id', 'dct_analysis_id');
+        return $this->hasOne(EmpodatMatrixSediments::class, 'id', 'id');
     }
 
     /**
@@ -176,7 +176,7 @@ class EmpodatMain extends Model
      */
     public function matrixSewageSludge()
     {
-        return $this->hasOne(EmpodatMatrixSewageSludge::class, 'dct_analysis_id', 'dct_analysis_id');
+        return $this->hasOne(EmpodatMatrixSewageSludge::class, 'id', 'id');
     }
 
     /**
@@ -184,7 +184,7 @@ class EmpodatMain extends Model
      */
     public function matrixSoil()
     {
-        return $this->hasOne(EmpodatMatrixSoil::class, 'dct_analysis_id', 'dct_analysis_id');
+        return $this->hasOne(EmpodatMatrixSoil::class, 'id', 'id');
     }
 
     /**
@@ -192,7 +192,7 @@ class EmpodatMain extends Model
      */
     public function matrixSuspendedMatter()
     {
-        return $this->hasOne(EmpodatMatrixSuspendedMatter::class, 'dct_analysis_id', 'dct_analysis_id');
+        return $this->hasOne(EmpodatMatrixSuspendedMatter::class, 'id', 'id');
     }
 
     /**
@@ -200,7 +200,7 @@ class EmpodatMain extends Model
      */
     public function matrixWater()
     {
-        return $this->hasOne(EmpodatMatrixWater::class, 'dct_analysis_id', 'dct_analysis_id');
+        return $this->hasOne(EmpodatMatrixWater::class, 'id', 'id');
     }
 
     /**
