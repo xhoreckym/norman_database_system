@@ -25,10 +25,15 @@ class StationController extends Controller implements HasMiddleware
     public function index(Request $request)
     {
         $perPage = $request->input('per_page', 25);
-        
+
         $stations = EmpodatStation::with(['countryRelation', 'countryOtherRelation'])
             ->orderBy('id')
             ->paginate($perPage);
+
+        // Handle out-of-range page requests
+        if ($request->has('page') && $stations->currentPage() > $stations->lastPage() && $stations->lastPage() > 0) {
+            return redirect()->route('backend.empodat.stations.index', ['page' => $stations->lastPage(), 'per_page' => $perPage]);
+        }
 
         return view('empodat.stations.index', [
             'stations' => $stations,

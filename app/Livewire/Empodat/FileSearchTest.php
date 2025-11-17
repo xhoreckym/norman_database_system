@@ -31,6 +31,7 @@ class FileSearchTest extends Component
 
         if (strlen($searchTerm) > 2) {
             $results = File::orderBy('original_name', 'asc')
+                ->where('database_entity_id', 2) // Only empodat files
                 ->where(function($query) use ($searchTerm) {
                     $query->where('name', 'ilike', '%' . $searchTerm . '%')
                           ->orWhere('original_name', 'ilike', '%' . $searchTerm . '%');
@@ -57,6 +58,7 @@ class FileSearchTest extends Component
         $this->selectedFileIds = array_unique($this->selectedFileIds);
 
         $this->selectedFiles = File::whereIn('id', $this->selectedFileIds)
+            ->where('database_entity_id', 2) // Only empodat files
             ->get()
             ->map(function ($file) {
                 return [
