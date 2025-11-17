@@ -157,6 +157,10 @@
             @auth
               <div class="py-2 px-2"><a href="{{ route('codsearch.download', ['query_log_id' => $query_log_id]) }}"
                   class="btn-download">Download</a></div>
+              @role('super_admin|admin')
+                <div class="py-2 px-2"><a href="{{ route('codsearch.download.ids', ['query_log_id' => $query_log_id]) }}"
+                    class="btn-download">Download IDs for R</a></div>
+              @endrole
             @else
               <div class="py-2 px-2 text-gray-400">Downloads are available for registered users only</div>
             @endauth

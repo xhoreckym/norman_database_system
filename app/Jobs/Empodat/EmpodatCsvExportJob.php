@@ -15,17 +15,22 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
      * The filename for the CSV export
      */
     protected $filename;
-    
+
     /**
-     * Optimized for development - smaller batch sizes for faster processing
+     * Optimized batch sizes for efficient processing of 95M rows
      */
-    protected $initialBatchSize = 50;
-    protected $maxBatchSize = 500;
-    
+    protected $initialBatchSize = 1000;
+    protected $maxBatchSize = 5000;
+
     /**
-     * Extended timeout for large datasets
+     * Extended timeout for large datasets (95M rows)
      */
-    protected $maxExecutionTime = 3600; // 1 hour for very large exports
+    protected $maxExecutionTime = 7200; // 2 hours for very large exports
+
+    /**
+     * Job timeout
+     */
+    public $timeout = 10800; // 3 hours
     
     /**
      * Get the database key for this module
@@ -49,19 +54,70 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     protected function getHeaders(): array
     {
         return [
-            'ID', 
-            'DCT Analysis ID', 
+            // empodat_main fields
+            'ID',
+            'Station ID',
             'Station Name',
+            'Country ID',
             'Country',
             'Country Code',
+            'File ID',
+            'Matrix ID',
             'Matrix',
             'Concentration Unit',
+            'Substance ID',
             'Substance',
             'CAS Number',
             'Sampling Year',
+            'Concentration Indicator ID',
             'Concentration Value',
+            'Method ID',
+            'Data Source ID',
             'Latitude',
             'Longitude',
+
+            // empodat_minor fields
+            'DPC ID',
+            'Altitude',
+            'Matrix Other',
+            'Compound',
+            'DCOD ID',
+            'Unit Extra',
+            'Tier',
+            'Sampling Technique',
+            'Sampling Date',
+            'Sampling Date T',
+            'Sampling Date1 Y',
+            'Sampling Date1 M',
+            'Sampling Date1 D',
+            'Sampling Date1 T',
+            'Sampling Date1',
+            'Analysis Date Y',
+            'Analysis Date M',
+            'Analysis Date D',
+            'Sampling Duration Day',
+            'Sampling Duration Hour',
+            'Description',
+            'Remark',
+            'Remark Add',
+            'Show Date',
+            'DTOD ID',
+            'DTOD Other',
+            'Agg Uncertainty',
+            'DMM ID',
+            'Agg Max',
+            'Agg Min',
+            'Agg Number',
+            'Agg Deviation',
+            'DTL ID',
+            'DTL Other',
+            'DST ID',
+            'DST Other',
+            'DTOS ID',
+            'DPLU ID',
+            'No Export',
+            'List ID',
+
             'Export Date'
         ];
     }
@@ -228,39 +284,82 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
      */
     protected function getRecordsBatch(array $idBatch)
     {
-        // For development, use smaller batches with aggressive optimization
         $orderedIds = array_values($idBatch);
         sort($orderedIds);
-        
-        // Log batch processing for debugging
-        Log::info("Processing Empodat batch", [
-            'batch_size' => count($orderedIds),
-            'first_id' => $orderedIds[0] ?? null,
-            'last_id' => end($orderedIds) ?: null
-        ]);
-        
+
         // Use a separate optimized query for data retrieval to avoid JOIN conflicts
         // This approach ensures we get all the data we need without interfering with filtering JOINs
         return DB::table('empodat_main')
             ->select(
+                // empodat_main fields
                 'empodat_main.id',
-                'empodat_main.dct_analysis_id', 
-                'empodat_main.sampling_date_year',
-                'empodat_main.concentration_value',
+                'empodat_main.station_id',
                 'empodat_stations.name as station_name',
+                'empodat_main.country_id',
                 'list_countries.name as country_name',
                 'list_countries.code as country_code',
+                'empodat_main.file_id',
+                'empodat_main.matrix_id',
                 'list_matrices.name as matrix_name',
                 'list_matrices.unit as concentration_unit',
+                'empodat_main.substance_id',
                 'susdat_substances.name as substance_name',
                 'susdat_substances.cas_number',
+                'empodat_main.sampling_date_year',
+                'empodat_main.concentration_indicator_id',
+                'empodat_main.concentration_value',
+                'empodat_main.method_id',
+                'empodat_main.data_source_id',
                 'empodat_stations.latitude',
-                'empodat_stations.longitude'
+                'empodat_stations.longitude',
+
+                // empodat_minor fields
+                'empodat_minor.dpc_id',
+                'empodat_minor.altitude',
+                'empodat_minor.matrix_other',
+                'empodat_minor.compound',
+                'empodat_minor.dcod_id',
+                'empodat_minor.unit_extra',
+                'empodat_minor.tier',
+                'empodat_minor.sampling_technique',
+                'empodat_minor.sampling_date',
+                'empodat_minor.sampling_date_t',
+                'empodat_minor.sampling_date1_y',
+                'empodat_minor.sampling_date1_m',
+                'empodat_minor.sampling_date1_d',
+                'empodat_minor.sampling_date1_t',
+                'empodat_minor.sampling_date1',
+                'empodat_minor.analysis_date_y',
+                'empodat_minor.analysis_date_m',
+                'empodat_minor.analysis_date_d',
+                'empodat_minor.sampling_duration_day',
+                'empodat_minor.sampling_duration_hour',
+                'empodat_minor.description',
+                'empodat_minor.remark',
+                'empodat_minor.remark_add',
+                'empodat_minor.show_date',
+                'empodat_minor.dtod_id',
+                'empodat_minor.dtod_other',
+                'empodat_minor.agg_uncertainty',
+                'empodat_minor.dmm_id',
+                'empodat_minor.agg_max',
+                'empodat_minor.agg_min',
+                'empodat_minor.agg_number',
+                'empodat_minor.agg_deviation',
+                'empodat_minor.dtl_id',
+                'empodat_minor.dtl_other',
+                'empodat_minor.dst_id',
+                'empodat_minor.dst_other',
+                'empodat_minor.dtos_id',
+                'empodat_minor.dplu_id',
+                'empodat_minor.noexport',
+                'empodat_minor.list_id'
             )
-            ->leftJoin('susdat_substances', 'empodat_main.substance_id', '=', 'susdat_substances.id')
-            ->leftJoin('list_matrices', 'empodat_main.matrix_id', '=', 'list_matrices.id')
+            ->leftJoin('empodat_minor', 'empodat_main.id', '=', 'empodat_minor.id')
             ->leftJoin('empodat_stations', 'empodat_main.station_id', '=', 'empodat_stations.id')
-            ->leftJoin('list_countries', 'empodat_stations.country_id', '=', 'list_countries.id')
+            ->leftJoin('list_countries', 'empodat_main.country_id', '=', 'list_countries.id')
+            ->leftJoin('list_matrices', 'empodat_main.matrix_id', '=', 'list_matrices.id')
+            ->leftJoin('susdat_substances', 'empodat_main.substance_id', '=', 'susdat_substances.id')
             ->whereIn('empodat_main.id', $orderedIds)
             ->orderBy('empodat_main.id')
             ->cursor(); // Use cursor for memory efficiency with larger datasets
@@ -272,18 +371,6 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     protected function optimizeBatchSize(array $lastBatch): void
     {
         parent::optimizeBatchSize($lastBatch);
-        
-        // Additional Empodat-specific optimization
-        // If we're processing more than 50k records, be more conservative with memory
-        $memoryUsage = memory_get_usage(true);
-        
-        // Log memory usage every 10 batches for monitoring
-        static $batchCount = 0;
-        $batchCount++;
-        
-        if ($batchCount % 10 === 0) {
-            Log::info("Empodat export: Batch {$batchCount}, Memory usage: " . $this->formatBytes($memoryUsage) . ", Current batch size: {$this->currentBatchSize}");
-        }
     }
     
     /**
@@ -292,19 +379,70 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     protected function formatRecord($record, string $exportDate): array
     {
         return [
-            $record->id ?? 'N/A',
-            $record->dct_analysis_id ?? 'N/A',
-            $record->station_name ?? 'N/A',
-            $record->country_name ?? 'N/A',
-            $record->country_code ?? 'N/A',
-            $record->matrix_name ?? 'N/A',
-            $record->concentration_unit ?? 'N/A',
-            $record->substance_name ?? 'N/A',
-            $record->cas_number ?? 'N/A',
-            $record->sampling_date_year ?? 'N/A',
-            $record->concentration_value ?? 'N/A',
-            $record->latitude ?? 'N/A',
-            $record->longitude ?? 'N/A',
+            // empodat_main fields
+            $record->id ?? '',
+            $record->station_id ?? '',
+            $record->station_name ?? '',
+            $record->country_id ?? '',
+            $record->country_name ?? '',
+            $record->country_code ?? '',
+            $record->file_id ?? '',
+            $record->matrix_id ?? '',
+            $record->matrix_name ?? '',
+            $record->concentration_unit ?? '',
+            $record->substance_id ?? '',
+            $record->substance_name ?? '',
+            $record->cas_number ?? '',
+            $record->sampling_date_year ?? '',
+            $record->concentration_indicator_id ?? '',
+            $record->concentration_value ?? '',
+            $record->method_id ?? '',
+            $record->data_source_id ?? '',
+            $record->latitude ?? '',
+            $record->longitude ?? '',
+
+            // empodat_minor fields
+            $record->dpc_id ?? '',
+            $record->altitude ?? '',
+            $record->matrix_other ?? '',
+            $record->compound ?? '',
+            $record->dcod_id ?? '',
+            $record->unit_extra ?? '',
+            $record->tier ?? '',
+            $record->sampling_technique ?? '',
+            $record->sampling_date ?? '',
+            $record->sampling_date_t ?? '',
+            $record->sampling_date1_y ?? '',
+            $record->sampling_date1_m ?? '',
+            $record->sampling_date1_d ?? '',
+            $record->sampling_date1_t ?? '',
+            $record->sampling_date1 ?? '',
+            $record->analysis_date_y ?? '',
+            $record->analysis_date_m ?? '',
+            $record->analysis_date_d ?? '',
+            $record->sampling_duration_day ?? '',
+            $record->sampling_duration_hour ?? '',
+            $record->description ?? '',
+            $record->remark ?? '',
+            $record->remark_add ?? '',
+            $record->show_date ?? '',
+            $record->dtod_id ?? '',
+            $record->dtod_other ?? '',
+            $record->agg_uncertainty ?? '',
+            $record->dmm_id ?? '',
+            $record->agg_max ?? '',
+            $record->agg_min ?? '',
+            $record->agg_number ?? '',
+            $record->agg_deviation ?? '',
+            $record->dtl_id ?? '',
+            $record->dtl_other ?? '',
+            $record->dst_id ?? '',
+            $record->dst_other ?? '',
+            $record->dtos_id ?? '',
+            $record->dplu_id ?? '',
+            $record->noexport ?? '',
+            $record->list_id ?? '',
+
             $exportDate
         ];
     }

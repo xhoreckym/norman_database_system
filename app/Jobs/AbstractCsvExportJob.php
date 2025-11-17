@@ -157,11 +157,14 @@ abstract class AbstractCsvExportJob implements ShouldQueue
             
             $path = Storage::path("{$directory}/{$filename}");
             $handle = fopen($path, 'w');
-            
+
             if (!$handle) {
                 throw new Exception("Unable to open file for writing: {$path}");
             }
-            
+
+            // Write UTF-8 BOM for proper character encoding in Excel
+            fprintf($handle, "\xEF\xBB\xBF");
+
             // Write CSV headers
             fputcsv($handle, $this->getHeaders());
             
@@ -401,10 +404,10 @@ abstract class AbstractCsvExportJob implements ShouldQueue
     {
         try {
             $mailClass = $this->getMailClass();
-            Mail::to($this->user->email)->queue(new $mailClass($messageContent));
+            Mail::to($this->user->email)->send(new $mailClass($messageContent));
         } catch (Exception $e) {
             Log::error("Failed to send email for {$this->getDatabaseKey()}: " . $e->getMessage());
-            
+
             ExportDownload::where('filename', $messageContent['filename'])->first()?->update([
                 'status' => 'failed',
                 'message' => 'Export completed but email notification failed: ' . $e->getMessage()

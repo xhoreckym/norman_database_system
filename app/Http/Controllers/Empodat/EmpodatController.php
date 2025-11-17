@@ -256,13 +256,35 @@ class EmpodatController extends Controller
     // dd($query_log_id, $q->query);
     // Generate filename at dispatch time to avoid timing issues
     $filename = 'empodat_export_uid_' . Auth::id() . '_' . now()->format('YmdHis') . '.csv';
-    
+
     // Dispatch the job to the queue
     $user = Auth::user();
     // dd($user->email);
     EmpodatCsvExportJob::dispatch($query_log_id, $user, $filename);
 
     session()->flash('success', 'The CSV file is being generated. You will receive an email once it is ready for download, or check the "My downloads" page for the status.');
+    return back();
+  }
+
+  public function startDownloadIdsJob($query_log_id)
+  {
+    if (!Auth::check()) {
+      session()->flash('error', 'You must be logged in to download the CSV file.');
+      return back();
+    }
+
+    // Check if user is admin
+    if (!Auth::user()->hasRole('super_admin') && !Auth::user()->hasRole('admin')) {
+      session()->flash('error', 'You do not have permission to access this feature.');
+      return back();
+    }
+
+    $filename = 'empodat_ids_uid_' . Auth::id() . '_' . now()->format('YmdHis') . '.csv';
+
+    $user = Auth::user();
+    \App\Jobs\Empodat\EmpodatIdsCsvExportJob::dispatch($query_log_id, $user, $filename);
+
+    session()->flash('success', 'The IDs CSV file is being generated. You will receive an email once it is ready for download.');
     return back();
   }
 
