@@ -78,10 +78,12 @@ class EmpodatController extends Controller
   {
     //
     $empodat = EmpodatMain::query()
+      // Apply user permissions filter
+      ->byUserPermissions()
 
       // Eager load relationships (as needed)
       ->with('concentrationIndicator')
-      ->with('station')
+      ->with('station.countryRelation')
       ->with('substance')
       ->with('matrix')
       ->with('analyticalMethod')
@@ -379,7 +381,7 @@ class EmpodatController extends Controller
 
     $countryList = [];
     foreach ($countries as $s) {
-      $countryList[$s->country_id] = $s->country->name . ' - ' . $s->country->code;
+      $countryList[$s->country_id] = $s->country->name;
     }
     $countryList = $this->sortDropdownList($countryList);
 
@@ -507,7 +509,10 @@ class EmpodatController extends Controller
         
         // Build query using optimized approach with pre-loading relationships
         $empodats = EmpodatMain::query();
-        
+
+        // Apply user permissions filter first to restrict data access
+        $empodats = $empodats->byUserPermissions();
+
         // Apply filters that use JOINs first to optimize query plan
         $empodats = $empodats->byCountries($searchInputs['countrySearch'])
             ->byMatrices($searchInputs['matrixSearch'])
@@ -567,7 +572,7 @@ class EmpodatController extends Controller
             'concentrationIndicator',
             'substance',
             'matrix',
-            'station.country',
+            'station.countryRelation',
             'analyticalMethod',
             'dataSource'
         ]);

@@ -2,10 +2,10 @@
   <x-slot name="header">
     @include('backend.dashboard.header')
   </x-slot>
-  
+
   <div class="py-4">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-      <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+    <div class="w-full mx-auto sm:px-6 lg:px-8">
+      <div class="bg-white shadow-lg sm:rounded-lg">
         <div class="p-6 text-gray-900">
           <!-- File Details Header -->
           <div class="mb-6 flex justify-between items-start">
@@ -14,6 +14,9 @@
                 <span class="font-mono text-lg font-bold text-gray-900 bg-gray-200 px-3 py-1 rounded">ID: {{ $file->id }}</span>
                 @if($file->is_deleted)
                   <span class="ml-2 text-sm text-gray-700 bg-gray-300 px-2 py-1 rounded">DELETED</span>
+                @endif
+                @if($file->is_protected)
+                  <span class="ml-2 text-sm text-white bg-red-600 px-2 py-1 rounded">PROTECTED</span>
                 @endif
               </div>
               <h2 class="text-2xl font-semibold text-gray-800">{{ $file->name ?? $file->original_name ?? 'Unnamed File' }}</h2>
@@ -50,7 +53,7 @@
               @endif
             </div>
           </div>
-          
+
           <!-- File Details -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Left Column - File Information -->
@@ -60,19 +63,19 @@
                 <h3 class="font-semibold text-lg text-gray-800 mb-4">
                   Basic Information
                 </h3>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="space-y-3">
                     <div>
                       <span class="text-sm font-medium text-gray-500 block">Display Name:</span>
                       <span class="text-sm text-gray-900">{{ $file->name ?? 'N/A' }}</span>
                     </div>
-                    
+
                     <div>
                       <span class="text-sm font-medium text-gray-500 block">Original Filename:</span>
                       <span class="text-sm text-gray-900">{{ $file->original_name ?? 'N/A' }}</span>
                     </div>
-                    
+
                     <div>
                       <span class="text-sm font-medium text-gray-500 block">File Extension:</span>
                       <span class="text-sm text-gray-900">
@@ -83,27 +86,55 @@
                         @endif
                       </span>
                     </div>
-                  </div>
-                  
-                  <div class="space-y-3">
-                    <div>
-                      <span class="text-sm font-medium text-gray-500 block">File Size:</span>
-                      <span class="text-sm text-gray-900">{{ $file->formatted_file_size ?? 'N/A' }}</span>
-                    </div>
-                    
-                    <div>
-                      <span class="text-sm font-medium text-gray-500 block">MIME Type:</span>
-                      <span class="text-sm text-gray-900">{{ $file->mime_type ?? 'N/A' }}</span>
-                    </div>
-                    
+
                     <div>
                       <span class="text-sm font-medium text-gray-500 block">File Path:</span>
                       <span class="text-sm text-gray-900 break-all">{{ $file->file_path ?? 'N/A' }}</span>
                     </div>
                   </div>
+
+                  <div class="space-y-3">
+                    <div>
+                      <span class="text-sm font-medium text-gray-500 block">File Size:</span>
+                      <span class="text-sm text-gray-900">{{ $file->formatted_file_size ?? 'N/A' }}</span>
+                    </div>
+
+                    <div>
+                      <span class="text-sm font-medium text-gray-500 block">MIME Type:</span>
+                      <span class="text-sm text-gray-900">{{ $file->mime_type ?? 'N/A' }}</span>
+                    </div>
+
+                    <div>
+                      <span class="text-sm font-medium text-gray-500 block">File Type:</span>
+                      <span class="text-sm text-gray-900">
+                        @if($file->is_image)
+                          Image
+                        @elseif($file->is_document)
+                          Document
+                        @elseif($file->is_spreadsheet)
+                          Spreadsheet
+                        @else
+                          Other
+                        @endif
+                      </span>
+                    </div>
+
+                    <div>
+                      <span class="text-sm font-medium text-gray-500 block">File Exists on Disk:</span>
+                      @if($file->existsOnDisk())
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                          Yes
+                        </span>
+                      @else
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                          No
+                        </span>
+                      @endif
+                    </div>
+                  </div>
                 </div>
               </div>
-              
+
               <!-- Description -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 class="font-semibold text-lg text-gray-800 mb-3">
@@ -111,7 +142,7 @@
                 </h3>
                 <div class="text-sm text-gray-900 whitespace-pre-wrap">{{ $file->description ?? 'No description provided.' }}</div>
               </div>
-              
+
               <!-- Processing Notes -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 class="font-semibold text-lg text-gray-800 mb-3">
@@ -120,9 +151,56 @@
                 <div class="text-sm text-gray-900 whitespace-pre-wrap">{{ $file->processing_notes ?? 'No processing notes available.' }}</div>
               </div>
             </div>
-            
+
             <!-- Right Column - Associations & Metadata -->
             <div class="space-y-6">
+              <!-- File Status -->
+              <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h3 class="font-semibold text-lg text-gray-800 mb-3">
+                  File Status
+                </h3>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Status:</span>
+                    @if($file->is_deleted)
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
+                        Deleted
+                      </span>
+                    @else
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    @endif
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">Protected:</span>
+                    @if($file->is_protected)
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                        Yes
+                      </span>
+                    @else
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                        No
+                      </span>
+                    @endif
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-600">File Path:</span>
+                    @if($file->file_path)
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
+                        Set
+                      </span>
+                    @else
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
+                        Missing
+                      </span>
+                    @endif
+                  </div>
+                </div>
+              </div>
+
               <!-- Project Association -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 class="font-semibold text-lg text-gray-800 mb-3">
@@ -142,7 +220,7 @@
                   <p class="text-sm text-gray-500">No project assigned to this file.</p>
                 @endif
               </div>
-              
+
               <!-- Database Entity -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 class="font-semibold text-lg text-gray-800 mb-3">
@@ -151,6 +229,9 @@
                 @if($file->databaseEntity)
                   <div class="bg-white p-3 rounded border">
                     <div class="font-medium text-gray-900">{{ $file->databaseEntity->name }}</div>
+                    @if($file->databaseEntity->code)
+                      <div class="text-sm text-gray-600 mt-1">Code: {{ $file->databaseEntity->code }}</div>
+                    @endif
                     @if($file->databaseEntity->description)
                       <div class="text-sm text-gray-600 mt-1">{{ $file->databaseEntity->description }}</div>
                     @endif
@@ -159,7 +240,7 @@
                   <p class="text-sm text-gray-500">No database entity assigned.</p>
                 @endif
               </div>
-              
+
               <!-- Template -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 class="font-semibold text-lg text-gray-800 mb-3">
@@ -176,7 +257,7 @@
                   <p class="text-sm text-gray-500">No template assigned.</p>
                 @endif
               </div>
-              
+
               <!-- Upload Information -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 class="font-semibold text-lg text-gray-800 mb-3">
@@ -192,95 +273,61 @@
                       <span class="text-sm text-gray-500">Unknown</span>
                     @endif
                   </div>
-                  
+
                   <div>
                     <span class="text-sm font-medium text-gray-500 block">Upload Date:</span>
                     <span class="text-sm text-gray-900">
                       @if($file->uploaded_at)
-                        {{ $file->uploaded_at->format('Y-m-d G:i:s') }}
+                        {{ $file->uploaded_at->format('Y-m-d H:i:s') }}
                         <div class="text-xs text-gray-600">{{ $file->uploaded_at->diffForHumans() }}</div>
                       @elseif($file->created_at)
-                        {{ $file->created_at->format('Y-m-d G:i:s') }}
+                        {{ $file->created_at->format('Y-m-d H:i:s') }}
                         <div class="text-xs text-gray-600">{{ $file->created_at->diffForHumans() }}</div>
                       @else
                         Unknown
                       @endif
                     </span>
                   </div>
-                  
+
+                  <div>
+                    <span class="text-sm font-medium text-gray-500 block">Created At:</span>
+                    <span class="text-sm text-gray-900">
+                      {{ $file->created_at->format('Y-m-d H:i:s') }}
+                      <div class="text-xs text-gray-600">{{ $file->created_at->diffForHumans() }}</div>
+                    </span>
+                  </div>
+
                   <div>
                     <span class="text-sm font-medium text-gray-500 block">Last Modified:</span>
                     <span class="text-sm text-gray-900">
-                      {{ $file->updated_at->format('Y-m-d G:i:s') }}
+                      {{ $file->updated_at->format('Y-m-d H:i:s') }}
                       <div class="text-xs text-gray-600">{{ $file->updated_at->diffForHumans() }}</div>
                     </span>
                   </div>
                 </div>
               </div>
-              
-              <!-- File Status -->
+
+              <!-- Related Records -->
               <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h3 class="font-semibold text-lg text-gray-800 mb-3">
-                  File Status
+                  Related Records
                 </h3>
                 <div class="space-y-2">
                   <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-600">Status:</span>
-                    @if($file->is_deleted)
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
-                        Deleted
-                      </span>
-                    @else
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
-                        Active
-                      </span>
-                    @endif
+                    <span class="text-sm text-gray-600">Empodat Records:</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
+                      {{ number_format($file->empodat_records_count ?? 0) }}
+                    </span>
                   </div>
-                  
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-600">File Path:</span>
-                    @if($file->file_path)
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
-                        Set
-                      </span>
-                    @else
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
-                        Missing
-                      </span>
-                    @endif
-                  </div>
-                  
-                  @if($file->is_image)
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm text-gray-600">File Type:</span>
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
-                        Image
-                      </span>
-                    </div>
-                  @elseif($file->is_document)
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm text-gray-600">File Type:</span>
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
-                        Document
-                      </span>
-                    </div>
-                  @elseif($file->is_spreadsheet)
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm text-gray-600">File Type:</span>
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
-                        Spreadsheet
-                      </span>
-                    </div>
-                  @endif
                 </div>
               </div>
             </div>
           </div>
-          
+
           <!-- Back Button -->
           <div class="mt-8 pt-6 border-t border-gray-200">
             <a href="{{ route('files.index') }}" class="link-lime-text">
-              Back to Files
+              &larr; Back to Files
             </a>
           </div>
         </div>

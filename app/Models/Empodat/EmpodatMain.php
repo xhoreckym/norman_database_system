@@ -402,6 +402,43 @@ class EmpodatMain extends Model
     }
 
     /**
+     * Scope to filter records based on user permissions and file protection status
+     * Non-admin users can only see records with unprotected files
+     * Admin, super_admin, and empodat roles can see all records
+     */
+    public function scopeByUserPermissions($query, $user = null)
+    {
+        // If no user provided, use the currently authenticated user
+        if (is_null($user)) {
+            $user = auth()->user();
+        }
+
+        // If user is not authenticated, show only unprotected files
+        if (is_null($user)) {
+            return $query->join('files', 'empodat_main.file_id', '=', 'files.id')
+                        ->whereRaw('files.is_protected = false')
+                        ->select('empodat_main.*')
+                        ->distinct();
+        }
+
+        // Check if user has admin-level permissions
+        $hasAdminAccess = $user->hasRole('admin')
+                       || $user->hasRole('super_admin')
+                       || $user->hasRole('empodat');
+
+        // If user has admin access, show all records
+        if ($hasAdminAccess) {
+            return $query;
+        }
+
+        // For regular authenticated users, show only unprotected files
+        return $query->join('files', 'empodat_main.file_id', '=', 'files.id')
+                    ->whereRaw('files.is_protected = false')
+                    ->select('empodat_main.*')
+                    ->distinct();
+    }
+
+    /**
      * Scope to eager load all search-related relationships
      */
     public function scopeWithSearchRelations($query)

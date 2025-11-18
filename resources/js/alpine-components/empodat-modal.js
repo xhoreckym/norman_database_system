@@ -133,14 +133,28 @@ export default function empodatModal() {
 
         buildStationArray() {
             if (this.record?.station) {
+                // Only exclude system fields and coordinates (which are shown separately)
                 const excludedKeys = ['id', 'created_at', 'updated_at', 'latitude', 'longitude'];
+
                 this.stationArray = Object.entries(this.record.station)
-                    .filter(([key, val]) =>
-                        !excludedKeys.includes(key) &&
-                        val !== null &&
-                        val !== '' &&
-                        val !== 0
-                    )
+                    .filter(([key, val]) => {
+                        // Skip excluded system fields
+                        if (excludedKeys.includes(key)) {
+                            return false;
+                        }
+
+                        // Skip null or empty string values
+                        if (val === null || val === '') {
+                            return false;
+                        }
+
+                        // Skip zero values only for numeric ID fields (foreign keys)
+                        if ((key.endsWith('_id') || key === 'country_id' || key === 'country_other_id') && val === 0) {
+                            return false;
+                        }
+
+                        return true;
+                    })
                     .map(([key, val]) => [
                         this.formatFieldName(key),
                         val

@@ -235,7 +235,7 @@
                       @endif
                     @else
                       <span
-                        class="font-medium">{{ $e->concentration_value ?? 'N/A' }}</span>&nbsp;{{ $e->matrix ? $e->matrix->unit ?? '' : '' }}
+                        class="font-medium">{{ $e->concentration_value !== null ? number_format($e->concentration_value, 3, '.', '') : 'N/A' }}</span>&nbsp;{{ $e->matrix ? $e->matrix->unit ?? '' : '' }}
                     @endif
                   </td>
                   <td class="p-1 text-center">
@@ -246,10 +246,8 @@
                     @endif
                   </td>
                   <td class="p-1 text-center">
-                    @if ($e->station && $e->station->country && is_object($e->station->country))
-                      {{ $e->station->country->name ?? 'N/A' }} - {{ $e->station->country->code ?? 'N/A' }}
-                    @elseif($e->station && $e->station->country)
-                      {{ $e->station->country ?? 'N/A' }}
+                    @if ($e->station && $e->station->countryRelation)
+                      {{ $e->station->countryRelation->name ?? 'N/A' }}
                     @else
                       N/A
                     @endif
