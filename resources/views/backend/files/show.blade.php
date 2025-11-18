@@ -131,6 +131,11 @@
                         </span>
                       @endif
                     </div>
+
+                    <div>
+                      <span class="text-sm font-medium text-gray-500 block">Number of Records:</span>
+                      <span class="text-sm text-gray-900 font-semibold">{{ number_format($file->number_of_records ?? 0) }}</span>
+                    </div>
                   </div>
                 </div>
               </div>

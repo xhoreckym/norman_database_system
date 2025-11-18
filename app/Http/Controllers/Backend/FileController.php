@@ -164,6 +164,7 @@ class FileController extends Controller
             'file' => 'required|file|max:20480', // 20MB max
             'processing_notes' => 'nullable|string',
             'is_protected' => 'nullable|boolean',
+            'number_of_records' => 'nullable|integer|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -194,6 +195,7 @@ class FileController extends Controller
             'uploaded_at' => now(),
             'is_deleted' => false,
             'is_protected' => $request->is_protected ?? false,
+            'number_of_records' => $request->number_of_records ?? 0,
         ]);
 
         $file->save();
@@ -256,6 +258,7 @@ class FileController extends Controller
             'new_file' => 'nullable|file|max:20480', // 20MB max
             'processing_notes' => 'nullable|string',
             'is_protected' => 'nullable|boolean',
+            'number_of_records' => 'nullable|integer|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -290,6 +293,7 @@ class FileController extends Controller
         $file->project_id = $request->project_id;
         $file->processing_notes = $request->processing_notes;
         $file->is_protected = $request->is_protected ?? false;
+        $file->number_of_records = $request->number_of_records ?? 0;
 
         $file->save();
 

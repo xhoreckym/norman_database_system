@@ -42,6 +42,7 @@ class File extends Model
         'is_deleted',
         'project_id',
         'is_protected',
+        'number_of_records',
     ];
 
     /**
@@ -58,6 +59,7 @@ class File extends Model
         'uploaded_at' => 'datetime',
         'is_deleted' => 'boolean',
         'is_protected' => 'boolean',
+        'number_of_records' => 'integer',
     ];
 
     /**

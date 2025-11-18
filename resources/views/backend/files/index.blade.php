@@ -72,6 +72,7 @@
                   <th class="p-1 text-left">Template</th>
                   <th class="p-1 text-center">Size</th>
                   <th class="p-1 text-center">MIME Type</th>
+                  <th class="p-1 text-center">Records</th>
                   <th class="p-1 text-center">Protected</th>
                   <th class="p-1 text-center">Deleted</th>
                   <th class="p-1 text-left">Uploaded By</th>
@@ -128,6 +129,9 @@
                       @else
                         <span class="text-gray-400 text-xs">N/A</span>
                       @endif
+                    </td>
+                    <td class="p-1 text-center">
+                      <span class="text-sm text-gray-900">{{ number_format($file->number_of_records ?? 0) }}</span>
                     </td>
                     <td class="p-1 text-center">
                       @if($file->is_protected)
@@ -192,7 +196,7 @@
                   </tr>
                 @empty
                   <tr class="bg-slate-100">
-                    <td colspan="13" class="py-6 px-4 text-center text-gray-500">
+                    <td colspan="14" class="py-6 px-4 text-center text-gray-500">
                       <p class="text-base">No files found</p>
                       <p class="text-sm mt-1">Try adjusting your search to find what you're looking for.</p>
                     </td>

@@ -288,6 +288,31 @@
                   </div>
                 </div>
 
+                <!-- File Statistics -->
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    File Statistics
+                  </h3>
+                  <div>
+                    <label for="number_of_records" class="block text-sm font-medium text-gray-700 mb-1">Number of Records</label>
+                    <input
+                      type="number"
+                      name="number_of_records"
+                      id="number_of_records"
+                      value="{{ old('number_of_records', $file->number_of_records ?? 0) }}"
+                      min="0"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('number_of_records') border-red-500 @enderror"
+                      placeholder="0"
+                    >
+                    <p class="mt-1 text-xs text-gray-500">
+                      Total number of data records contained in this file
+                    </p>
+                    @error('number_of_records')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
+                </div>
+
                 <!-- File Preview/Info (for edit mode) -->
                 @if(!isset($isCreate) || !$isCreate)
                   <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
