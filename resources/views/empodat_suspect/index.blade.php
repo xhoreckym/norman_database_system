@@ -194,7 +194,7 @@
                          target="_blank"
                          class="text-teal-600 hover:text-teal-800 transition-colors"
                          title="View full record details">
-                        <i class="fas fa-search text-sm"></i>
+                        <i class="fas fa-search"></i>
                       </a>
                       <a href="{{ route('empodat_suspect.search.show', $e->id) }}" target="_blank" class="font-mono text-teal-800 hover:text-teal-600 hover:underline">
                         {!! number_format($e->id, 0, '', '&nbsp;') !!}
@@ -208,17 +208,17 @@
                       N/A (ID: {{ $e->substance_id }})
                     @endif
                     @role('super_admin')
-                      <span class="text-xss text-gray-500"> ({{ $e->substance_id }})</span>
+                      <span class="text-xs text-gray-500"> ({{ $e->substance_id }})</span>
                     @endrole
                   </td>
                   <td class="p-1 text-center">
                     <span class="font-medium">{{ $e->concentration ?? 'N/A' }}</span>
                   </td>
                   <td class="p-1 text-center">
-                    {{ $e->units ?? 'N/A' }}
+                    {{ $e->units ? preg_replace(['/\bdry weight\b/i', '/\bwet weight\b/i'], ['dw', 'ww'], $e->units) : 'N/A' }}
                   </td>
                   <td class="p-1 text-center">
-                    {{ $e->ip_max ?? 'N/A' }}
+                    {{ $e->ip_max !== null ? number_format($e->ip_max, 2) : 'N/A' }}
                   </td>
                   <td class="p-1 text-center">
                     {{ $e->based_on_hrms_library ? 'TRUE' : 'FALSE' }}
@@ -229,7 +229,7 @@
                         $country = $e->station->getRelation('country');
                       @endphp
                       @if ($country)
-                        {{ $country->name ?? '' }} - {{ $country->code ?? '' }}
+                        {{ $country->name ?? '' }}
                       @else
                         N/A
                       @endif
@@ -242,7 +242,7 @@
                   </td>
                   <td class="p-1 text-center">
                     @if ($e->station)
-                      <span class="font-mono text-sm">{{ $e->station->short_sample_code ?? 'N/A' }}</span>
+                      <span class="font-mono">{{ $e->station->short_sample_code ?? 'N/A' }}</span>
                     @else
                       N/A
                     @endif

@@ -13,18 +13,22 @@ class DatabaseEntityLiteratureModuleSeeder extends Seeder
      */
     public function run(): void
     {
-        DatabaseEntity::create([
-            'name' => 'Literature',
-            'description' => 'Literature module',
-            'image_path' => 'fas fa-book', // task: fill suitable fontawesome icon like fas fa-book
-            'code' => 'literature',
-            'dashboard_route_name' => 'literature.home.index',
-            'last_update' => null,
-            'number_of_records' => 0,
-            'has_templates' => false,
-            'parent_id' => null,
-            'is_public' => false,
-        ]);
+        DatabaseEntity::updateOrCreate(
+            ['code' => 'literature'], // Search by code
+            [
+                'name' => 'Literature',
+                'description' => 'Literature module',
+                'image_path' => 'fas fa-book',
+                'dashboard_route_name' => 'literature.home.index',
+                'last_update' => null,
+                'number_of_records' => 0,
+                'has_templates' => false,
+                'parent_id' => null,
+                'is_public' => false,
+            ]
+        );
+
+        $this->command->info('✓ Literature database entity created/updated successfully');
     }
 }
 // php artisan db:seed --class=DatabaseEntityLiteratureModuleSeeder
