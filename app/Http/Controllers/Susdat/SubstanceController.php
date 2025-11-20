@@ -45,7 +45,7 @@ class SubstanceController extends Controller
      */
     public function index()
     {
-        $substances = Substance::select(['id', 'code', 'name', 'cas_number', 'smiles', 'stdinchikey', 'dtxid', 'pubchem_cid', 'chemspider_id', 'molecular_formula', 'mass_iso', 'deleted_at'])
+        $substances = Substance::select(['id', 'code', 'name', 'cas_number', 'smiles', 'stdinchikey', 'dtxid', 'pubchem_cid', 'chemspider_id', 'molecular_formula', 'mass_iso', 'average_mass', 'deleted_at'])
             ->orderBy('code', 'asc')
             ->paginate(100)
             ->withQueryString();
@@ -254,7 +254,7 @@ class SubstanceController extends Controller
         });
 
         // Build the optimized query using Eloquent ORM
-        $substances = Substance::query()->select(['id', 'code', 'name', 'cas_number', 'smiles', 'stdinchikey', 'dtxid', 'pubchem_cid', 'chemspider_id', 'molecular_formula', 'mass_iso', 'deleted_at']);
+        $substances = Substance::query()->select(['id', 'code', 'name', 'cas_number', 'smiles', 'stdinchikey', 'dtxid', 'pubchem_cid', 'chemspider_id', 'molecular_formula', 'mass_iso', 'average_mass', 'deleted_at']);
 
         // Apply search filters efficiently
         if ($request->input('searchCategory') == 1 && !empty($categoriesSearch)) {
@@ -484,7 +484,7 @@ class SubstanceController extends Controller
 
     private function getSelectColumns()
     {
-        return ['id', 'code', 'name', 'cas_number', 'smiles', 'stdinchikey', 'dtxid', 'pubchem_cid', 'chemspider_id', 'molecular_formula', 'mass_iso'];
+        return ['id', 'code', 'name', 'cas_number', 'smiles', 'stdinchikey', 'dtxid', 'pubchem_cid', 'chemspider_id', 'molecular_formula', 'mass_iso', 'average_mass'];
     }
 
     private function getViewColumns()
@@ -501,6 +501,7 @@ class SubstanceController extends Controller
             'chemspider_id',
             'molecular_formula',
             'mass_iso',
+            'average_mass',
         ];
     }
 
@@ -567,6 +568,7 @@ class SubstanceController extends Controller
                 'ChemSpider ID',
                 'Molecular Formula',
                 'Isotopic Mass',
+                'Average Mass',
                 'Categories',
                 'Sources',
                 'Export Date'
@@ -574,7 +576,7 @@ class SubstanceController extends Controller
             fputcsv($handle, $headers);
             
             // Build the query from the query log
-            $baseQuery = Substance::query()->select(['id', 'code', 'name', 'cas_number', 'smiles', 'stdinchikey', 'dtxid', 'pubchem_cid', 'chemspider_id', 'molecular_formula', 'mass_iso']);
+            $baseQuery = Substance::query()->select(['id', 'code', 'name', 'cas_number', 'smiles', 'stdinchikey', 'dtxid', 'pubchem_cid', 'chemspider_id', 'molecular_formula', 'mass_iso', 'average_mass']);
             $content = json_decode($queryLog->content, true);
             $requestData = $content['request'] ?? [];
             
@@ -630,6 +632,7 @@ class SubstanceController extends Controller
                     'chemspider_id' => 'chemspider_id',
                     'molecular_formula' => 'molecular_formula',
                     'mass_iso' => 'mass_iso',
+                    'average_mass' => 'average_mass',
                 ];
 
                 $orderColumn = $columnMapping[$columnName] ?? 'code';
@@ -697,6 +700,7 @@ class SubstanceController extends Controller
                         $record->chemspider_id,
                         $record->molecular_formula,
                         $record->mass_iso,
+                        $record->average_mass,
                         $categoryAssociations[$record->id] ?? '',
                         $sourceAssociations[$record->id] ?? '',
                         $exportDate

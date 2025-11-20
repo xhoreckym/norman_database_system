@@ -46,6 +46,10 @@
                 <p class="text-sm text-teal-800 font-mono">{{ $substance->mass_iso ?? 'N/A' }}</p>
               </div>
               <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">Average Mass</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->average_mass ?? 'N/A' }}</p>
+              </div>
+              <div>
                 <h3 class="text-sm font-medium text-gray-800 mb-1">PubChem CID</h3>
                 <p class="text-sm text-teal-800 font-mono">{{ $substance->pubchem_cid ?? 'N/A' }}</p>
               </div>

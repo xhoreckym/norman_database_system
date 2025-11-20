@@ -54,6 +54,7 @@
       <td class="p-1 text-center"><a class="btn-link-lime" href="http://www.chemspider.com/Chemical-Structure.{{$substance->chemspider_id}}.html" target="_blank">{{$substance->chemspider_id}}</a></td>
       <td class="p-1 text-center">{{$substance->molecular_formula}}</td>
       <td class="p-1 text-right">{{$substance->mass_iso}}</td>
+      <td class="p-1 text-right">{{$substance->average_mass}}</td>
       @if(($show['substances'] ?? false) == true)
       <td class="p-1 text-right">
         @if(is_null($substance->category_ids) == false)

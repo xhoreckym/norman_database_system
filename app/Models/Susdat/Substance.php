@@ -44,6 +44,7 @@ class Substance extends Model implements Auditable
         'dtxid',
         'molecular_formula',
         'mass_iso',
+        'average_mass',
         'metadata_synonyms',
         'metadata_cas',
         'metadata_ms_ready',
@@ -63,6 +64,7 @@ class Substance extends Model implements Auditable
      */
     protected $casts = [
         'mass_iso' => 'float',
+        'average_mass' => 'decimal:8',
         'metadata_synonyms' => 'array',
         'metadata_cas' => 'array',
         'metadata_ms_ready' => 'array',
