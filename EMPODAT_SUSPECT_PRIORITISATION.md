@@ -50,6 +50,24 @@
   - Higher storage requirements
   - Risk of hitting PostgreSQL column limits
 
+Context:
+```SQL
+select distinct (matrix_id) from empodat_suspect_station_filters
+```
+Output:
+```
+matrix_id
+19
+20
+40
+41
+42
+43
+44
+46
+```
+
+
   ---
   ## Option 2: Multiple Matrix-Specific Materialized Views
 
