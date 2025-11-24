@@ -61,6 +61,7 @@ class EmpodatSuspectApexXlsxStationsMappingFillSeeder extends Seeder
                     '^0+',
                     ''
                 )
+                AND (s.is_deprecated IS NULL OR s.is_deprecated = false)
             WHERE
                 m.xlsx_name LIKE 'LIFE APEX%'
             GROUP BY
@@ -114,6 +115,7 @@ FROM (
             '^0+',
             ''
         )
+        AND (s.is_deprecated IS NULL OR s.is_deprecated = false)
     WHERE
         m.xlsx_name LIKE 'LIFE APEX%'
     GROUP BY

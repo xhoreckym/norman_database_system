@@ -46,6 +46,7 @@ FROM (
             '^0+',
             ''
         ))
+        AND (s.is_deprecated IS NULL OR s.is_deprecated = false)
     WHERE
         LOWER(m.xlsx_name) LIKE 'conn%ectii%'
     GROUP BY
@@ -81,6 +82,7 @@ FROM (
             '^0+',
             ''
         ))
+        AND (s.is_deprecated IS NULL OR s.is_deprecated = false)
     WHERE
         LOWER(m.xlsx_name) LIKE 'sediment from%dnieperii%'
     GROUP BY
