@@ -3,23 +3,15 @@
 namespace App\Models\Empodat;
 
 use App\Models\Backend\File;
-use App\Models\Susdat\Substance;
 use App\Models\Empodat\AnalyticalMethod as EmpodatAnalyticalMethod;
 use App\Models\List\ConcentrationIndicator;
 use App\Models\List\Country;
 use App\Models\List\Matrix;
-use App\Models\Empodat\EmpodatMinor;
-use App\Models\Empodat\EmpodatMatrixAir;
-use App\Models\Empodat\EmpodatMatrixBiota;
-use App\Models\Empodat\EmpodatMatrixSediments;
-use App\Models\Empodat\EmpodatMatrixSewageSludge;
-use App\Models\Empodat\EmpodatMatrixSoil;
-use App\Models\Empodat\EmpodatMatrixSuspendedMatter;
-use App\Models\Empodat\EmpodatMatrixWater;
+use App\Models\Susdat\Substance;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Carbon\Carbon;
 
 class EmpodatMain extends Model
 {
@@ -196,11 +188,27 @@ class EmpodatMain extends Model
     }
 
     /**
-     * Get the water matrix data associated with this record.
+     * Get the water surface matrix data associated with this record.
      */
-    public function matrixWater()
+    public function matrixWaterSurface()
     {
-        return $this->hasOne(EmpodatMatrixWater::class, 'id', 'id');
+        return $this->hasOne(EmpodatMatrixWaterSurface::class, 'id', 'id');
+    }
+
+    /**
+     * Get the water ground matrix data associated with this record.
+     */
+    public function matrixWaterGround()
+    {
+        return $this->hasOne(EmpodatMatrixWaterGround::class, 'id', 'id');
+    }
+
+    /**
+     * Get the water waste matrix data associated with this record.
+     */
+    public function matrixWaterWaste()
+    {
+        return $this->hasOne(EmpodatMatrixWaterWaste::class, 'id', 'id');
     }
 
     /**
@@ -221,9 +229,9 @@ class EmpodatMain extends Model
         }
 
         return $query->join('empodat_stations', 'empodat_main.station_id', '=', 'empodat_stations.id')
-                    ->whereIn('empodat_stations.country_id', $countryIds)
-                    ->select('empodat_main.*')
-                    ->distinct();
+            ->whereIn('empodat_stations.country_id', $countryIds)
+            ->select('empodat_main.*')
+            ->distinct();
     }
 
     /**
@@ -256,8 +264,8 @@ class EmpodatMain extends Model
     public function scopeNormanRelevant($query)
     {
         return $query->join('susdat_substances as subs_norman', 'empodat_main.substance_id', '=', 'subs_norman.id')
-                    ->where('subs_norman.relevant_to_norman', 1)
-                    ->select('empodat_main.*');
+            ->where('subs_norman.relevant_to_norman', 1)
+            ->select('empodat_main.*');
     }
 
     /**
@@ -277,11 +285,11 @@ class EmpodatMain extends Model
      */
     public function scopeByYearRange($query, $yearFrom = null, $yearTo = null)
     {
-        if (!is_null($yearFrom)) {
+        if (! is_null($yearFrom)) {
             $query->where('sampling_date_year', '>=', $yearFrom);
         }
 
-        if (!is_null($yearTo)) {
+        if (! is_null($yearTo)) {
             $query->where('sampling_date_year', '<=', $yearTo);
         }
 
@@ -298,10 +306,10 @@ class EmpodatMain extends Model
         }
 
         return $query->join('susdat_substances', 'empodat_main.substance_id', '=', 'susdat_substances.id')
-                    ->join('susdat_category_substance', 'susdat_substances.id', '=', 'susdat_category_substance.substance_id')
-                    ->whereIn('susdat_category_substance.category_id', $categoryIds)
-                    ->select('empodat_main.*')
-                    ->distinct();
+            ->join('susdat_category_substance', 'susdat_substances.id', '=', 'susdat_category_substance.substance_id')
+            ->whereIn('susdat_category_substance.category_id', $categoryIds)
+            ->select('empodat_main.*')
+            ->distinct();
     }
 
     /**
@@ -314,10 +322,10 @@ class EmpodatMain extends Model
         }
 
         return $query->join('susdat_substances as subs_source', 'empodat_main.substance_id', '=', 'subs_source.id')
-                    ->join('sle_substance_source', 'subs_source.id', '=', 'sle_substance_source.substance_id')
-                    ->whereIn('sle_substance_source.source_id', $sourceIds)
-                    ->select('empodat_main.*')
-                    ->distinct();
+            ->join('sle_substance_source', 'subs_source.id', '=', 'sle_substance_source.substance_id')
+            ->whereIn('sle_substance_source.source_id', $sourceIds)
+            ->select('empodat_main.*')
+            ->distinct();
     }
 
     /**
@@ -325,23 +333,23 @@ class EmpodatMain extends Model
      */
     public function scopeByDataSourceFilters($query, array $typeIds = [], array $labIds = [], array $orgIds = [])
     {
-        $hasFilters = !empty($typeIds) || !empty($labIds) || !empty($orgIds);
+        $hasFilters = ! empty($typeIds) || ! empty($labIds) || ! empty($orgIds);
 
-        if (!$hasFilters) {
+        if (! $hasFilters) {
             return $query;
         }
 
         $query = $query->join('empodat_data_sources', 'empodat_main.data_source_id', '=', 'empodat_data_sources.id');
 
-        if (!empty($typeIds)) {
+        if (! empty($typeIds)) {
             $query->whereIn('empodat_data_sources.type_data_source_id', $typeIds);
         }
 
-        if (!empty($labIds)) {
+        if (! empty($labIds)) {
             $query->whereIn('empodat_data_sources.laboratory1_id', $labIds);
         }
 
-        if (!empty($orgIds)) {
+        if (! empty($orgIds)) {
             $query->whereIn('empodat_data_sources.organisation_id', $orgIds);
         }
 
@@ -358,9 +366,9 @@ class EmpodatMain extends Model
         }
 
         return $query->join('empodat_analytical_methods', 'empodat_main.method_id', '=', 'empodat_analytical_methods.id')
-                    ->whereIn('empodat_analytical_methods.analytical_method_id', $methodIds)
-                    ->select('empodat_main.*')
-                    ->distinct();
+            ->whereIn('empodat_analytical_methods.analytical_method_id', $methodIds)
+            ->select('empodat_main.*')
+            ->distinct();
     }
 
     /**
@@ -373,7 +381,7 @@ class EmpodatMain extends Model
         }
 
         $query = $query->join('empodat_analytical_methods as eam_rating', 'empodat_main.method_id', '=', 'eam_rating.id');
-        
+
         $query->where(function ($ratingQuery) use ($ratings) {
             foreach ($ratings as $rating) {
                 $ratingQuery->orWhere(function ($individualRating) use ($rating) {
@@ -389,7 +397,7 @@ class EmpodatMain extends Model
     public function scopeByFiles($query, $fileIds)
     {
         // Convert to array if not already
-        if (!is_array($fileIds)) {
+        if (! is_array($fileIds)) {
             $fileIds = [$fileIds];
         }
 
@@ -416,9 +424,9 @@ class EmpodatMain extends Model
         // If user is not authenticated, show only unprotected files
         if (is_null($user)) {
             return $query->join('files', 'empodat_main.file_id', '=', 'files.id')
-                        ->whereRaw('files.is_protected = false')
-                        ->select('empodat_main.*')
-                        ->distinct();
+                ->whereRaw('files.is_protected = false')
+                ->select('empodat_main.*')
+                ->distinct();
         }
 
         // Check if user has admin-level permissions
@@ -433,9 +441,9 @@ class EmpodatMain extends Model
 
         // For regular authenticated users, show only unprotected files
         return $query->join('files', 'empodat_main.file_id', '=', 'files.id')
-                    ->whereRaw('files.is_protected = false')
-                    ->select('empodat_main.*')
-                    ->distinct();
+            ->whereRaw('files.is_protected = false')
+            ->select('empodat_main.*')
+            ->distinct();
     }
 
     /**
@@ -460,13 +468,13 @@ class EmpodatMain extends Model
             'matrixSewageSludge',
             'matrixSoil',
             'matrixSuspendedMatter',
-            'matrixWater'
+            'matrixWater',
         ]);
     }
 
     /**
      * Get the formatted concentration value with indicator.
-     * 
+     *
      * @return string|null
      */
     public function getFormattedConcentrationAttribute()
@@ -476,12 +484,13 @@ class EmpodatMain extends Model
         }
 
         $indicator = $this->concentrationIndicator ? $this->concentrationIndicator->symbol : '';
-        return $indicator . number_format($this->concentration_value, 4);
+
+        return $indicator.number_format($this->concentration_value, 4);
     }
 
     /**
      * Get the formatted sampling date.
-     * 
+     *
      * @return string
      */
     public function getFormattedSamplingDateAttribute()
@@ -490,12 +499,12 @@ class EmpodatMain extends Model
         if ($this->minor && $this->minor->sampling_date) {
             return Carbon::parse($this->minor->sampling_date)->format('Y-m-d');
         }
-        
+
         // Fallback to the year if no minor date available
         if ($this->sampling_date_year) {
             return (string) $this->sampling_date_year;
         }
-        
+
         // Final fallback
         return 'N/A';
     }

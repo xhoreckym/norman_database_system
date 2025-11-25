@@ -11,12 +11,5 @@ class EmpodatMatrixSoil extends Model
 
     protected $table = 'empodat_matrix_soil';
 
-    protected $fillable = [
-        'code',
-        'meta_data',
-    ];
-
-    protected $casts = [
-        'meta_data' => 'array',
-    ];
+    public $timestamps = false;
 }

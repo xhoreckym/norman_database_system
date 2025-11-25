@@ -11,7 +11,6 @@
 ## Commands
 - `php artisan migrate` - User runs migration manually
 - `php artisan migrate:fresh --seed` - User runs seeders manually
-- `composer pint` - Format code (PSR-12)
 
 ## Database (PostgreSQL)
 - Use migrations for ALL schema changes

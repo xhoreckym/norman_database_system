@@ -29,7 +29,6 @@
         <div class="flex justify-between items-center border-b px-4 py-3 bg-stone-600 text-white rounded-t-lg">
             <div class="flex items-center space-x-4">
                 <h3 class="text-lg font-semibold">Record ID: <span x-text="formatRecordId(recordId)"></span></h3>
-                <h3 class="text-sm font-medium text-stone-200">Legacy ID: <span x-text="formatRecordId(record?.dct_analysis_id) || 'N/A'"></span></h3>
             </div>
             <button @click="closeModal()" class="text-white hover:text-gray-200 text-2xl leading-none p-1">
                 &times;
@@ -176,41 +175,44 @@
                     </div>
                 </div>
 
+                <!-- Additional Record Details (Minor) Section -->
+                <div class="mb-4">
+                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Additional Record Details</div>
+                    <div class="space-y-1">
+                        <template x-for="(pair, index) in minorArray" :key="index">
+                            <div :class="index % 2 === 0 ? 'bg-slate-100' : 'bg-slate-200'"
+                                 class="flex justify-between py-1 px-2 text-sm rounded">
+                                <div class="font-semibold" x-text="pair[0]"></div>
+                                <div x-text="pair[1]"></div>
+                            </div>
+                        </template>
+                        <template x-if="minorArray.length === 0">
+                            <div class="text-center text-gray-500 py-2">No additional details available</div>
+                        </template>
+                    </div>
+                </div>
+
                 <!-- Matrix Data Section -->
                 <div class="mb-4">
-                    <div class="font-semibold text-base border-b-2 border-lime-500 text-center mb-2">Matrix Data</div>
-                    <template x-if="record?.matrix_data">
-                        <div class="space-y-2">
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="bg-slate-100 p-2 rounded">
-                                    <span class="font-semibold text-sm">Type:</span>
-                                    <span class="ml-2 text-sm" x-text="record.matrix_data.type || 'N/A'"></span>
-                                </div>
-                                <div class="bg-slate-200 p-2 rounded">
-                                    <span class="font-semibold text-sm">Code:</span>
-                                    <span class="ml-2 text-sm" x-text="record.matrix_data.code || 'N/A'"></span>
-                                </div>
-                            </div>
-                            
-                            <!-- Meta Data -->
-                            <template x-if="metaDataArray.length > 0">
-                                <div class="mt-2">
-                                    <div class="font-medium text-sm mb-1">Metadata:</div>
-                                    <div class="space-y-1">
-                                        <template x-for="(pair, index) in metaDataArray" :key="index">
-                                            <div :class="index % 2 === 0 ? 'bg-gray-50' : 'bg-gray-100'" 
-                                                 class="flex justify-between py-1 px-2 text-xs rounded">
-                                                <div class="font-medium" x-text="pair[0]"></div>
-                                                <div x-text="pair[1]"></div>
-                                            </div>
-                                        </template>
-                                    </div>
+                    <div class="font-semibold text-base border-b-2 border-teal-500 text-center mb-2">
+                        Matrix Metadata
+                        <template x-if="record?.matrix_data?.type">
+                            <span class="text-sm font-normal text-gray-600" x-text="'(' + record.matrix_data.type.replace(/_/g, ' ') + ')'"></span>
+                        </template>
+                    </div>
+                    <template x-if="record?.matrix_data && metaDataArray.length > 0">
+                        <div class="space-y-1">
+                            <template x-for="(pair, index) in metaDataArray" :key="index">
+                                <div :class="index % 2 === 0 ? 'bg-teal-50' : 'bg-teal-100'"
+                                     class="flex justify-between py-1 px-2 text-sm rounded">
+                                    <div class="font-semibold text-teal-900" x-text="pair[0]"></div>
+                                    <div class="text-teal-800" x-text="pair[1]"></div>
                                 </div>
                             </template>
                         </div>
                     </template>
-                    <template x-if="!record?.matrix_data">
-                        <div class="text-center text-gray-500 py-2">No matrix data available</div>
+                    <template x-if="!record?.matrix_data || metaDataArray.length === 0">
+                        <div class="text-center text-gray-500 py-2">No matrix metadata available</div>
                     </template>
                 </div>
 

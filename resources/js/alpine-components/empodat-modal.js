@@ -9,6 +9,7 @@ export default function empodatModal() {
         analyticalMethodArray: [],
         dataSourceArray: [],
         metaDataArray: [],
+        minorArray: [],
 
         init() {
             // Initialize Alpine component
@@ -47,6 +48,7 @@ export default function empodatModal() {
                 this.buildAnalyticalMethodArray();
                 this.buildDataSourceArray();
                 this.buildMetaDataArray();
+                this.buildMinorArray();
 
                 // Show the modal
                 this.showModal = true;
@@ -203,7 +205,7 @@ export default function empodatModal() {
         buildMetaDataArray() {
             if (this.record?.matrix_data?.meta_data) {
                 const excludedKeys = ['id', 'created_at', 'updated_at'];
-                
+
                 this.metaDataArray = Object.entries(this.record.matrix_data.meta_data)
                     .filter(([key, val]) =>
                         !excludedKeys.includes(key) &&
@@ -216,6 +218,26 @@ export default function empodatModal() {
                     ]);
             } else {
                 this.metaDataArray = [];
+            }
+        },
+
+        buildMinorArray() {
+            if (this.record?.minor) {
+                const excludedKeys = ['id', 'created_at', 'updated_at', 'empodat_main_id'];
+
+                this.minorArray = Object.entries(this.record.minor)
+                    .filter(([key, val]) =>
+                        !excludedKeys.includes(key) &&
+                        val !== null &&
+                        val !== '' &&
+                        val !== 0
+                    )
+                    .map(([key, val]) => [
+                        this.formatFieldName(key),
+                        val
+                    ]);
+            } else {
+                this.minorArray = [];
             }
         },
 
@@ -265,6 +287,7 @@ export default function empodatModal() {
             this.analyticalMethodArray = [];
             this.dataSourceArray = [];
             this.metaDataArray = [];
+            this.minorArray = [];
         },
 
         // Helper method to format coordinates for display

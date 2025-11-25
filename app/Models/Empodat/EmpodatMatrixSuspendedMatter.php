@@ -11,12 +11,5 @@ class EmpodatMatrixSuspendedMatter extends Model
 
     protected $table = 'empodat_matrix_suspended_matter';
 
-    protected $fillable = [
-        'code',
-        'meta_data',
-    ];
-
-    protected $casts = [
-        'meta_data' => 'array',
-    ];
+    public $timestamps = false;
 }

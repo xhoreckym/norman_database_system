@@ -11,12 +11,5 @@ class EmpodatMatrixSewageSludge extends Model
 
     protected $table = 'empodat_matrix_sewage_sludge';
 
-    protected $fillable = [
-        'code',
-        'meta_data',
-    ];
-
-    protected $casts = [
-        'meta_data' => 'array',
-    ];
+    public $timestamps = false;
 }

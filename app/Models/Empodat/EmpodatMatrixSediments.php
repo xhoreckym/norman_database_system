@@ -11,12 +11,5 @@ class EmpodatMatrixSediments extends Model
 
     protected $table = 'empodat_matrix_sediments';
 
-    protected $fillable = [
-        'code',
-        'meta_data',
-    ];
-
-    protected $casts = [
-        'meta_data' => 'array',
-    ];
+    public $timestamps = false;
 }
