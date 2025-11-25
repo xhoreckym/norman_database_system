@@ -2,30 +2,30 @@
 
 namespace App\Http\Controllers\EmpodatSuspect;
 
-use App\Models\List\Matrix;
-use App\Models\List\Country;
-use Illuminate\Http\Request;
-use App\Models\DatabaseEntity;
-use App\Models\Backend\QueryLog;
-use App\Models\Susdat\Category;
-use App\Models\Susdat\Substance;
-use App\Models\Empodat\SearchMatrix;
 use App\Http\Controllers\Controller;
+use App\Jobs\EmpodatSuspect\EmpodatSuspectCsvExportJob;
+use App\Models\Backend\ExportDownload;
+use App\Models\Backend\QueryLog;
+use App\Models\DatabaseEntity;
 use App\Models\Empodat\SearchCountries;
-use App\Models\List\ConcentrationIndicator;
+use App\Models\Empodat\SearchMatrix;
 use App\Models\EmpodatSuspect\EmpodatSuspectMain;
-use App\Models\SLE\SuspectListExchangeSource;
 use App\Models\List\AnalyticalMethod;
+use App\Models\List\ConcentrationIndicator;
+use App\Models\List\Country;
 use App\Models\List\DataSourceLaboratory;
 use App\Models\List\DataSourceOrganisation;
+use App\Models\List\Matrix;
 use App\Models\List\QualityEmpodatAnalyticalMethods;
 use App\Models\List\TypeDataSource;
-use App\Models\Backend\ExportDownload;
+use App\Models\SLE\SuspectListExchangeSource;
+use App\Models\Susdat\Category;
+use App\Models\Susdat\Substance;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class EmpodatSuspectController extends Controller
 {
@@ -44,7 +44,7 @@ class EmpodatSuspectController extends Controller
     {
         $databaseEntity = DatabaseEntity::where('code', 'empodat_suspect')->first();
 
-        if (!$databaseEntity) {
+        if (! $databaseEntity) {
             abort(403, 'Module not found.');
         }
 
@@ -54,7 +54,7 @@ class EmpodatSuspectController extends Controller
         }
 
         // Module is private - check if user is logged in
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             abort(403, 'You must be logged in to access this module.');
         }
 
@@ -82,10 +82,10 @@ class EmpodatSuspectController extends Controller
     {
         // Get countries that have empodat_suspect data (via the materialized view)
         $countries = SearchCountries::with('country')
-            ->whereIn('country_id', function($query) {
+            ->whereIn('country_id', function ($query) {
                 $query->select('country_id')
-                      ->from('empodat_suspect_station_filters')
-                      ->distinct();
+                    ->from('empodat_suspect_station_filters')
+                    ->distinct();
             })
             ->orderBy('country_id', 'asc')
             ->get();
@@ -97,10 +97,10 @@ class EmpodatSuspectController extends Controller
 
         // Get matrices that have empodat_suspect data (via the materialized view)
         $matrices = SearchMatrix::with('matrix')
-            ->whereIn('matrix_id', function($query) {
+            ->whereIn('matrix_id', function ($query) {
                 $query->select('matrix_id')
-                      ->from('empodat_suspect_station_filters')
-                      ->distinct();
+                    ->from('empodat_suspect_station_filters')
+                    ->distinct();
             })
             ->orderBy('matrix_id', 'asc')
             ->get();
@@ -116,7 +116,7 @@ class EmpodatSuspectController extends Controller
         foreach ($sources as $s) {
             $code = preg_replace('/[^a-zA-Z0-9]/', '', $s->code);
             $name = preg_replace('/[^a-zA-Z0-9]/', '', $s->name);
-            $sourceList[$s->id] = $code . ' - ' . $name;
+            $sourceList[$s->id] = $code.' - '.$name;
         }
 
         // Get categories
@@ -213,7 +213,7 @@ class EmpodatSuspectController extends Controller
             try {
                 DB::statement('SET statement_timeout = 300000'); // 5 minutes timeout
             } catch (\Exception $timeoutError) {
-                Log::warning('Database timeout setting not supported: ' . $timeoutError->getMessage());
+                Log::warning('Database timeout setting not supported: '.$timeoutError->getMessage());
             }
 
             // Define search fields with their default values
@@ -239,10 +239,10 @@ class EmpodatSuspectController extends Controller
             // STEP 1: Determine if we should use the materialized view
             // The materialized view contains station/country/matrix/year combinations
             // for fast filtering by geography and ecosystem.
-            $hasStationFilters = !empty($searchInputs['countrySearch'])
-                || !empty($searchInputs['matrixSearch'])
-                || !empty($searchInputs['year_from'])
-                || !empty($searchInputs['year_to']);
+            $hasStationFilters = ! empty($searchInputs['countrySearch'])
+                || ! empty($searchInputs['matrixSearch'])
+                || ! empty($searchInputs['year_from'])
+                || ! empty($searchInputs['year_to']);
 
             $empodatSuspects = EmpodatSuspectMain::query()
                 ->select('empodat_suspect_main.*')
@@ -250,9 +250,9 @@ class EmpodatSuspectController extends Controller
                 ->whereNotNull('empodat_suspect_main.substance_id')
                 ->selectSub(function ($query) {
                     $query->select('sampling_date_year')
-                          ->from('empodat_suspect_station_filters')
-                          ->whereColumn('empodat_suspect_station_filters.station_id', 'empodat_suspect_main.station_id')
-                          ->limit(1);
+                        ->from('empodat_suspect_station_filters')
+                        ->whereColumn('empodat_suspect_station_filters.station_id', 'empodat_suspect_main.station_id')
+                        ->limit(1);
                 }, 'sampling_year');
 
             // Only use materialized view if there are station-level filters
@@ -260,19 +260,19 @@ class EmpodatSuspectController extends Controller
                 $stationFiltersQuery = DB::table('empodat_suspect_station_filters');
 
                 // Apply filters to the materialized view
-                if (!empty($searchInputs['countrySearch'])) {
+                if (! empty($searchInputs['countrySearch'])) {
                     $stationFiltersQuery->whereIn('country_id', $searchInputs['countrySearch']);
                 }
 
-                if (!empty($searchInputs['matrixSearch'])) {
+                if (! empty($searchInputs['matrixSearch'])) {
                     $stationFiltersQuery->whereIn('matrix_id', $searchInputs['matrixSearch']);
                 }
 
-                if (!empty($searchInputs['year_from'])) {
+                if (! empty($searchInputs['year_from'])) {
                     $stationFiltersQuery->where('sampling_date_year', '>=', $searchInputs['year_from']);
                 }
 
-                if (!empty($searchInputs['year_to'])) {
+                if (! empty($searchInputs['year_to'])) {
                     $stationFiltersQuery->where('sampling_date_year', '<=', $searchInputs['year_to']);
                 }
 
@@ -284,24 +284,24 @@ class EmpodatSuspectController extends Controller
             }
 
             // Apply additional filters specific to empodat_suspect_main
-            if (!empty($request->input('substances'))) {
+            if (! empty($request->input('substances'))) {
                 $empodatSuspects->whereIn('substance_id', $request->input('substances'));
             }
 
             // Apply file filter (only for authorized users)
-            if (!empty($searchInputs['fileSearch'])) {
+            if (! empty($searchInputs['fileSearch'])) {
                 $empodatSuspects->whereIn('file_id', $searchInputs['fileSearch']);
             }
 
             // Apply category filter (via substance relationship)
-            if (!empty($searchInputs['categoriesSearch'])) {
+            if (! empty($searchInputs['categoriesSearch'])) {
                 $empodatSuspects->whereHas('substance.categories', function ($q) use ($searchInputs) {
                     $q->whereIn('susdat_categories.id', $searchInputs['categoriesSearch']);
                 });
             }
 
             // Apply SLE source filter (via substance relationship)
-            if (!empty($searchInputs['sourceSearch'])) {
+            if (! empty($searchInputs['sourceSearch'])) {
                 $empodatSuspects->whereHas('substance', function ($q) use ($searchInputs) {
                     $q->whereHas('sources', function ($sourceQuery) use ($searchInputs) {
                         $sourceQuery->whereIn('sle_sources.id', $searchInputs['sourceSearch']);
@@ -338,9 +338,9 @@ class EmpodatSuspectController extends Controller
             ], $mainRequest));
 
         } catch (\Exception $e) {
-            Log::error('Empodat Suspect search failed: ' . $e->getMessage(), [
+            Log::error('Empodat Suspect search failed: '.$e->getMessage(), [
                 'request' => $request->all(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()->route('empodat_suspect.search.filter')
@@ -385,69 +385,69 @@ class EmpodatSuspectController extends Controller
         $searchParameters = [];
 
         // Country parameters
-        if (!empty($searchInputs['countrySearch'])) {
+        if (! empty($searchInputs['countrySearch'])) {
             $searchParameters['countrySearch'] = Country::whereIn('id', $searchInputs['countrySearch'])->pluck('name');
         }
 
         // Matrix parameters
-        if (!empty($searchInputs['matrixSearch'])) {
+        if (! empty($searchInputs['matrixSearch'])) {
             $searchParameters['matrixSearch'] = Matrix::whereIn('id', $searchInputs['matrixSearch'])->pluck('name');
         }
 
         // Substance parameters
-        if (!empty($request->input('substances'))) {
+        if (! empty($request->input('substances'))) {
             $searchParameters['substances'] = Substance::whereIn('id', $request->input('substances'))->pluck('name');
         }
 
         // Data source parameters
-        if (!empty($searchInputs['typeDataSourcesSearch'])) {
+        if (! empty($searchInputs['typeDataSourcesSearch'])) {
             $searchParameters['typeDataSourcesSearch'] = TypeDataSource::whereIn('id', $searchInputs['typeDataSourcesSearch'])->pluck('name');
         }
 
-        if (!empty($searchInputs['dataSourceLaboratorySearch'])) {
+        if (! empty($searchInputs['dataSourceLaboratorySearch'])) {
             $searchParameters['dataSourceLaboratorySearch'] = DataSourceLaboratory::whereIn('id', $searchInputs['dataSourceLaboratorySearch'])->pluck('name');
         }
 
-        if (!empty($searchInputs['dataSourceOrganisationSearch'])) {
+        if (! empty($searchInputs['dataSourceOrganisationSearch'])) {
             $searchParameters['dataSourceOrganisationSearch'] = DataSourceOrganisation::whereIn('id', $searchInputs['dataSourceOrganisationSearch'])->pluck('name');
         }
 
         // Analytical method parameters
-        if (!empty($searchInputs['analyticalMethodSearch'])) {
+        if (! empty($searchInputs['analyticalMethodSearch'])) {
             $searchParameters['analyticalMethodSearch'] = AnalyticalMethod::whereIn('id', $searchInputs['analyticalMethodSearch'])->pluck('name');
         }
 
         // Category parameters
-        if (!empty($searchInputs['categoriesSearch'])) {
+        if (! empty($searchInputs['categoriesSearch'])) {
             $searchParameters['categoriesSearch'] = Category::whereIn('id', $searchInputs['categoriesSearch'])->pluck('name');
         }
 
         // Concentration indicator parameters
-        if (!empty($searchInputs['concentrationIndicatorSearch'])) {
+        if (! empty($searchInputs['concentrationIndicatorSearch'])) {
             $searchParameters['concentrationIndicatorSearch'] = ConcentrationIndicator::whereIn('id', $searchInputs['concentrationIndicatorSearch'])->pluck('name');
         }
 
         // Source parameters
-        if (!empty($searchInputs['sourceSearch'])) {
+        if (! empty($searchInputs['sourceSearch'])) {
             $searchParameters['sourceSearch'] = SuspectListExchangeSource::whereIn('id', $searchInputs['sourceSearch'])->pluck('code');
         }
 
         // Quality parameters
-        if (!empty($searchInputs['qualityAnalyticalMethodsSearch'])) {
+        if (! empty($searchInputs['qualityAnalyticalMethodsSearch'])) {
             $searchParameters['ratings'] = QualityEmpodatAnalyticalMethods::whereIn('id', $searchInputs['qualityAnalyticalMethodsSearch'])->get();
         }
 
         // Year parameters
-        if (!is_null($request->input('year_from'))) {
+        if (! is_null($request->input('year_from'))) {
             $searchParameters['year_from'] = $request->input('year_from');
         }
 
-        if (!is_null($request->input('year_to'))) {
+        if (! is_null($request->input('year_to'))) {
             $searchParameters['year_to'] = $request->input('year_to');
         }
 
         // File parameters (only for authorized users)
-        if (!empty($searchInputs['fileSearch'])) {
+        if (! empty($searchInputs['fileSearch'])) {
             $searchParameters['fileSearch'] = \App\Models\Backend\File::whereIn('id', $searchInputs['fileSearch'])->pluck('name');
         }
 
@@ -487,8 +487,8 @@ class EmpodatSuspectController extends Controller
 
         // Check for existing query with same hash
         $actualCount = QueryLog::where('query_hash', $queryHash)
-                               ->where('total_count', $empodatSuspectsCount)
-                               ->value('actual_count');
+            ->where('total_count', $empodatSuspectsCount)
+            ->value('actual_count');
 
         try {
             QueryLog::insert([
@@ -506,12 +506,13 @@ class EmpodatSuspectController extends Controller
             return QueryLog::orderBy('id', 'desc')->first()->id;
 
         } catch (\Exception $e) {
-            Log::error('Query logging failed: ' . $e->getMessage(), [
+            Log::error('Query logging failed: '.$e->getMessage(), [
                 'query_hash' => $queryHash,
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
             session()->flash('error', 'An error occurred while processing your request.');
+
             return null;
         }
     }
@@ -592,190 +593,32 @@ class EmpodatSuspectController extends Controller
     }
 
     /**
-     * Start CSV download job
+     * Start CSV download job (dispatches to queue for background processing)
+     *
+     * Uses the queue-based EmpodatSuspectCsvExportJob which:
+     * - Processes large exports in the background
+     * - Includes all matrix metadata (biota, sediments, water, soil, air, etc.)
+     * - Sends email notification when complete
+     * - Tracks progress in the ExportDownload table
      */
     public function startDownloadJob($query_log_id)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             session()->flash('error', 'You must be logged in to download the CSV file.');
+
             return back();
         }
 
-        // Increase memory limit for large exports
-        ini_set('memory_limit', '512M');
+        // Generate filename at dispatch time to avoid timing issues
+        $filename = 'empodat_suspect_export_uid_'.Auth::id().'_'.now()->format('YmdHis').'.csv';
 
-        // Disable query log to save memory
-        DB::connection()->disableQueryLog();
+        // Dispatch the job to the queue
+        $user = Auth::user();
+        EmpodatSuspectCsvExportJob::dispatch($query_log_id, $user, $filename);
 
-        // Disable debugbar to prevent memory issues
-        if (app()->has('debugbar')) {
-            app('debugbar')->disable();
-        }
+        session()->flash('success', 'The CSV file is being generated with all matrix metadata. You will receive an email once it is ready for download, or check the "My downloads" page for the status.');
 
-        try {
-            // Get the query log record
-            $queryLog = QueryLog::findOrFail($query_log_id);
-
-            // Generate filename
-            $filename = 'empodat_suspect_export_uid_' . Auth::id() . '_' . now()->format('YmdHis') . '.csv';
-
-            // Get request information for logging
-            $ip = request()->ip();
-            $userAgent = request()->userAgent();
-
-            // Create an export download record for tracking
-            $exportDownload = ExportDownload::create([
-                'user_id' => Auth::id(),
-                'filename' => $filename,
-                'format' => 'csv',
-                'ip_address' => $ip,
-                'user_agent' => $userAgent,
-                'database_key' => 'empodat_suspect',
-                'status' => 'processing',
-                'started_at' => Carbon::now()
-            ]);
-
-            // Associate with the query log
-            $exportDownload->queryLogs()->attach($query_log_id);
-
-            // Process the export directly
-            $startTime = microtime(true);
-            $directory = 'exports/empodat_suspect';
-
-            // Make sure the directory exists
-            Storage::makeDirectory($directory);
-
-            $path = Storage::path("{$directory}/{$filename}");
-            $handle = fopen($path, 'w');
-
-            if (!$handle) {
-                throw new \Exception("Unable to open file for writing: {$path}");
-            }
-
-            // Write CSV headers
-            $headers = [
-                'ID',
-                'Norman SUS ID',
-                'Substance Name',
-                'Concentration',
-                'Units',
-                'IP Max',
-                'Based on HRMS Library',
-                'Country Name',
-                'Country Code',
-                'Sampling Year',
-                'Sample Code',
-                'Sampling Station',
-                'Station ID',
-                'Export Date'
-            ];
-            fputcsv($handle, $headers);
-
-            // OPTIMIZED APPROACH: Use the stored SQL query from QueryLog
-            // This ensures exact match with search results and better performance
-
-            $totalExported = 0;
-            $exportDate = Carbon::now()->format('Y-m-d H:i:s');
-
-            // Get the stored SQL query
-            $storedSql = $queryLog->query;
-
-            // Extract only the IDs from the stored query using it as a subquery
-            // This approach processes records in chunks without loading all IDs into memory
-            DB::table(DB::raw("({$storedSql}) as filtered_results"))
-                ->select('id')
-                ->orderBy('id')
-                ->chunk(500, function ($idChunk) use ($handle, $exportDate, &$totalExported) {
-                    $ids = $idChunk->pluck('id')->toArray();
-
-                    // Load full records with relationships for this chunk only
-                    $records = EmpodatSuspectMain::with([
-                        'substance',
-                        'station.country',
-                    ])
-                    ->whereIn('id', $ids)
-                    ->orderBy('id')
-                    ->get();
-
-                    // Write to CSV
-                    foreach ($records as $record) {
-                        // Get country information safely
-                        $countryName = '';
-                        $countryCode = '';
-                        if ($record->station && $record->station->country_id) {
-                            $country = $record->station->getRelation('country');
-                            if ($country) {
-                                $countryName = $country->name ?? '';
-                                $countryCode = $country->code ?? '';
-                            }
-                        }
-
-                        $row = [
-                            $record->id,
-                            $record->substance && $record->substance->code ? 'NS' . $record->substance->code : '',
-                            $record->substance->name ?? '',
-                            $record->concentration ?? '',
-                            $record->units ?? '',
-                            $record->ip_max ?? '',
-                            $record->based_on_hrms_library ? 'TRUE' : 'FALSE',
-                            $countryName,
-                            $countryCode,
-                            $record->sampling_year ?? '',
-                            $record->station->short_sample_code ?? '',
-                            $record->station->name ?? '',
-                            $record->station_id ?? '',
-                            $exportDate
-                        ];
-                        fputcsv($handle, $row);
-                        $totalExported++;
-                    }
-
-                    // Free memory after each chunk
-                    unset($records, $ids, $idChunk);
-                    gc_collect_cycles();
-                });
-
-            fclose($handle);
-
-            // Get file size and processing time
-            $fileSize = Storage::size("{$directory}/{$filename}");
-            $formattedFileSize = $this->formatBytes($fileSize);
-            $processingTime = round(microtime(true) - $startTime, 2);
-
-            // Update the export download record
-            $exportDownload->update([
-                'status' => 'completed',
-                'record_count' => $totalExported,
-                'file_size_bytes' => $fileSize,
-                'file_size_formatted' => $formattedFileSize,
-                'processing_time_seconds' => $processingTime,
-                'completed_at' => Carbon::now()
-            ]);
-
-            Log::info("Empodat Suspect export complete: {$totalExported} records exported in {$processingTime} seconds. File size: {$formattedFileSize}");
-
-            // Clear any remaining memory
-            gc_collect_cycles();
-
-            // Redirect to download with success message
-            session()->flash('success', "Export complete: {$totalExported} records exported in {$processingTime} seconds.");
-            return redirect()->route('empodat_suspect.csv.download', ['filename' => $filename]);
-
-        } catch (\Exception $e) {
-            Log::error("Empodat Suspect export failed: " . $e->getMessage());
-
-            // Update export download record if it exists
-            if (isset($exportDownload)) {
-                $exportDownload->update([
-                    'status' => 'failed',
-                    'message' => $e->getMessage(),
-                    'completed_at' => Carbon::now()
-                ]);
-            }
-
-            session()->flash('error', 'Export failed: ' . $e->getMessage());
-            return back();
-        }
+        return back();
     }
 
     /**
@@ -786,7 +629,7 @@ class EmpodatSuspectController extends Controller
         $directory = 'exports/empodat_suspect';
         $path = Storage::path("{$directory}/{$filename}");
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return response()->json([
                 'error' => 'File not found',
                 'message' => 'The requested CSV file does not exist.',
@@ -811,6 +654,6 @@ class EmpodatSuspectController extends Controller
 
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        return round($bytes, $precision).' '.$units[$pow];
     }
 }

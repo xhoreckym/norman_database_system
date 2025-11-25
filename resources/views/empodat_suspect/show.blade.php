@@ -17,7 +17,7 @@
               <div class="ml-3">
                 <p class="text-sm text-blue-700">
                   <strong>Note:</strong> This record is displayed in a new browser tab.
-                  To return to your search results, please switch to the previous tab instead of using the "Search" link in the navigation bar. You may use keystroke <span class="font-mono">CTRL+SHIFT+T</span>.
+                  To return to your search results, please switch to the previous tab instead of using the "Search" link in the navigation bar. You may use keystroke <span class="font-mono">CTRL+SHIFT+TAB</span>.
                 </p>
               </div>
             </div>
