@@ -40,11 +40,21 @@ class BioassayController extends Controller
     }
     
     /**
-    * Display the specified resource.
+    * Display the specified resource with all metadata.
     */
     public function show(string $id)
     {
-        //
+        $record = FieldStudy::with([
+            'sampleData.country',
+            'sampleData.dataSource',
+            'bioassayName',
+            'endpoint',
+            'mainDeterminand',
+        ])->findOrFail($id);
+
+        return view('bioassay.show', [
+            'record' => $record,
+        ]);
     }
     
     /**
