@@ -89,10 +89,9 @@
           <table class="table-standard">
             <thead>
               <tr class="bg-gray-600 text-white">
-                <th></th>
                 <th>ID</th>
                 <th>Substance</th>
-                <th>Country</th>
+                {{-- <th>Country</th> --}}
                 <th>Matrix</th>
                 <th>Organisation</th>
                 <th>Date of sampling</th>
@@ -102,21 +101,18 @@
               @foreach ($resultsObjects as $e)
                 <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif ">
                   <td class="p-1 text-center">
-                    <div class="flex justify-center space-x-1">
-                      <a href="{{ route('passive.search.show', ['search' => $e->id] + $request->all()) }}" class="link-lime" title="View Details">
+                    <div class="flex items-center justify-center space-x-2">
+                      <a href="{{ route('passive.search.show', $e->id) }}"
+                         target="_blank"
+                         class="text-teal-600 hover:text-teal-800 transition-colors"
+                         title="View full record details">
                         <i class="fas fa-search"></i>
                       </a>
-                      @if (auth()->check() &&
-                              (auth()->user()->hasRole('super_admin') ||
-                                  auth()->user()->hasRole('admin') ||
-                                  auth()->user()->hasRole('passive')))
-                        <a href="{{ route('passive.search.edit', ['search' => $e->id] + $request->all()) }}" class="link-edit" title="Edit Record">
-                          <i class="fas fa-edit"></i>
-                        </a>
-                      @endif
+                      <a href="{{ route('passive.search.show', $e->id) }}" target="_blank" class="font-mono text-teal-800 hover:text-teal-600 hover:underline">
+                        {!! number_format($e->id, 0, '', '&nbsp;') !!}
+                      </a>
                     </div>
                   </td>
-                  <td class="p-1 text-center">{{ $e->id }}</td>
                   <td class="p-1 text-center">
                     @if ($e->sus_id)
                       {{ $e->substance->name ?? 'N/A' }}
@@ -124,13 +120,13 @@
                       <span class="text-gray-400">N/A</span>
                     @endif
                   </td>
-                  <td class="p-1 text-center">
+                  {{-- <td class="p-1 text-center">
                     @if ($e->country_id)
                       {{ $e->country->name ?? $e->country_id }}
                     @else
                       <span class="text-gray-400">N/A</span>
                     @endif
-                  </td>
+                  </td> --}}
                   <td class="p-1 text-center">
                     @if ($e->matrix_id)
                       {{ $e->matrix->name }}

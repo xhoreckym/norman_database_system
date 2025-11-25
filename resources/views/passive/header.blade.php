@@ -7,9 +7,17 @@
     Home
   </x-nav-link-header>
 
+  @if(request()->routeIs('passive.search.show'))
+  <span class="inline-flex py-4 mr-5 items-center border-b-2 border-transparent text-sm font-medium leading-5 text-gray-400 cursor-not-allowed"
+        title="You are viewing a record in a new tab. To return to search results, close this tab or use your browser's back button."
+        aria-label="Search is disabled on this page">
+    Search
+  </span>
+  @else
   <x-nav-link-header :href="route('passive.search.filter')" :active="request()->is('*passive.search*')">
     Search
   </x-nav-link-header>
+  @endif
 
   <x-nav-link-header :href="route('templates.specific.index', ['code' => 'passive'])" :active="request()->is('backend/templates/entity/passive*')">
     DCT Download

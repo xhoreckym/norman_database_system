@@ -4,351 +4,285 @@
   </x-slot>
 
   <div class="py-4">
-    <div class="w-full mx-auto sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
       <div class="bg-white shadow-lg sm:rounded-lg">
         <div class="p-6 text-gray-900">
-          
-          @if(session('success'))
-            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-              {{ session('success') }}
-            </div>
-          @endif
 
-          <div class="mb-6 flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-gray-800">Record ID: {{ $passive->id }}</h3>
-            <div class="flex space-x-2">
-              @if (auth()->check() && 
-                   (auth()->user()->hasRole('super_admin') || 
-                    auth()->user()->hasRole('admin') || 
-                    auth()->user()->hasRole('passive')))
-                <a href="{{ route('passive.search.edit', ['search' => $passive->id] + $request->except(['search'])) }}" class="link-edit">
-                  <i class="fas fa-edit mr-1"></i> Edit
-                </a>
-              @endif
-              <a href="{{ route('passive.search.search', $request->except(['search'])) }}" class="link-lime">
-                <i class="fas fa-arrow-left mr-1"></i> Back to Search
-              </a>
+          {{-- Notification Banner --}}
+          <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <i class="fas fa-info-circle text-blue-500 text-lg"></i>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-blue-700">
+                  <strong>Note:</strong> This record is displayed in a new browser tab.
+                  To return to your search results, please switch to the previous tab instead of using the "Search" link in the navigation bar. You may use keystroke <span class="font-mono">CTRL+SHIFT+TAB</span>.
+                </p>
+              </div>
             </div>
           </div>
 
-          <div class="overflow-x-auto">
-            <table class="table-standard">
-              <tbody>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Substance ID</td>
-                  <td class="p-2">{{ $passive->sus_id ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Substance</td>
-                  <td class="p-2">{{ $passive->substance->name ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Country</td>
-                  <td class="p-2">{{ $passive->country->name ?? $passive->country_id ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Country Other</td>
-                  <td class="p-2">{{ $passive->country_other ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Station Name</td>
-                  <td class="p-2">{{ $passive->station_name ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Short Sample Code</td>
-                  <td class="p-2">{{ $passive->short_sample_code ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Sample Code</td>
-                  <td class="p-2">{{ $passive->sample_code ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Provider Code</td>
-                  <td class="p-2">{{ $passive->provider_code ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">National Code</td>
-                  <td class="p-2">{{ $passive->national_code ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">EC Code (WISE)</td>
-                  <td class="p-2">{{ $passive->code_ec_wise ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">EC Code (Other)</td>
-                  <td class="p-2">{{ $passive->code_ec_other ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Other Code</td>
-                  <td class="p-2">{{ $passive->code_other ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Specific Locations</td>
-                  <td class="p-2">{{ $passive->specific_locations ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Longitude</td>
-                  <td class="p-2">{{ $passive->longitude_decimal ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Latitude</td>
-                  <td class="p-2">{{ $passive->latitude_decimal ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Precision Coordinates</td>
-                  <td class="p-2">{{ $passive->dpc_id ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Altitude</td>
-                  <td class="p-2">{{ $passive->altitude ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Proxy Pressures</td>
-                  <td class="p-2">{{ $passive->dpr_id ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Proxy Pressures Other</td>
-                  <td class="p-2">{{ $passive->dpr_other ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Dynamic Sampling Stretch</td>
-                  <td class="p-2">{{ $passive->ds_passive_sampling_stretch ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Stretch Start and End</td>
-                  <td class="p-2">{{ $passive->ds_stretch_start_and_end ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">DS Longitude Start</td>
-                  <td class="p-2">{{ $passive->ds_longitude_start_point_decimal ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">DS Latitude Start</td>
-                  <td class="p-2">{{ $passive->ds_latitude_start_point_decimal ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">DS Longitude End</td>
-                  <td class="p-2">{{ $passive->ds_longitude_end_point_decimal ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">DS Latitude End</td>
-                  <td class="p-2">{{ $passive->ds_latitude_end_point_decimal ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">DS Precision Coordinates</td>
-                  <td class="p-2">{{ $passive->ds_dpc_id ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">DS Altitude</td>
-                  <td class="p-2">{{ $passive->ds_altitude ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">DS Proxy Pressures</td>
-                  <td class="p-2">{{ $passive->ds_dpr_id ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">DS Proxy Pressures Other</td>
-                  <td class="p-2">{{ $passive->ds_dpr_other ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Matrix</td>
-                  <td class="p-2">{{ $passive->matrix->name ?? $passive->matrix_other ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Type Sampling</td>
-                  <td class="p-2">{{ $passive->type_sampling_other ?? $passive->type_sampling_id ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Passive Sampler</td>
-                  <td class="p-2">{{ $passive->passive_sampler_other ?? $passive->passive_sampler_id ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Sampler Type</td>
-                  <td class="p-2">{{ $passive->sampler_type_other ?? $passive->sampler_type_id ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Sampler Mass</td>
-                  <td class="p-2">{{ $passive->sampler_mass ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Sampler Surface Area</td>
-                  <td class="p-2">{{ $passive->sampler_surface_area ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Sampling Date</td>
-                  <td class="p-2">
-                    @if($passive->date_sampling_start_year && $passive->date_sampling_start_month && $passive->date_sampling_start_day)
-                      {{ $passive->date_sampling_start_year }}-{{ sprintf('%02d', $passive->date_sampling_start_month) }}-{{ sprintf('%02d', $passive->date_sampling_start_day) }}
+          {{-- Record Information at Glance --}}
+          <div class="mb-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Passive Sampling Record at Glance</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              @if ($passive->id)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Record ID</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $passive->id }}</p>
+                </div>
+              @endif
+              @if ($passive->substance)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Substance</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $passive->substance->name }}</p>
+                </div>
+              @endif
+              @if ($passive->concentration_value)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Concentration</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ number_format($passive->concentration_value, 4) }} {{ $passive->unit }}</p>
+                </div>
+              @endif
+              @if ($passive->matrix)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Matrix</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $passive->matrix->name }}</p>
+                </div>
+              @elseif ($passive->matrix_other)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Matrix</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $passive->matrix_other }}</p>
+                </div>
+              @endif
+              @if ($passive->country)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Country</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $passive->country->name }}</p>
+                </div>
+              @endif
+              @if ($passive->sampling_start_date)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Sampling Date</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $passive->sampling_start_date }}</p>
+                </div>
+              @endif
+              @if ($passive->station_name)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Station Name</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $passive->station_name }}</p>
+                </div>
+              @endif
+              @if ($passive->organisation)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Organisation</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $passive->organisation->name }}</p>
+                </div>
+              @endif
+            </div>
+          </div>
+
+          {{-- Complete Record Details --}}
+          <div class="w-full overflow-x-auto">
+            <table class="table-auto w-full border-separate border-spacing-1 text-xs mt-4" style="table-layout: fixed;">
+              @php
+                $rowIndex = 0;
+                $excludedKeys = ['country', 'matrix', 'substance', 'organisation', 'created_at', 'updated_at'];
+              @endphp
+
+              @foreach ($passive->toArray() as $key => $value)
+                {{-- Skip relationships and system fields --}}
+                @if (in_array($key, $excludedKeys))
+                  @continue
+                @endif
+
+                {{-- Skip ID fields except the main record ID --}}
+                @if (str_ends_with($key, '_id') && $key !== 'id')
+                  @continue
+                @endif
+
+                {{-- Skip null values and empty arrays --}}
+                @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && $value === ''))
+                  @continue
+                @endif
+
+                <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                  <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
+                  <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">
+                    @if (is_array($value))
+                      {{ json_encode($value) }}
                     @else
-                      N/A
+                      {{ $value }}
                     @endif
                   </td>
                 </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Exposure Time (Days)</td>
-                  <td class="p-2">{{ $passive->exposure_time_days ?? 'N/A' }}</td>
+                @php $rowIndex++; @endphp
+              @endforeach
+
+              {{-- Location/Station Information --}}
+              @if ($passive->latitude_decimal && $passive->longitude_decimal)
+                <tr class="bg-gray-300">
+                  <td colspan="2" class="p-2 font-bold text-center">Location Information</td>
                 </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Exposure Time (Hours)</td>
-                  <td class="p-2">{{ $passive->exposure_time_hours ?? 'N/A' }}</td>
+
+                <tr class="bg-emerald-100">
+                  <td class="p-1 font-bold" style="width: 20%; min-width: 120px;">Coordinates</td>
+                  <td class="p-1" style="width: 80%;">
+                    <a href="https://www.google.com/maps?q={{ $passive->latitude_decimal }},{{ $passive->longitude_decimal }}"
+                       target="_blank"
+                       class="text-teal-700 hover:text-teal-900 hover:underline">
+                      {{ $passive->latitude_decimal }}, {{ $passive->longitude_decimal }}
+                      <i class="fas fa-external-link-alt text-xs ml-1"></i>
+                    </a>
+                  </td>
                 </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Date of Analysis</td>
-                  <td class="p-2">{{ $passive->date_of_analysis ?? 'N/A' }}</td>
+                <tr>
+                  <td colspan="2" class="p-0">
+                    <div id="station-map" class="w-full h-64 rounded-b-lg border border-gray-300"></div>
+                  </td>
                 </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Time of Analysis</td>
-                  <td class="p-2">{{ $passive->time_of_analysis ?? 'N/A' }}</td>
+              @endif
+
+              {{-- Substance Information --}}
+              @if ($passive->substance)
+                <tr class="bg-teal-600 text-white">
+                  <td colspan="2" class="p-2 font-bold text-center">Substance</td>
                 </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Name</td>
-                  <td class="p-2">{{ $passive->name ?? 'N/A' }}</td>
+                <tr class="bg-teal-50">
+                  <td class="p-1 font-bold text-teal-900" style="width: 20%;">Name</td>
+                  <td class="p-1 text-teal-800" style="width: 80%;">{{ $passive->substance->name }}</td>
                 </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Basin Name</td>
-                  <td class="p-2">{{ $passive->basin_name_other ?? $passive->basin_name_id ?? 'N/A' }}</td>
+                <tr class="bg-teal-100">
+                  <td class="p-1 font-bold text-teal-900" style="width: 20%;">NORMAN SusDat ID</td>
+                  <td class="p-1 text-teal-800" style="width: 80%;">
+                    <a href="{{ route('substances.show', $passive->substance->id) }}"
+                       target="_blank"
+                       class="text-teal-700 hover:text-teal-900 hover:underline font-mono">
+                      NS{{ $passive->substance->code }}
+                      <i class="fas fa-external-link-alt text-xs ml-1"></i>
+                    </a>
+                  </td>
                 </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Type Data Source</td>
-                  <td class="p-2">{{ $passive->dts_other ?? $passive->dts_id ?? 'N/A' }}</td>
+              @endif
+
+              {{-- Matrix Information --}}
+              @if ($passive->matrix)
+                <tr class="bg-teal-600 text-white">
+                  <td colspan="2" class="p-2 font-bold text-center">Matrix</td>
                 </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Type Monitoring</td>
-                  <td class="p-2">{{ $passive->dtm_other ?? $passive->dtm_id ?? 'N/A' }}</td>
+                @php $rowIndex = 0; @endphp
+                @foreach ($passive->matrix->toArray() as $key => $value)
+                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
+                    @continue
+                  @endif
+                  @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && $value === ''))
+                    @continue
+                  @endif
+                  <tr class="@if ($rowIndex % 2 === 0) bg-teal-50 @else bg-teal-100 @endif">
+                    <td class="p-1 font-bold text-teal-900" style="width: 20%;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
+                    <td class="p-1 text-teal-800" style="width: 80%;">
+                      @if (is_array($value))
+                        {{ json_encode($value) }}
+                      @else
+                        {{ $value }}
+                      @endif
+                    </td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endforeach
+              @endif
+
+              {{-- Country Information --}}
+              @if ($passive->country)
+                <tr class="bg-gray-300">
+                  <td colspan="2" class="p-2 font-bold text-center">Country</td>
                 </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Concentration</td>
-                  <td class="p-2">{{ $passive->dic_id ?? 'N/A' }}</td>
+                @php $rowIndex = 0; @endphp
+                @foreach ($passive->country->toArray() as $key => $value)
+                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
+                    @continue
+                  @endif
+                  @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && $value === ''))
+                    @continue
+                  @endif
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
+                    <td class="p-1" style="width: 80%;">
+                      @if (is_array($value))
+                        {{ json_encode($value) }}
+                      @else
+                        {{ $value }}
+                      @endif
+                    </td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endforeach
+              @endif
+
+              {{-- Organisation Information --}}
+              @if ($passive->organisation)
+                <tr class="bg-gray-300">
+                  <td colspan="2" class="p-2 font-bold text-center">Organisation</td>
                 </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Concentration Value</td>
-                  <td class="p-2">{{ $passive->concentration_value ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Unit</td>
-                  <td class="p-2">{{ $passive->unit ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Title of Project</td>
-                  <td class="p-2">{{ $passive->title_of_project ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">pH</td>
-                  <td class="p-2">{{ $passive->ph ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Temperature</td>
-                  <td class="p-2">{{ $passive->temperature ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">SPM Concentration</td>
-                  <td class="p-2">{{ $passive->spm_conc ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Salinity</td>
-                  <td class="p-2">{{ $passive->salinity ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">DOC</td>
-                  <td class="p-2">{{ $passive->doc ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Hardness</td>
-                  <td class="p-2">{{ $passive->hardness ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">O2 1</td>
-                  <td class="p-2">{{ $passive->o2_1 ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">O2 2</td>
-                  <td class="p-2">{{ $passive->o2_2 ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">BOD5</td>
-                  <td class="p-2">{{ $passive->bod5 ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">H2S</td>
-                  <td class="p-2">{{ $passive->h2s ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">P-PO4</td>
-                  <td class="p-2">{{ $passive->p_po4 ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">N-NO2</td>
-                  <td class="p-2">{{ $passive->n_no2 ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">TSS</td>
-                  <td class="p-2">{{ $passive->tss ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">P Total</td>
-                  <td class="p-2">{{ $passive->p_total ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">N-NO3</td>
-                  <td class="p-2">{{ $passive->n_no3 ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">N Total</td>
-                  <td class="p-2">{{ $passive->n_total ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Remark 1</td>
-                  <td class="p-2">{{ $passive->remark_1 ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Remark 2</td>
-                  <td class="p-2">{{ $passive->remark_2 ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Original Compound</td>
-                  <td class="p-2">{{ $passive->orig_compound ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Original CAS No</td>
-                  <td class="p-2">{{ $passive->orig_cas_no ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">P Determinand ID</td>
-                  <td class="p-2">{{ $passive->p_determinand_id ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">P/A Exposure Time</td>
-                  <td class="p-2">{{ $passive->p_a_exposure_time ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">P/A Cruise Dates</td>
-                  <td class="p-2">{{ $passive->p_a_cruise_dates ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">P/A River KM</td>
-                  <td class="p-2">{{ $passive->p_a_river_km ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">P/A Sampler Sheets/Disks Nr</td>
-                  <td class="p-2">{{ $passive->p_a_sampler_sheets_disks_nr ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">P/A Sample Code</td>
-                  <td class="p-2">{{ $passive->p_a_sample_code ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-100">
-                  <td class="p-2 font-semibold">Created At</td>
-                  <td class="p-2">{{ $passive->created_at ?? 'N/A' }}</td>
-                </tr>
-                <tr class="bg-slate-200">
-                  <td class="p-2 font-semibold">Updated At</td>
-                  <td class="p-2">{{ $passive->updated_at ?? 'N/A' }}</td>
-                </tr>
-              </tbody>
+                @php $rowIndex = 0; @endphp
+                @foreach ($passive->organisation->toArray() as $key => $value)
+                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
+                    @continue
+                  @endif
+                  @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && $value === ''))
+                    @continue
+                  @endif
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
+                    <td class="p-1" style="width: 80%;">
+                      @if (is_array($value))
+                        {{ json_encode($value) }}
+                      @else
+                        {{ $value }}
+                      @endif
+                    </td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endforeach
+              @endif
+
             </table>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  {{-- Initialize Leaflet map if coordinates are available --}}
+  @if ($passive->latitude_decimal && $passive->longitude_decimal)
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const lat = {{ $passive->latitude_decimal }};
+        const lng = {{ $passive->longitude_decimal }};
+        const stationName = @json($passive->station_name ?? 'Station');
+
+        // Initialize the map
+        const map = L.map('station-map').setView([lat, lng], 10);
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add marker with popup
+        const marker = L.marker([lat, lng]).addTo(map);
+        marker.bindPopup(
+          '<strong>' + stationName + '</strong>' +
+          '<br><small>' + lat.toFixed(6) + ', ' + lng.toFixed(6) + '</small>'
+        ).openPopup();
+
+        // Fix for map not rendering correctly in hidden/dynamic containers
+        setTimeout(function() {
+          map.invalidateSize();
+        }, 100);
+      });
+    </script>
+  @endif
+
 </x-app-layout>

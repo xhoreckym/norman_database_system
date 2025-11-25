@@ -43,14 +43,15 @@ class PassiveController extends Controller
     }
     
     /**
-    * Display the specified resource.
+    * Display the specified resource with all metadata.
     */
     public function show(string $search, Request $request)
     {
         $passive = PassiveSamplingMain::with([
             'country',
             'matrix',
-            'substance'
+            'substance',
+            'organisation',
         ])->findOrFail($search);
 
         return view('passive.show', compact('passive', 'request'));
