@@ -178,6 +178,18 @@ class RefreshEmpodatSuspectPrioritisation extends Command
                 -- Limit to first N records for testing
                 SELECT * FROM empodat_suspect_main
                 WHERE id <= {$limit}
+            ),
+            most_recent_main AS (
+                -- Get most recent empodat_main record per station
+                -- This prevents Cartesian product and massive memory usage
+                SELECT DISTINCT ON (station_id)
+                    id,
+                    station_id,
+                    matrix_id,
+                    sampling_date_year
+                FROM empodat_main
+                WHERE station_id IN (SELECT DISTINCT station_id FROM limited_suspect)
+                ORDER BY station_id, sampling_date_year DESC NULLS LAST
             )
             SELECT
                 -- Primary identifiers
@@ -190,7 +202,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
                 esm.ip_max,
 
                 -- Geographic and temporal information
-                es.country_code as country,
+                es.country as country,
                 em.sampling_date_year as sampling_date_y,
                 es.latitude as latitude_decimal,
                 es.longitude as longitude_decimal,
@@ -220,21 +232,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
                 emb.dtiel_id,
 
                 -- dmeas_id (from biota)
-                emb.dmeas_id,
-
-                -- Additional metadata
-                em.method_id,
-                em.station_id,
-                esm.substance_id,
-                em.dct_analysis_id,
-                esm.based_on_hrms_library,
-                esm.units,
-                es.name as station_name,
-                es.country_id,
-                em.concentration_indicator_id,
-                em.data_source_id,
-                esm.created_at as suspect_created_at,
-                em.created_at as empodat_created_at
+                emb.dmeas_id
 
             FROM limited_suspect esm
 
@@ -242,9 +240,9 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             INNER JOIN empodat_stations es
                 ON esm.station_id = es.id
 
-            -- Join to empodat_main for regular monitoring data
-            INNER JOIN empodat_main em
-                ON em.station_id = es.id
+            -- Join to most recent empodat_main record per station
+            LEFT JOIN most_recent_main em
+                ON em.station_id = esm.station_id
 
             -- Join to substances for substance code
             LEFT JOIN susdat_substances ss
@@ -304,10 +302,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             'idx_esp_id' => 'id',
             'idx_esp_empodat_main_id' => 'empodat_main_id',
             'idx_esp_matrix_id' => 'matrix_id',
-            'idx_esp_station_id' => 'station_id',
-            'idx_esp_substance_id' => 'substance_id',
             'idx_esp_country' => 'country',
-            'idx_esp_country_id' => 'country_id',
             'idx_esp_year' => 'sampling_date_y',
             'idx_esp_sus_id' => 'sus_id',
             'idx_esp_ip_max' => 'ip_max',
@@ -335,11 +330,10 @@ class RefreshEmpodatSuspectPrioritisation extends Command
         }
 
         // Compound indexes
-        DB::statement('CREATE INDEX IF NOT EXISTS idx_esp_station_substance ON empodat_suspect_prioritisation(station_id, substance_id)');
         DB::statement('CREATE INDEX IF NOT EXISTS idx_esp_matrix_year ON empodat_suspect_prioritisation(matrix_id, sampling_date_y)');
         DB::statement('CREATE INDEX IF NOT EXISTS idx_esp_country_matrix ON empodat_suspect_prioritisation(country, matrix_id)');
         DB::statement('CREATE INDEX IF NOT EXISTS idx_esp_lat_lon ON empodat_suspect_prioritisation(latitude_decimal, longitude_decimal)');
-        $indexCount += 4;
+        $indexCount += 3;
 
         // UNIQUE index for CONCURRENT refresh support
         DB::statement('

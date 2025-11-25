@@ -17,7 +17,7 @@
               <div class="ml-3">
                 <p class="text-sm text-blue-700">
                   <strong>Note:</strong> This record is displayed in a new browser tab.
-                  To return to your search results, please switch to the previous tab instead of using the "Search" link in the navigation bar.
+                  To return to your search results, please switch to the previous tab instead of using the "Search" link in the navigation bar. You may use keystroke <span class="font-mono">CTRL+SHIFT+T</span>.
                 </p>
               </div>
             </div>
@@ -82,7 +82,7 @@
                   <div>
                     <h3 class="text-sm font-medium text-gray-800 mb-1">Country</h3>
                     <p class="text-sm text-teal-800 font-mono">
-                      {{ $country->name }}@if ($country->name && $country->code) - @endif{{ $country->code }}
+                      {{ $country->name }}
                     </p>
                   </div>
                 @endif
@@ -146,8 +146,30 @@
                 <tr class="bg-gray-300">
                   <td colspan="2" class="p-2 font-bold text-center">Station Information</td>
                 </tr>
+
+                {{-- Explicitly show coordinates with map if available --}}
+                @if ($record->station->latitude && $record->station->longitude)
+                  <tr class="bg-emerald-100">
+                    <td class="p-1 font-bold" style="width: 20%; min-width: 120px;">station.coordinates</td>
+                    <td class="p-1" style="width: 80%;">
+                      <a href="https://www.google.com/maps?q={{ $record->station->latitude }},{{ $record->station->longitude }}"
+                         target="_blank"
+                         class="text-teal-700 hover:text-teal-900 hover:underline">
+                        {{ $record->station->latitude }}, {{ $record->station->longitude }}
+                        <i class="fas fa-external-link-alt text-xs ml-1"></i>
+                      </a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" class="p-0">
+                      <div id="station-map" class="w-full h-64 rounded-b-lg border border-gray-300"></div>
+                    </td>
+                  </tr>
+                @endif
+
                 @foreach ($record->station->toArray() as $key => $value)
-                  @if ($key === 'country')
+                  {{-- Skip country (shown separately) and coordinates (shown above) --}}
+                  @if (in_array($key, ['country', 'latitude', 'longitude']))
                     @continue
                   @endif
 
@@ -225,6 +247,43 @@
                   </tr>
                 @endif
               @endif
+
+              {{-- Add matrix metadata --}}
+              @if (!empty($matrixMetadata))
+                @foreach ($matrixMetadata as $matrixType => $matrixData)
+                  <tr class="bg-teal-600 text-white">
+                    <td colspan="2" class="p-2 font-bold text-center">
+                      Matrix: {{ ucwords(str_replace('_', ' ', $matrixType)) }}
+                      <span class="text-xs font-normal">(first matching record for this station)</span>
+                    </td>
+                  </tr>
+                  @php
+                    $matrixArray = (array) $matrixData;
+                    $rowIndex = 0;
+                  @endphp
+                  @foreach ($matrixArray as $key => $value)
+                    {{-- Skip internal IDs --}}
+                    @if (in_array($key, ['id', 'station_id', 'empodat_main_id']))
+                      @continue
+                    @endif
+
+                    {{-- Skip null or empty values --}}
+                    @if (is_null($value) || (is_string($value) && trim($value) === ''))
+                      @continue
+                    @endif
+
+                    <tr class="@if ($rowIndex % 2 === 0) bg-teal-50 @else bg-teal-100 @endif">
+                      <td class="p-1 font-bold text-teal-900" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">
+                        {{ $key }}
+                      </td>
+                      <td class="p-1 text-teal-800" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">
+                        {{ $value }}
+                      </td>
+                    </tr>
+                    @php $rowIndex++; @endphp
+                  @endforeach
+                @endforeach
+              @endif
             </table>
 
           </div>
@@ -232,5 +291,38 @@
       </div>
     </div>
   </div>
+
+  {{-- Initialize Leaflet map if coordinates are available --}}
+  @if ($record->station && $record->station->latitude && $record->station->longitude)
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const lat = {{ $record->station->latitude }};
+        const lng = {{ $record->station->longitude }};
+        const stationName = @json($record->station->name ?? 'Station');
+        const sampleCode = @json($record->station->short_sample_code ?? '');
+
+        // Initialize the map
+        const map = L.map('station-map').setView([lat, lng], 10);
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add marker with popup
+        const marker = L.marker([lat, lng]).addTo(map);
+        marker.bindPopup(
+          '<strong>' + stationName + '</strong>' +
+          (sampleCode ? '<br><span class="text-sm">' + sampleCode + '</span>' : '') +
+          '<br><small>' + lat.toFixed(6) + ', ' + lng.toFixed(6) + '</small>'
+        ).openPopup();
+
+        // Fix for map not rendering correctly in hidden/dynamic containers
+        setTimeout(function() {
+          map.invalidateSize();
+        }, 100);
+      });
+    </script>
+  @endif
 
 </x-app-layout>

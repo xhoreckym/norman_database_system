@@ -237,18 +237,17 @@ class EmpodatSuspectController extends Controller
             $searchInputs = $this->processSearchInput($request, $searchFields);
 
             // STEP 1: Determine if we should use the materialized view
-            // The materialized view is useful for filtering by station-level attributes
-            // (country, matrix, year, etc.) but doesn't contain all substances.
-            $hasNonSubstanceFilters = !empty($searchInputs['countrySearch'])
+            // The materialized view contains station/country/matrix/year combinations
+            // for fast filtering by geography and ecosystem.
+            $hasStationFilters = !empty($searchInputs['countrySearch'])
                 || !empty($searchInputs['matrixSearch'])
-                || !empty($searchInputs['concentrationIndicatorSearch'])
                 || !empty($searchInputs['year_from'])
-                || !empty($searchInputs['year_to'])
-                || !empty($searchInputs['typeDataSourcesSearch'])
-                || !empty($searchInputs['analyticalMethodSearch']);
+                || !empty($searchInputs['year_to']);
 
             $empodatSuspects = EmpodatSuspectMain::query()
                 ->select('empodat_suspect_main.*')
+                ->whereNotNull('empodat_suspect_main.station_id')
+                ->whereNotNull('empodat_suspect_main.substance_id')
                 ->selectSub(function ($query) {
                     $query->select('sampling_date_year')
                           ->from('empodat_suspect_station_filters')
@@ -256,8 +255,8 @@ class EmpodatSuspectController extends Controller
                           ->limit(1);
                 }, 'sampling_year');
 
-            // Only use materialized view if there are non-substance filters
-            if ($hasNonSubstanceFilters) {
+            // Only use materialized view if there are station-level filters
+            if ($hasStationFilters) {
                 $stationFiltersQuery = DB::table('empodat_suspect_station_filters');
 
                 // Apply filters to the materialized view
@@ -269,28 +268,12 @@ class EmpodatSuspectController extends Controller
                     $stationFiltersQuery->whereIn('matrix_id', $searchInputs['matrixSearch']);
                 }
 
-                // NOTE: We do NOT filter by substance_id here because the materialized view
-                // only contains a subset of substances (2,649 out of 92,901 total).
-                // Substance filtering is applied later on empodat_suspect_main.
-
-                if (!empty($searchInputs['concentrationIndicatorSearch'])) {
-                    $stationFiltersQuery->whereIn('concentration_indicator_id', $searchInputs['concentrationIndicatorSearch']);
-                }
-
                 if (!empty($searchInputs['year_from'])) {
                     $stationFiltersQuery->where('sampling_date_year', '>=', $searchInputs['year_from']);
                 }
 
                 if (!empty($searchInputs['year_to'])) {
                     $stationFiltersQuery->where('sampling_date_year', '<=', $searchInputs['year_to']);
-                }
-
-                if (!empty($searchInputs['typeDataSourcesSearch'])) {
-                    $stationFiltersQuery->whereIn('data_source_id', $searchInputs['typeDataSourcesSearch']);
-                }
-
-                if (!empty($searchInputs['analyticalMethodSearch'])) {
-                    $stationFiltersQuery->whereIn('method_id', $searchInputs['analyticalMethodSearch']);
                 }
 
                 // Get distinct station_ids from the filtered materialized view
@@ -567,8 +550,44 @@ class EmpodatSuspectController extends Controller
             'file',
         ])->findOrFail($id);
 
+        // Get matrix metadata from pre-computed MVs
+        // NOTE: We pick only the FIRST matching record per matrix type
+        // because one station can have many empodat_main records
+        $matrixMetadata = [];
+        $stationId = $record->station_id;
+
+        if ($stationId) {
+            // Check each matrix MV for data
+            $matrixTypes = [
+                'biota' => 'empodat_suspect_matrix_biota',
+                'sediments' => 'empodat_suspect_matrix_sediments',
+                'water_surface' => 'empodat_suspect_matrix_water_surface',
+                'water_ground' => 'empodat_suspect_matrix_water_ground',
+                'water_waste' => 'empodat_suspect_matrix_water_waste',
+                'suspended_matter' => 'empodat_suspect_matrix_suspended_matter',
+                'soil' => 'empodat_suspect_matrix_soil',
+                'air' => 'empodat_suspect_matrix_air',
+                'sewage_sludge' => 'empodat_suspect_matrix_sewage_sludge',
+            ];
+
+            foreach ($matrixTypes as $type => $tableName) {
+                try {
+                    $data = DB::table($tableName)
+                        ->where('station_id', $stationId)
+                        ->first();
+
+                    if ($data) {
+                        $matrixMetadata[$type] = $data;
+                    }
+                } catch (\Exception $e) {
+                    // MV might not exist yet, skip silently
+                }
+            }
+        }
+
         return view('empodat_suspect.show', [
             'record' => $record,
+            'matrixMetadata' => $matrixMetadata,
         ]);
     }
 
