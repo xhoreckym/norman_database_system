@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Indoor;
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Models\DatabaseEntity;
 use App\Models\Indoor\IndoorMain;
-use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 
 class IndoorHomeController extends Controller
 {
@@ -70,9 +70,10 @@ class IndoorHomeController extends Controller
     {
         DatabaseEntity::where('code', 'indoor')->update([
             'last_update' => IndoorMain::max('updated_at'),
-            'number_of_records' => IndoorMain::count()
+            'number_of_records' => IndoorMain::count(),
         ]);
         session()->flash('success', 'Database counts updated successfully');
+
         return redirect()->back();
     }
 }

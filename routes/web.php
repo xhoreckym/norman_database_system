@@ -404,6 +404,7 @@ Route::prefix('indoor')->group(function () {
     Route::get('search/search/', [IndoorController::class, 'search'])->name('indoor.search.search');
 
     Route::get('indoor/countAll', [IndoorHomeController::class, 'countAll'])->middleware('auth')->name('indoor.countAll');
+    Route::get('{id}', [IndoorController::class, 'show'])->name('indoor.show');
 });
 
 Route::prefix('passive')->group(function () {

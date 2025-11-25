@@ -159,38 +159,38 @@ class IndoorMain extends Model
 
     /**
      * Get a formatted sampling date
-     * 
+     *
      * @return string
      */
     public function getSamplingDateAttribute()
     {
-        if (!$this->sampling_date_y || !$this->sampling_date_m || !$this->sampling_date_d) {
+        if (! $this->sampling_date_y || ! $this->sampling_date_m || ! $this->sampling_date_d) {
             return null;
         }
-        
-        return $this->sampling_date_y . '-' . 
-               str_pad($this->sampling_date_m, 2, '0', STR_PAD_LEFT) . '-' . 
+
+        return $this->sampling_date_y.'-'.
+               str_pad($this->sampling_date_m, 2, '0', STR_PAD_LEFT).'-'.
                str_pad($this->sampling_date_d, 2, '0', STR_PAD_LEFT);
     }
 
     /**
      * Get formatted coordinates
-     * 
+     *
      * @return string|null
      */
     public function getFormattedCoordinatesAttribute()
     {
-        if (empty($this->latitude_decimal) && empty($this->longitude_decimal) && 
+        if (empty($this->latitude_decimal) && empty($this->longitude_decimal) &&
             empty($this->latitude_d) && empty($this->longitude_d)) {
             return null;
         }
-        
-        $latitude = $this->latitude_decimal ?: 
-                   ($this->latitude_d . '° ' . $this->latitude_m . '\' ' . $this->latitude_s . '" ' . $this->north_south);
-        
-        $longitude = $this->longitude_decimal ?: 
-                    ($this->longitude_d . '° ' . $this->longitude_m . '\' ' . $this->longitude_s . '" ' . $this->east_west);
-        
-        return $latitude . ', ' . $longitude;
+
+        $latitude = $this->latitude_decimal ?:
+                   ($this->latitude_d.'° '.$this->latitude_m.'\' '.$this->latitude_s.'" '.$this->north_south);
+
+        $longitude = $this->longitude_decimal ?:
+                    ($this->longitude_d.'° '.$this->longitude_m.'\' '.$this->longitude_s.'" '.$this->east_west);
+
+        return $latitude.', '.$longitude;
     }
 }

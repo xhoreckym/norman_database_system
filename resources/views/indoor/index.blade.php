@@ -99,7 +99,19 @@
             @foreach ($resultsObjects as $e)
             {{-- {{ dd($e); }} --}}
             <tr class="@if($loop->odd) bg-slate-100 @else bg-slate-200 @endif ">
-              <td class="p-1 text-center">{{ $e->id }}</td>
+              <td class="p-1 text-center">
+                <div class="flex items-center justify-center space-x-2">
+                  <a href="{{ route('indoor.show', $e->id) }}"
+                     target="_blank"
+                     class="text-teal-600 hover:text-teal-800 transition-colors"
+                     title="View full record details">
+                    <i class="fas fa-search"></i>
+                  </a>
+                  <a href="{{ route('indoor.show', $e->id) }}" target="_blank" class="font-mono text-teal-800 hover:text-teal-600 hover:underline">
+                    {!! number_format($e->id, 0, '', '&nbsp;') !!}
+                  </a>
+                </div>
+              </td>
               <td class="p-1 text-center">
                 @if($e->sus_id)
                 {{ $e->substance->name ?? 'N/A'}}
