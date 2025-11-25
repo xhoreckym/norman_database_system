@@ -10,78 +10,82 @@
         <div class="p-6 text-gray-900" x-data="recordsTable()" x-init="initLeaflet()">
           {{-- main div --}}
           
-          <a href="{{ route('indoor.search.filter', [
-          'countrySearch'      => $countrySearch,
-          'bioassayNameSearch' => $matrixSearch,
-          'endpointSearch'     => $environmentTypeSearch,
-          'determinandSearch'  => $environmentCategorySearch,
-          'query_log_id'       => $query_log_id
-          ]) }}">
-          <button type="submit" class="btn-submit">Refine Search</button>
-        </a>
-        
-        <div class="text-gray-600 flex border-l-2 border-white">
-          @if($displayOption == 1)
-          {{-- Simple output --}}
-          @livewire('backend.query-counter', [
-          'queryId' => $query_log_id ?? null, 
-          'resultsCount' => $resultsObjectsCount, 
-          'count_again' => request()->has('page') ? false : true
-          ])
-          @else
-          {{-- Advanced output with better styling --}}
-          <div class="flex flex-wrap items-center bg-gray-50 p-3 rounded-lg shadow-sm border border-gray-200">
-            <div class="flex items-center mr-4">
-              <span class="text-gray-700">Number of matched records:</span>
-              <span class="font-bold text-lg ml-2 text-indigo-700">
-                {{ number_format($resultsObjects->total(), 0, ".", " ") }}
-              </span>
-            </div>
-            
-            <div class="flex items-center">
-              <span class="text-gray-700">of</span>
-              <span class="font-medium ml-2 text-gray-800">
-                {{ number_format($resultsObjectsCount, 0, ".", " ") }}
-              </span>
-              
-              @if(is_numeric($resultsObjects->total()) && $resultsObjectsCount > 0)
-              <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                @if($resultsObjects->total()/$resultsObjectsCount*100 < 0.01)
-                &le; 0.01% of total
-                @else
-                {{ number_format($resultsObjects->total()/$resultsObjectsCount*100, 2, ".", " ") }}% of total
-                @endif
-              </span>
-              @endif
+          {{-- Action bar: Refine Search | Download CSV --}}
+          <div class="flex items-start justify-between">
+            {{-- Left: Refine Search --}}
+            <a href="{{ route('indoor.search.filter', [
+              'countrySearch'      => $countrySearch,
+              'matrixSearch'       => $matrixSearch,
+              'environmentTypeSearch'     => $environmentTypeSearch,
+              'environmentCategorySearch' => $environmentCategorySearch,
+              'query_log_id'       => $query_log_id
+            ]) }}" class="btn-submit"><i class="fas fa-filter mr-1"></i>Refine Search</a>
+
+            {{-- Right: Download CSV --}}
+            <div class="flex flex-col items-end">
+              @auth
+                <a href="{{ route('indoor.search.download', ['query_log_id' => $query_log_id]) }}"
+                  class="btn-download"><i class="fas fa-file-csv mr-1"></i>Download CSV</a>
+              @else
+                <button type="button" class="btn-download" disabled>
+                  <i class="fas fa-file-csv mr-1"></i>Download CSV
+                </button>
+                <span class="text-xs text-gray-400 mt-1">Available for logged in users only</span>
+              @endauth
             </div>
           </div>
-          @endif
-          
-          @auth
-          <div class="py-2 px-2"><a href="{{ route('codsearch.download', ['query_log_id' => $query_log_id]) }}" class="btn-download">Download</a></div>
-          @else
-          <div class="py-2 px-2 text-gray-400">Downloads are available for registered users only</div>
-          @endauth
-          
-          
-        </div>
-        
-        <div class="text-gray-600 flex border-l-2 border-white">
-          Search parameters:&nbsp;<span class="font-semibold">
-            @foreach ($searchParameters as $key => $value)
-            {{-- if value is array|collection then use for each, othervise display value --}}
-            @if (is_array($value) || $value instanceof \Illuminate\Support\Collection)
-            {{-- If $value is an array or collection, loop over each element --}}
-            @foreach ($value as $item)
-            {{ $item }}@if(!$loop->last), @endif
-            @endforeach
+
+          {{-- Search parameters --}}
+          <div class="flex items-center">
+            @if (!empty($searchParameters))
+              <span>Search parameters:</span>
+              <span class="ml-1 font-bold">
+                @foreach ($searchParameters as $key => $value)
+                  @if (is_array($value) || $value instanceof \Illuminate\Support\Collection)
+                    @foreach ($value as $item)
+                      {{ $item }}@if(!$loop->last), @endif
+                    @endforeach
+                  @else
+                    {{ $value }}
+                  @endif
+                  @if(!$loop->last); @endif
+                @endforeach
+              </span>
             @else
-            {{-- Otherwise, just display the single value --}}
-            {{ $value }}
-            @endif @if(!$loop->last); @endif
-            @endforeach
-          </span>
-        </div>
+              <span>Search parameters:</span>
+              <span class="italic text-gray-400 ml-1">no parameters have been chosen</span>
+            @endif
+          </div>
+
+          {{-- Record count --}}
+          <div class="mb-2">
+            @if($displayOption == 1)
+              {{-- Simple output - use Livewire query counter --}}
+              @livewire('backend.query-counter', [
+                'queryId' => $query_log_id ?? null,
+                'resultsCount' => $resultsObjectsCount,
+                'count_again' => request()->has('page') ? false : true
+              ])
+            @else
+              {{-- Advanced output with pagination --}}
+              <div class="flex items-center">
+                <span>Number of matched records:</span>
+                <span class="ml-1 mr-1 font-bold">{{ number_format($resultsObjects->total(), 0, '.', ' ') }}</span>
+                @if ($resultsObjectsCount > 0)
+                  <span>
+                    of {{ number_format($resultsObjectsCount, 0, '.', ' ') }}
+                    @if (is_numeric($resultsObjects->total()))
+                      @if (($resultsObjects->total() / $resultsObjectsCount) * 100 < 0.01)
+                        (&le; 0.01%)
+                      @else
+                        ({{ number_format(($resultsObjects->total() / $resultsObjectsCount) * 100, 2, '.', ' ') }}%)
+                      @endif
+                    @endif
+                  </span>
+                @endif
+              </div>
+            @endif
+          </div>
         
         <table class="table-standard">
           <thead>

@@ -8,104 +8,143 @@
       <div class="bg-white shadow-lg sm:rounded-lg">
         <div class="p-6 text-gray-900">
 
-          <form method="GET" action="{{ route('empodat_suspect.search.filter') }}" class="inline">
-            @if(is_array($countrySearch))
-              @foreach($countrySearch as $country)
-                <input type="hidden" name="countrySearch[]" value="{{ $country }}">
-              @endforeach
+          {{-- Action bar: Refine Search | Download CSV --}}
+          <div class="flex items-start justify-between">
+            {{-- Left: Refine Search --}}
+            <form method="GET" action="{{ route('empodat_suspect.search.filter') }}" class="inline">
+              @if(is_array($countrySearch))
+                @foreach($countrySearch as $country)
+                  <input type="hidden" name="countrySearch[]" value="{{ $country }}">
+                @endforeach
+              @else
+                <input type="hidden" name="countrySearch" value="{{ $countrySearch ?? '' }}">
+              @endif
+
+              @if(is_array($matrixSearch))
+                @foreach($matrixSearch as $matrix)
+                  <input type="hidden" name="matrixSearch[]" value="{{ $matrix }}">
+                @endforeach
+              @else
+                <input type="hidden" name="matrixSearch" value="{{ $matrixSearch ?? '' }}">
+              @endif
+
+              @if(is_array($sourceSearch))
+                @foreach($sourceSearch as $source)
+                  <input type="hidden" name="sourceSearch[]" value="{{ $source }}">
+                @endforeach
+              @else
+                <input type="hidden" name="sourceSearch" value="{{ $sourceSearch ?? '' }}">
+              @endif
+
+              <input type="hidden" name="year_from" value="{{ $year_from ?? '' }}">
+              <input type="hidden" name="year_to" value="{{ $year_to ?? '' }}">
+              <input type="hidden" name="displayOption" value="{{ $displayOption }}">
+
+              @if(is_array($substances))
+                @foreach($substances as $substance)
+                  <input type="hidden" name="substances[]" value="{{ $substance }}">
+                @endforeach
+              @else
+                <input type="hidden" name="substances" value="{{ $substances ?? '' }}">
+              @endif
+
+              @if(is_array($categoriesSearch))
+                @foreach($categoriesSearch as $category)
+                  <input type="hidden" name="categoriesSearch[]" value="{{ $category }}">
+                @endforeach
+              @else
+                <input type="hidden" name="categoriesSearch" value="{{ $categoriesSearch ?? '' }}">
+              @endif
+
+              @if(is_array($typeDataSourcesSearch))
+                @foreach($typeDataSourcesSearch as $typeDataSource)
+                  <input type="hidden" name="typeDataSourcesSearch[]" value="{{ $typeDataSource }}">
+                @endforeach
+              @else
+                <input type="hidden" name="typeDataSourcesSearch" value="{{ $typeDataSourcesSearch ?? '' }}">
+              @endif
+
+              @if(is_array($concentrationIndicatorSearch))
+                @foreach($concentrationIndicatorSearch as $concentrationIndicator)
+                  <input type="hidden" name="concentrationIndicatorSearch[]" value="{{ $concentrationIndicator }}">
+                @endforeach
+              @else
+                <input type="hidden" name="concentrationIndicatorSearch" value="{{ $concentrationIndicatorSearch ?? '' }}">
+              @endif
+
+              @if(is_array($analyticalMethodSearch))
+                @foreach($analyticalMethodSearch as $analyticalMethod)
+                  <input type="hidden" name="analyticalMethodSearch[]" value="{{ $analyticalMethod }}">
+                @endforeach
+              @else
+                <input type="hidden" name="analyticalMethodSearch" value="{{ $analyticalMethodSearch ?? '' }}">
+              @endif
+
+              @if(is_array($dataSourceLaboratorySearch))
+                @foreach($dataSourceLaboratorySearch as $dataSourceLaboratory)
+                  <input type="hidden" name="dataSourceLaboratorySearch[]" value="{{ $dataSourceLaboratory }}">
+                @endforeach
+              @else
+                <input type="hidden" name="dataSourceLaboratorySearch" value="{{ $dataSourceLaboratorySearch ?? '' }}">
+              @endif
+
+              @if(is_array($dataSourceOrganisationSearch))
+                @foreach($dataSourceOrganisationSearch as $dataSourceOrganisation)
+                  <input type="hidden" name="dataSourceOrganisationSearch[]" value="{{ $dataSourceOrganisation }}">
+                @endforeach
+              @else
+                <input type="hidden" name="dataSourceOrganisationSearch" value="{{ $dataSourceOrganisationSearch ?? '' }}">
+              @endif
+
+              @if(is_array($qualityAnalyticalMethodsSearch))
+                @foreach($qualityAnalyticalMethodsSearch as $qualityAnalyticalMethod)
+                  <input type="hidden" name="qualityAnalyticalMethodsSearch[]" value="{{ $qualityAnalyticalMethod }}">
+                @endforeach
+              @else
+                <input type="hidden" name="qualityAnalyticalMethodsSearch" value="{{ $qualityAnalyticalMethodsSearch ?? '' }}">
+              @endif
+
+              <input type="hidden" name="query_log_id" value="{{ $query_log_id }}">
+              <button type="submit" class="btn-submit"><i class="fas fa-filter mr-1"></i>Refine Search</button>
+            </form>
+
+            {{-- Right: Download CSV --}}
+            <div class="flex flex-col items-end">
+              @auth
+                <a href="{{ route('empodat_suspect.search.download', ['query_log_id' => $query_log_id]) }}"
+                  class="btn-download"><i class="fas fa-file-csv mr-1"></i>Download CSV</a>
+              @else
+                <button type="button" class="btn-download" disabled>
+                  <i class="fas fa-file-csv mr-1"></i>Download CSV
+                </button>
+                <span class="text-xs text-gray-400 mt-1">Available for logged in users only</span>
+              @endauth
+            </div>
+          </div>
+
+          <div class="flex items-center">
+            @if (!empty($searchParameters))
+              <span>Search parameters:</span>
+              <span class="ml-1 font-bold">
+                @foreach ($searchParameters as $key => $value)
+                  @if (is_array($value) || $value instanceof \Illuminate\Support\Collection)
+                    @foreach ($value as $item)
+                      {{ $item }}@if (!$loop->last), @endif
+                    @endforeach
+                  @else
+                    {{ $value }}
+                  @endif
+                  @if (!$loop->last); @endif
+                @endforeach
+              </span>
             @else
-              <input type="hidden" name="countrySearch" value="{{ $countrySearch ?? '' }}">
+              <span>Search parameters:</span>
+              <span class="italic text-gray-400 ml-1">no parameters have been chosen</span>
             @endif
+          </div>
 
-            @if(is_array($matrixSearch))
-              @foreach($matrixSearch as $matrix)
-                <input type="hidden" name="matrixSearch[]" value="{{ $matrix }}">
-              @endforeach
-            @else
-              <input type="hidden" name="matrixSearch" value="{{ $matrixSearch ?? '' }}">
-            @endif
-
-            @if(is_array($sourceSearch))
-              @foreach($sourceSearch as $source)
-                <input type="hidden" name="sourceSearch[]" value="{{ $source }}">
-              @endforeach
-            @else
-              <input type="hidden" name="sourceSearch" value="{{ $sourceSearch ?? '' }}">
-            @endif
-
-            <input type="hidden" name="year_from" value="{{ $year_from ?? '' }}">
-            <input type="hidden" name="year_to" value="{{ $year_to ?? '' }}">
-            <input type="hidden" name="displayOption" value="{{ $displayOption }}">
-
-            @if(is_array($substances))
-              @foreach($substances as $substance)
-                <input type="hidden" name="substances[]" value="{{ $substance }}">
-              @endforeach
-            @else
-              <input type="hidden" name="substances" value="{{ $substances ?? '' }}">
-            @endif
-
-            @if(is_array($categoriesSearch))
-              @foreach($categoriesSearch as $category)
-                <input type="hidden" name="categoriesSearch[]" value="{{ $category }}">
-              @endforeach
-            @else
-              <input type="hidden" name="categoriesSearch" value="{{ $categoriesSearch ?? '' }}">
-            @endif
-
-            @if(is_array($typeDataSourcesSearch))
-              @foreach($typeDataSourcesSearch as $typeDataSource)
-                <input type="hidden" name="typeDataSourcesSearch[]" value="{{ $typeDataSource }}">
-              @endforeach
-            @else
-              <input type="hidden" name="typeDataSourcesSearch" value="{{ $typeDataSourcesSearch ?? '' }}">
-            @endif
-
-            @if(is_array($concentrationIndicatorSearch))
-              @foreach($concentrationIndicatorSearch as $concentrationIndicator)
-                <input type="hidden" name="concentrationIndicatorSearch[]" value="{{ $concentrationIndicator }}">
-              @endforeach
-            @else
-              <input type="hidden" name="concentrationIndicatorSearch" value="{{ $concentrationIndicatorSearch ?? '' }}">
-            @endif
-
-            @if(is_array($analyticalMethodSearch))
-              @foreach($analyticalMethodSearch as $analyticalMethod)
-                <input type="hidden" name="analyticalMethodSearch[]" value="{{ $analyticalMethod }}">
-              @endforeach
-            @else
-              <input type="hidden" name="analyticalMethodSearch" value="{{ $analyticalMethodSearch ?? '' }}">
-            @endif
-
-            @if(is_array($dataSourceLaboratorySearch))
-              @foreach($dataSourceLaboratorySearch as $dataSourceLaboratory)
-                <input type="hidden" name="dataSourceLaboratorySearch[]" value="{{ $dataSourceLaboratory }}">
-              @endforeach
-            @else
-              <input type="hidden" name="dataSourceLaboratorySearch" value="{{ $dataSourceLaboratorySearch ?? '' }}">
-            @endif
-
-            @if(is_array($dataSourceOrganisationSearch))
-              @foreach($dataSourceOrganisationSearch as $dataSourceOrganisation)
-                <input type="hidden" name="dataSourceOrganisationSearch[]" value="{{ $dataSourceOrganisation }}">
-              @endforeach
-            @else
-              <input type="hidden" name="dataSourceOrganisationSearch" value="{{ $dataSourceOrganisationSearch ?? '' }}">
-            @endif
-
-            @if(is_array($qualityAnalyticalMethodsSearch))
-              @foreach($qualityAnalyticalMethodsSearch as $qualityAnalyticalMethod)
-                <input type="hidden" name="qualityAnalyticalMethodsSearch[]" value="{{ $qualityAnalyticalMethod }}">
-              @endforeach
-            @else
-              <input type="hidden" name="qualityAnalyticalMethodsSearch" value="{{ $qualityAnalyticalMethodsSearch ?? '' }}">
-            @endif
-
-            <input type="hidden" name="query_log_id" value="{{ $query_log_id }}">
-            <button type="submit" class="btn-submit">Refine Search</button>
-          </form>
-
-          <div class="text-gray-600 flex border-l-2 border-white">
+          {{-- Record count --}}
+          <div class="mb-2">
             @if ($displayOption == 1)
               {{-- Simple output - use Livewire query counter --}}
               @livewire('backend.query-counter', [
@@ -115,59 +154,23 @@
               ])
             @else
               {{-- Advanced output with pagination --}}
-              <div class="py-2">
-                Number of matched records:
-              </div>
-              <div class="py-2 mx-1 font-bold">
-                {{ number_format($empodatSuspects->total(), 0, '.', ' ') }}
-              </div>
-
-              @if ($empodatSuspectsCount > 0)
-                <div class="py-2">
-                  of <span> {{ number_format($empodatSuspectsCount, 0, '.', ' ') }}
+              <div class="flex items-center">
+                <span>Number of matched records:</span>
+                <span class="ml-1 mr-1 font-bold">{{ number_format($empodatSuspects->total(), 0, '.', ' ') }}</span>
+                @if ($empodatSuspectsCount > 0)
+                  <span>
+                    of {{ number_format($empodatSuspectsCount, 0, '.', ' ') }}
                     @if (is_numeric($empodatSuspects->total()))
                       @if (($empodatSuspects->total() / $empodatSuspectsCount) * 100 < 0.01)
-                        which is &le; 0.01% of total records.
+                        (&le; 0.01%)
                       @else
-                        which is {{ number_format(($empodatSuspects->total() / $empodatSuspectsCount) * 100, 3, '.', ' ') }}% of total records.
+                        ({{ number_format(($empodatSuspects->total() / $empodatSuspectsCount) * 100, 2, '.', ' ') }}%)
                       @endif
                     @endif
                   </span>
-                </div>
-              @endif
+                @endif
+              </div>
             @endif
-          </div>
-
-          @if (!empty($searchParameters))
-          <div class="text-gray-600 flex border-l-2 border-white">
-            Search parameters:&nbsp;<span class="font-semibold">
-              @foreach ($searchParameters as $key => $value)
-                {{-- if value is array|collection then use for each, otherwise display value --}}
-                @if (is_array($value) || $value instanceof \Illuminate\Support\Collection)
-                  {{-- If $value is an array or collection, loop over each element --}}
-                  @foreach ($value as $item)
-                    {{ $item }}@if (!$loop->last)
-                      ,
-                    @endif
-                  @endforeach
-                @else
-                  {{-- Otherwise, just display the single value --}}
-                  {{ $value }}
-                  @endif @if (!$loop->last)
-                    ;
-                  @endif
-                @endforeach
-            </span>
-          </div>
-          @endif
-
-          <div class="mt-4 mb-4">
-            @auth
-              <a href="{{ route('empodat_suspect.search.download', ['query_log_id' => $query_log_id]) }}"
-                class="btn-download">Download CSV</a>
-            @else
-              <div class="text-gray-400">Downloads are available for registered users only</div>
-            @endauth
           </div>
 
           <table class="table-standard">

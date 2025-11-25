@@ -8,117 +8,64 @@
       <div class="bg-white shadow-lg sm:rounded-lg">
         <div class="p-6 text-gray-900">
 
-          <form method="GET" action="{{ route('literature.search.filter') }}" class="inline">
-            {{-- Country Search --}}
-            @foreach(($countrySearch ?? []) as $country)
-              <input type="hidden" name="countrySearch[]" value="{{ $country }}">
-            @endforeach
+          {{-- Action bar: Refine Search | Download CSV --}}
+          <div class="flex items-start justify-between">
+            {{-- Left: Refine Search --}}
+            <form method="GET" action="{{ route('literature.search.filter') }}" class="inline">
+              @foreach(($countrySearch ?? []) as $country)
+                <input type="hidden" name="countrySearch[]" value="{{ $country }}">
+              @endforeach
+              @foreach(($speciesSearch ?? []) as $species)
+                <input type="hidden" name="speciesSearch[]" value="{{ $species }}">
+              @endforeach
+              @foreach(($classSearch ?? []) as $class)
+                <input type="hidden" name="classSearch[]" value="{{ $class }}">
+              @endforeach
+              @foreach(($tissueSearch ?? []) as $tissue)
+                <input type="hidden" name="tissueSearch[]" value="{{ $tissue }}">
+              @endforeach
+              @foreach(($matrixSearch ?? []) as $matrix)
+                <input type="hidden" name="matrixSearch[]" value="{{ $matrix }}">
+              @endforeach
+              @foreach(($typeOfNumericQuantitySearch ?? []) as $quantity)
+                <input type="hidden" name="typeOfNumericQuantitySearch[]" value="{{ $quantity }}">
+              @endforeach
+              @foreach(($categoriesSearch ?? []) as $category)
+                <input type="hidden" name="categoriesSearch[]" value="{{ $category }}">
+              @endforeach
+              @foreach(($fileSearch ?? []) as $file)
+                <input type="hidden" name="fileSearch[]" value="{{ $file }}">
+              @endforeach
+              @foreach(($projectSearch ?? []) as $project)
+                <input type="hidden" name="projectSearch[]" value="{{ $project }}">
+              @endforeach
+              @foreach(($substances ?? []) as $substance)
+                <input type="hidden" name="substances[]" value="{{ $substance }}">
+              @endforeach
+              <input type="hidden" name="displayOption" value="{{ $displayOption }}">
+              <input type="hidden" name="query_log_id" value="{{ $query_log_id }}">
+              <button type="submit" class="btn-submit"><i class="fas fa-filter mr-1"></i>Refine Search</button>
+            </form>
 
-            {{-- Species Search --}}
-            @foreach(($speciesSearch ?? []) as $species)
-              <input type="hidden" name="speciesSearch[]" value="{{ $species }}">
-            @endforeach
-
-            {{-- Class Search --}}
-            @foreach(($classSearch ?? []) as $class)
-              <input type="hidden" name="classSearch[]" value="{{ $class }}">
-            @endforeach
-
-            {{-- Tissue Search --}}
-            @foreach(($tissueSearch ?? []) as $tissue)
-              <input type="hidden" name="tissueSearch[]" value="{{ $tissue }}">
-            @endforeach
-
-            {{-- Matrix Search --}}
-            @foreach(($matrixSearch ?? []) as $matrix)
-              <input type="hidden" name="matrixSearch[]" value="{{ $matrix }}">
-            @endforeach
-
-            {{-- Type of Numeric Quantity Search --}}
-            @foreach(($typeOfNumericQuantitySearch ?? []) as $quantity)
-              <input type="hidden" name="typeOfNumericQuantitySearch[]" value="{{ $quantity }}">
-            @endforeach
-
-            {{-- Categories Search --}}
-            @foreach(($categoriesSearch ?? []) as $category)
-              <input type="hidden" name="categoriesSearch[]" value="{{ $category }}">
-            @endforeach
-
-            {{-- File Search --}}
-            @foreach(($fileSearch ?? []) as $file)
-              <input type="hidden" name="fileSearch[]" value="{{ $file }}">
-            @endforeach
-
-            {{-- Project Search --}}
-            @foreach(($projectSearch ?? []) as $project)
-              <input type="hidden" name="projectSearch[]" value="{{ $project }}">
-            @endforeach
-
-            {{-- Substances --}}
-            @foreach(($substances ?? []) as $substance)
-              <input type="hidden" name="substances[]" value="{{ $substance }}">
-            @endforeach
-
-            <input type="hidden" name="displayOption" value="{{ $displayOption }}">
-            <input type="hidden" name="query_log_id" value="{{ $query_log_id }}">
-            <button type="submit" class="btn-submit">Refine Search</button>
-          </form>
-
-          <div class="text-gray-600 flex border-l-2 border-white">
-            @if ($displayOption == 1)
-              {{-- use simple output --}}
-              <div class="py-2">
-                Number of matched records:
-              </div>
-              <div class="py-2 mx-1 font-bold">
-                {{ number_format($literatureMatchedCount, 0, '.', ' ') }}
-              </div>
-              <div class="py-2">
-                of <span> {{ number_format($literatureObjectsCount, 0, ' ', ' ') }}
-                  @if (is_numeric($literatureMatchedCount) && $literatureObjectsCount > 0)
-                    @if (($literatureMatchedCount / $literatureObjectsCount) * 100 < 0.01)
-                      which is &le; 0.01% of total records.
-                    @else
-                      which is {{ number_format(($literatureMatchedCount / $literatureObjectsCount) * 100, 3, '.', ' ') }}% of total
-                      records.
-                    @endif
-                  @endif
-                </span>
-              </div>
-            @else
-              {{-- use advanced output --}}
-              <div class="py-2">
-                Number of matched records:
-              </div>
-              <div class="py-2 mx-1 font-bold">
-                {{ number_format($literatureRecords->total(), 0, '.', ' ') }}
-              </div>
-
-              <div class="py-2">
-                of <span> {{ number_format($literatureObjectsCount, 0, ' ', ' ') }}
-                  @if (is_numeric($literatureRecords->total()) && $literatureObjectsCount > 0)
-                    @if (($literatureRecords->total() / $literatureObjectsCount) * 100 < 0.01)
-                      which is &le; 0.01% of total records.
-                    @else
-                      which is {{ number_format(($literatureRecords->total() / $literatureObjectsCount) * 100, 3, '.', ' ') }}% of total
-                      records.
-                    @endif
-                  @endif
-                </span>
-              </div>
-            @endif
-
-            @auth
-              <a href="{{ route('literature.search.download', ['query_log_id' => $query_log_id]) }}"
-                class="btn-download">Download</a>
-            @else
-              <div class="text-gray-400">Downloads are available for registered users only</div>
-            @endauth
+            {{-- Right: Download CSV --}}
+            <div class="flex flex-col items-end">
+              @auth
+                <a href="{{ route('literature.search.download', ['query_log_id' => $query_log_id]) }}"
+                  class="btn-download"><i class="fas fa-file-csv mr-1"></i>Download CSV</a>
+              @else
+                <button type="button" class="btn-download" disabled>
+                  <i class="fas fa-file-csv mr-1"></i>Download CSV
+                </button>
+                <span class="text-xs text-gray-400 mt-1">Available for logged in users only</span>
+              @endauth
+            </div>
           </div>
 
-          @if(isset($searchParameters) && !empty($searchParameters))
-            <div class="text-gray-600 flex border-l-2 border-white">
-              Search parameters:&nbsp;<span class="font-semibold">
+          {{-- Search parameters --}}
+          <div class="flex items-center">
+            @if (!empty($searchParameters))
+              <span>Search parameters:</span>
+              <span class="ml-1 font-bold">
                 @foreach ($searchParameters as $key => $value)
                   @if (is_array($value) || $value instanceof \Illuminate\Support\Collection)
                     @foreach ($value as $item)
@@ -130,8 +77,52 @@
                   @if (!$loop->last); @endif
                 @endforeach
               </span>
-            </div>
-          @endif
+            @else
+              <span>Search parameters:</span>
+              <span class="italic text-gray-400 ml-1">no parameters have been chosen</span>
+            @endif
+          </div>
+
+          {{-- Record count --}}
+          <div class="mb-2">
+            @if ($displayOption == 1)
+              {{-- Simple output --}}
+              <div class="flex items-center">
+                <span>Number of matched records:</span>
+                <span class="ml-1 mr-1 font-bold">{{ number_format($literatureMatchedCount, 0, '.', ' ') }}</span>
+                @if ($literatureObjectsCount > 0)
+                  <span>
+                    of {{ number_format($literatureObjectsCount, 0, '.', ' ') }}
+                    @if (is_numeric($literatureMatchedCount))
+                      @if (($literatureMatchedCount / $literatureObjectsCount) * 100 < 0.01)
+                        (&le; 0.01%)
+                      @else
+                        ({{ number_format(($literatureMatchedCount / $literatureObjectsCount) * 100, 2, '.', ' ') }}%)
+                      @endif
+                    @endif
+                  </span>
+                @endif
+              </div>
+            @else
+              {{-- Advanced output with pagination --}}
+              <div class="flex items-center">
+                <span>Number of matched records:</span>
+                <span class="ml-1 mr-1 font-bold">{{ number_format($literatureRecords->total(), 0, '.', ' ') }}</span>
+                @if ($literatureObjectsCount > 0)
+                  <span>
+                    of {{ number_format($literatureObjectsCount, 0, '.', ' ') }}
+                    @if (is_numeric($literatureRecords->total()))
+                      @if (($literatureRecords->total() / $literatureObjectsCount) * 100 < 0.01)
+                        (&le; 0.01%)
+                      @else
+                        ({{ number_format(($literatureRecords->total() / $literatureObjectsCount) * 100, 2, '.', ' ') }}%)
+                      @endif
+                    @endif
+                  </span>
+                @endif
+              </div>
+            @endif
+          </div>
 
           
           <table class="table-standard">

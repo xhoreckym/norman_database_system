@@ -49,8 +49,8 @@
 
   
 
-  .btn-submit{
-    @apply bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded shadow focus:outline-none transition duration-300 ease-in-out;
+  .btn-submit {
+    @apply inline-block bg-slate-500 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded shadow focus:outline-none transition duration-300 ease-in-out;
   }
 
   .btn-submit-sky {
@@ -69,8 +69,12 @@
     @apply border border-slate-500 text-slate-500 hover:bg-slate-300 hover:text-white font-bold py-2 px-4 rounded shadow focus:outline-none transition duration-300 ease-in-out;
   }
 
-  .btn-download{
-    @apply bg-zinc-500 hover:bg-zinc-800 text-white font-bold py-2 px-4 rounded shadow focus:outline-none transition duration-300 ease-in-out;
+  .btn-download {
+    @apply inline-block bg-zinc-500 hover:bg-zinc-800 text-white font-bold py-2 px-4 rounded shadow focus:outline-none transition duration-300 ease-in-out;
+  }
+
+  .btn-download:disabled {
+    @apply opacity-50 cursor-not-allowed hover:bg-zinc-500;
   }
 
   .btn-delete{
