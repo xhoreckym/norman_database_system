@@ -77,49 +77,49 @@ class GeneDataSource extends Model
 
     /**
      * Get a formatted reference list
-     * 
+     *
      * @return string|null
      */
     public function getFormattedReferencesAttribute()
     {
         $references = [];
-        
-        if (!empty($this->references_literature_1)) {
+
+        if (! empty($this->references_literature_1)) {
             $references[] = $this->references_literature_1;
         }
-        
-        if (!empty($this->references_literature_2)) {
+
+        if (! empty($this->references_literature_2)) {
             $references[] = $this->references_literature_2;
         }
-        
-        return !empty($references) ? implode("\n", $references) : null;
+
+        return ! empty($references) ? implode("\n", $references) : null;
     }
 
     /**
      * Get a formatted contact info
-     * 
+     *
      * @return string|null
      */
     public function getContactInfoAttribute()
     {
         $parts = [];
-        
-        if (!empty($this->organisation)) {
+
+        if (! empty($this->organisation)) {
             $parts[] = $this->organisation;
         }
-        
-        if (!empty($this->laboratory)) {
+
+        if (! empty($this->laboratory)) {
             $parts[] = $this->laboratory;
         }
-        
-        if (!empty($this->author)) {
+
+        if (! empty($this->author)) {
             $parts[] = $this->author;
         }
-        
-        if (!empty($this->e_mail)) {
+
+        if (! empty($this->e_mail)) {
             $parts[] = $this->e_mail;
         }
-        
-        return !empty($parts) ? implode(", ", $parts) : null;
+
+        return ! empty($parts) ? implode(', ', $parts) : null;
     }
 }

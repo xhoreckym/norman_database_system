@@ -85,7 +85,7 @@ class GeneMain extends Model
      */
     public function concentrationData()
     {
-        return $this->belongsTo(DataConcentrationData::class, 'concentration_data_id', 'concentration_data_id');
+        return $this->belongsTo(DataConcentrationData::class, 'concentration_data_id', 'id');
     }
 
     /**
@@ -97,11 +97,11 @@ class GeneMain extends Model
     }
 
     /**
-     * Get the method record associated with the gene record.
+     * Get the analytical method record associated with the gene record.
      */
     public function method()
     {
-        return $this->belongsTo(DataMethod::class, 'method_id', 'method_id');
+        return $this->belongsTo(DataAnalyticalMethod::class, 'method_id', 'id');
     }
 
     /**
@@ -114,45 +114,45 @@ class GeneMain extends Model
 
     /**
      * Get formatted sampling date
-     * 
+     *
      * @return string|null
      */
     public function getSamplingDateAttribute()
     {
-        if (!$this->sampling_date_year || !$this->sampling_date_month || !$this->sampling_date_day) {
+        if (! $this->sampling_date_year || ! $this->sampling_date_month || ! $this->sampling_date_day) {
             return null;
         }
-        
-        return $this->sampling_date_year . '-' . 
-               str_pad($this->sampling_date_month, 2, '0', STR_PAD_LEFT) . '-' . 
+
+        return $this->sampling_date_year.'-'.
+               str_pad($this->sampling_date_month, 2, '0', STR_PAD_LEFT).'-'.
                str_pad($this->sampling_date_day, 2, '0', STR_PAD_LEFT);
     }
 
     /**
      * Get formatted sampling time
-     * 
+     *
      * @return string|null
      */
     public function getSamplingTimeAttribute()
     {
-        if (!$this->sampling_date_hour && !$this->sampling_date_minute) {
+        if (! $this->sampling_date_hour && ! $this->sampling_date_minute) {
             return null;
         }
-        
-        return ($this->sampling_date_hour ?? '00') . ':' . ($this->sampling_date_minute ?? '00');
+
+        return ($this->sampling_date_hour ?? '00').':'.($this->sampling_date_minute ?? '00');
     }
 
     /**
      * Get full gene name with description
-     * 
+     *
      * @return string
      */
     public function getFullGeneNameAttribute()
     {
-        if (!$this->gene_description) {
+        if (! $this->gene_description) {
             return $this->gene_name;
         }
-        
-        return $this->gene_name . ' - ' . $this->gene_description;
+
+        return $this->gene_name.' - '.$this->gene_description;
     }
 }

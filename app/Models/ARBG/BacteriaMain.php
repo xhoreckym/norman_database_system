@@ -112,7 +112,7 @@ class BacteriaMain extends Model
      */
     public function soilTexture()
     {
-        return $this->belongsTo(DataSoilTexture::class, 'soil_texture_id', 'soil_texture_id');
+        return $this->belongsTo(DataSoilTexture::class, 'soil_texture_id', 'id');
     }
 
     /**
@@ -120,7 +120,7 @@ class BacteriaMain extends Model
      */
     public function soilType()
     {
-        return $this->belongsTo(DataSoilType::class, 'soil_type_id', 'soil_type_id');
+        return $this->belongsTo(DataSoilType::class, 'soil_type_id', 'id');
     }
 
     /**
@@ -140,11 +140,11 @@ class BacteriaMain extends Model
     }
 
     /**
-     * Get the method record associated with the bacteria record.
+     * Get the analytical method record associated with the bacteria record.
      */
     public function method()
     {
-        return $this->belongsTo(DataMethod::class, 'method_id', 'method_id');
+        return $this->belongsTo(DataAnalyticalMethod::class, 'method_id', 'id');
     }
 
     /**
@@ -157,31 +157,31 @@ class BacteriaMain extends Model
 
     /**
      * Get formatted sampling date
-     * 
+     *
      * @return string|null
      */
     public function getSamplingDateAttribute()
     {
-        if (!$this->sampling_date_year || !$this->sampling_date_month || !$this->sampling_date_day) {
+        if (! $this->sampling_date_year || ! $this->sampling_date_month || ! $this->sampling_date_day) {
             return null;
         }
-        
-        return $this->sampling_date_year . '-' . 
-               str_pad($this->sampling_date_month, 2, '0', STR_PAD_LEFT) . '-' . 
+
+        return $this->sampling_date_year.'-'.
+               str_pad($this->sampling_date_month, 2, '0', STR_PAD_LEFT).'-'.
                str_pad($this->sampling_date_day, 2, '0', STR_PAD_LEFT);
     }
 
     /**
      * Get formatted sampling time
-     * 
+     *
      * @return string|null
      */
     public function getSamplingTimeAttribute()
     {
-        if (!$this->sampling_date_hour && !$this->sampling_date_minute) {
+        if (! $this->sampling_date_hour && ! $this->sampling_date_minute) {
             return null;
         }
-        
-        return ($this->sampling_date_hour ?? '00') . ':' . ($this->sampling_date_minute ?? '00');
+
+        return ($this->sampling_date_hour ?? '00').':'.($this->sampling_date_minute ?? '00');
     }
 }

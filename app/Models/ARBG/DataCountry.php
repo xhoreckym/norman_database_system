@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class DataCountry extends Model
 {
     protected $table = 'arbg_data_country';
-    
+
     protected $fillable = [
         'abbreviation',
         'name',
@@ -15,7 +15,7 @@ class DataCountry extends Model
         'is_active',
         'ordering',
     ];
-    
+
     protected $casts = [
         'is_active' => 'boolean',
         'ordering' => 'integer',

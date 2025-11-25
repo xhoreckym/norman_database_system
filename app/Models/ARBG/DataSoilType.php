@@ -7,7 +7,7 @@ namespace App\Models\ARBG;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DataConcentrationData extends Model
+class DataSoilType extends Model
 {
     use HasFactory;
 
@@ -16,7 +16,7 @@ class DataConcentrationData extends Model
      *
      * @var string
      */
-    protected $table = 'arbg_data_concentration_data';
+    protected $table = 'arbg_data_soil_type';
 
     /**
      * The attributes that are mass assignable.

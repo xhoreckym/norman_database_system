@@ -7,13 +7,29 @@
     Home
   </x-nav-link-header>
 
+  @if(request()->routeIs('arbg.bacteria.show'))
+  <span class="inline-flex py-4 mr-5 items-center border-b-2 border-transparent text-sm font-medium leading-5 text-gray-400 cursor-not-allowed"
+        title="You are viewing a record in a new tab. To return to search results, close this tab or use your browser's back button."
+        aria-label="Search Bacteria is disabled on this page">
+    Search Bacteria
+  </span>
+  @else
   <x-nav-link-header :href="route('arbg.bacteria.search.filter')" :active="request()->is('arbg/bacteria*')">
     Search Bacteria
   </x-nav-link-header>
+  @endif
 
+  @if(request()->routeIs('arbg.gene.show'))
+  <span class="inline-flex py-4 mr-5 items-center border-b-2 border-transparent text-sm font-medium leading-5 text-gray-400 cursor-not-allowed"
+        title="You are viewing a record in a new tab. To return to search results, close this tab or use your browser's back button."
+        aria-label="Search Genes is disabled on this page">
+    Search Genes
+  </span>
+  @else
   <x-nav-link-header :href="route('arbg.gene.search.filter')" :active="request()->is('arbg/gene*')">
     Search Genes
   </x-nav-link-header>
+  @endif
 
   <x-nav-link-header :href="route('templates.specific.index', ['code' => 'arbg'])" :active="request()->is('backend/templates/entity/arbg*')">
     DCT Download
