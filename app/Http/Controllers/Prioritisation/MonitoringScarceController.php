@@ -38,11 +38,15 @@ class MonitoringScarceController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified resource with all metadata.
      */
     public function show(string $id)
     {
-        //
+        $record = MonitoringScarce::findOrFail($id);
+
+        return view('prioritisation.monitoring-scarce.show', [
+            'record' => $record,
+        ]);
     }
 
     /**

@@ -36,6 +36,7 @@
 - Use Tailwind's color palette, don't define custom colors unless necessary
 - Prefer Tailwind forms plugin for form styling
 - Never use traditional BLUE and INDIGO colors
+- the links inside text, are done via class="link-lime-text" 
 
 ## Laravel Best Practices
 - Use resource controllers: `php artisan make:controller PostController --resource`

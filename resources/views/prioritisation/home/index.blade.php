@@ -2,18 +2,48 @@
   <x-slot name="header">
     @include('prioritisation.header')
   </x-slot>
-  
-  
+
+
   <div class="py-4">
     <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
       <div class="bg-white shadow-lg sm:rounded-lg">
         <div class="p-6 text-gray-900">
-          
+
           <!-- Title -->
           <h1 class="text-2xl font-bold text-gray-800 mb-4">
-            Prioritisation module
+            NORMAN Prioritisation Results
           </h1>
-          
+
+          <!-- Introduction Section -->
+          <div class="mb-8 text-gray-700">
+            <p class="mb-4">This part of the NORMAN Database System presents results of prioritisation of:</p>
+
+            <ol class="list-decimal list-outside ml-6 space-y-4">
+              <li>
+                <strong>Chemical occurrence data</strong> from <a href="{{ route('codsearch.filter') }}" class="link-lime-text">EMPODAT database</a> using <a href="https://www.norman-network.net/sites/default/files/files/Publications/NORMAN_prioritisation_Manual_15%20April2013_final%20for%20website-f.pdf" target="_blank" class="link-lime-text">NORMAN Prioritisation Framework</a>. The substances are ranked based on the availability and quality of occurrence data in <strong>six Categories</strong> and ranked within each category based on their <strong>Risk Score</strong> (<strong>Final score</strong>).
+                <ol class="list-[lower-alpha] list-outside ml-6 mt-2 space-y-2">
+                  <li>
+                    <strong>NORMAN 2017</strong>: Europe-wide prioritisation of 966 <strong>NORMAN substances as of 25 July 2016</strong> – combined freshwater/marine water with data from 2009 – 2016.
+                  </li>
+                  <li>
+                    <strong>DANUBE 2018</strong>: Prioritisation of the <strong>Danube River Basin Specific Pollutants</strong> (RBSPs) within the <a href="https://www.solutions-project.eu/" target="_blank" class="link-lime-text">SOLUTIONS project</a> <strong>as of 14 April 2018</strong> – data obtained from Joint Danube Surveys 1/2/3 and other monitoring data in the Water Quality Database of the <a href="http://www.icpdr.org/wq-db/" target="_blank" class="link-lime-text">ICPDR</a>.
+                  </li>
+                  <li>
+                    <strong>SCARCE 2018</strong>: Prioritisation of the <strong>Iberian Peninsula River Basin Specific Pollutants</strong> (RBSPs) within the <a href="https://www.solutions-project.eu/" target="_blank" class="link-lime-text">SOLUTIONS project</a> <strong>as of 20 April 2018</strong> – data obtained from the <a href="https://www.idaea.csic.es/scarceconsolider/publica/P000Main.php" target="_blank" class="link-lime-text">SCARCE project</a>; Llobregat and Ebro River Basins.
+                  </li>
+                </ol>
+              </li>
+              <li>
+                <strong>Simulated Predicted Environmental Concentrations</strong> (PEC) provided by the Model Train developed within the SOLUTIONS project (<a href="https://www.solutions-project.eu/results-products/#article-52" target="_blank" class="link-lime-text">https://www.solutions-project.eu/results-products/#article-52</a>). <strong>The NORMAN Prioritisation Framework Risk Score based on the Frequency of Exceedance and Extent of Exceedance of PNECs (the same as for Measured Environmental Concentrations (MEC)) was used</strong>.
+                <p class="mt-2">A model based prioritisation of chemicals that can serve as one of the Lines of Evidence in an overall prioritisation exercise to define RBSPs.</p>
+                <ol class="list-[lower-alpha] list-outside ml-6 mt-2 space-y-2">
+                  <li><strong>DANUBE 2018</strong>: Simulations of the combined emission and fate and transport models were carried out for 1788 chemicals.</li>
+                  <li><strong>SCARCE 2018</strong>: Simulations of the combined emission and fate and transport models were carried out for 1811 chemicals.</li>
+                </ol>
+              </li>
+            </ol>
+          </div>
+
           <!-- 2x2 Navigation Structure -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             

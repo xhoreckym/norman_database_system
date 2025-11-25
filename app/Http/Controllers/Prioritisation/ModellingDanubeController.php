@@ -37,11 +37,17 @@ class ModellingDanubeController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified resource with all metadata.
      */
     public function show(string $id)
     {
-        //
+        $record = ModellingDanube::with([
+            'substance',
+        ])->findOrFail($id);
+
+        return view('prioritisation.modelling-danube.show', [
+            'record' => $record,
+        ]);
     }
 
     /**

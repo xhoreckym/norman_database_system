@@ -673,9 +673,13 @@ Route::prefix('prioritisation')->group(function () {
     Route::get('/monitoring-danube', [MonitoringDanubeController::class, 'index'])->name('prioritisation.monitoring-danube.index');
 
     Route::get('/modelling-scarce', [ModellingScarceController::class, 'index'])->name('prioritisation.modelling-scarce.index');
+    Route::get('/modelling-scarce/{id}', [ModellingScarceController::class, 'show'])->name('prioritisation.modelling-scarce.show');
     Route::get('/modelling-danube', [ModellingDanubeController::class, 'index'])->name('prioritisation.modelling-danube.index');
+    Route::get('/modelling-danube/{id}', [ModellingDanubeController::class, 'show'])->name('prioritisation.modelling-danube.show');
 
     Route::get('/monitoring-scarce/filter', [MonitoringScarceController::class, 'filter'])->name('prioritisation.monitoring-scarce.filter');
+    Route::get('/monitoring-scarce/{id}', [MonitoringScarceController::class, 'show'])->name('prioritisation.monitoring-scarce.show');
+    Route::get('/monitoring-danube/{id}', [MonitoringDanubeController::class, 'show'])->name('prioritisation.monitoring-danube.show');
 
     Route::get('prioritisation/countAll', [PrioritisationHomeController::class, 'countAll'])->middleware('auth')->name('prioritisation.countAll');
 });

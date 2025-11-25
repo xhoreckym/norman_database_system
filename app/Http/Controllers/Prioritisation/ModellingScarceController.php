@@ -37,11 +37,17 @@ class ModellingScarceController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified resource with all metadata.
      */
     public function show(string $id)
     {
-        //
+        $record = ModellingScarce::with([
+            'substance',
+        ])->findOrFail($id);
+
+        return view('prioritisation.modelling-scarce.show', [
+            'record' => $record,
+        ]);
     }
 
     /**
