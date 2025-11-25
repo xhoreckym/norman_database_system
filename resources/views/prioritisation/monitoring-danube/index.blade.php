@@ -13,10 +13,14 @@
             <button type="submit" class="btn-submit">Refine Search</button>
           </a> --}}
           
-          <div class="text-gray-600 flex border-l-2 border-white">
-            
-            {{-- Filters or whatwever... --}}
-            
+          <div class="flex items-center space-x-4 mb-4">
+            @auth
+              <a href="{{ route('prioritisation.monitoring-danube.csv') }}" class="btn-download">
+                <i class="fas fa-download mr-2"></i>Download CSV
+              </a>
+            @else
+              <div class="text-gray-400">Downloads are available for registered users only</div>
+            @endauth
           </div>
           
           <div class="text-gray-600 flex border-l-2 border-white">

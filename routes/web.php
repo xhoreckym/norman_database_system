@@ -681,6 +681,12 @@ Route::prefix('prioritisation')->group(function () {
     Route::get('/monitoring-scarce/{id}', [MonitoringScarceController::class, 'show'])->name('prioritisation.monitoring-scarce.show');
     Route::get('/monitoring-danube/{id}', [MonitoringDanubeController::class, 'show'])->name('prioritisation.monitoring-danube.show');
 
+    // CSV Download routes (require authentication)
+    Route::get('/modelling-danube/download/csv', [ModellingDanubeController::class, 'downloadCsv'])->middleware('auth')->name('prioritisation.modelling-danube.csv');
+    Route::get('/modelling-scarce/download/csv', [ModellingScarceController::class, 'downloadCsv'])->middleware('auth')->name('prioritisation.modelling-scarce.csv');
+    Route::get('/monitoring-danube/download/csv', [MonitoringDanubeController::class, 'downloadCsv'])->middleware('auth')->name('prioritisation.monitoring-danube.csv');
+    Route::get('/monitoring-scarce/download/csv', [MonitoringScarceController::class, 'downloadCsv'])->middleware('auth')->name('prioritisation.monitoring-scarce.csv');
+
     Route::get('prioritisation/countAll', [PrioritisationHomeController::class, 'countAll'])->middleware('auth')->name('prioritisation.countAll');
 });
 

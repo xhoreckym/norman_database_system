@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers\Prioritisation;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Prioritisation\ModellingScarce;
+use App\Models\Backend\ExportDownload;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ModellingScarceController extends Controller
 {
@@ -72,5 +77,132 @@ class ModellingScarceController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Download entire dataset as CSV
+     */
+    public function downloadCsv()
+    {
+        if (!Auth::check()) {
+            session()->flash('error', 'You must be logged in to download the CSV file.');
+            return back();
+        }
+
+        try {
+            $filename = 'prioritisation_modelling_scarce_uid_' . Auth::id() . '_' . now()->format('YmdHis') . '.csv';
+            $directory = 'exports/prioritisation';
+
+            $exportDownload = ExportDownload::create([
+                'user_id' => Auth::id(),
+                'filename' => $filename,
+                'format' => 'csv',
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'database_key' => 'prioritisation_modelling_scarce',
+                'status' => 'processing',
+                'started_at' => Carbon::now(),
+            ]);
+
+            $startTime = microtime(true);
+            Storage::makeDirectory($directory);
+
+            $path = Storage::path("{$directory}/{$filename}");
+            $handle = fopen($path, 'w');
+
+            if (!$handle) {
+                throw new \Exception("Unable to open file for writing: {$path}");
+            }
+
+            $headers = [
+                'ID',
+                'Original ID',
+                'Substance ID',
+                'CAS',
+                'Name',
+                'Emissions',
+                'Correct',
+                'Score 1',
+                'Score 2',
+                'Score 3',
+                'Score 4',
+                'Score 5',
+                'Created At',
+                'Updated At',
+                'Export Date',
+            ];
+            fputcsv($handle, $headers);
+
+            $totalExported = 0;
+            $exportDate = Carbon::now()->format('Y-m-d H:i:s');
+
+            ModellingScarce::orderBy('id', 'asc')->chunk(500, function ($records) use ($handle, $exportDate, &$totalExported) {
+                foreach ($records as $record) {
+                    $row = [
+                        $record->id,
+                        $record->pri_id,
+                        $record->substance_id,
+                        $record->pri_cas,
+                        $record->pri_name,
+                        $record->pri_emissions,
+                        $record->pri_correct,
+                        $record->pri_score1,
+                        $record->pri_score2,
+                        $record->pri_score3,
+                        $record->pri_score4,
+                        $record->pri_score5,
+                        $record->created_at,
+                        $record->updated_at,
+                        $exportDate,
+                    ];
+                    fputcsv($handle, $row);
+                    $totalExported++;
+                }
+            });
+
+            fclose($handle);
+
+            $fileSize = Storage::size("{$directory}/{$filename}");
+            $formattedFileSize = $this->formatBytes($fileSize);
+            $processingTime = round(microtime(true) - $startTime, 2);
+
+            $exportDownload->update([
+                'status' => 'completed',
+                'record_count' => $totalExported,
+                'file_size_bytes' => $fileSize,
+                'file_size_formatted' => $formattedFileSize,
+                'processing_time_seconds' => $processingTime,
+                'completed_at' => Carbon::now(),
+            ]);
+
+            Log::info("Prioritisation Modelling Scarce export complete: {$totalExported} records in {$processingTime}s. Size: {$formattedFileSize}");
+
+            return response()->download($path, $filename, ['Content-Type' => 'text/csv']);
+
+        } catch (\Exception $e) {
+            Log::error("Prioritisation Modelling Scarce export failed: " . $e->getMessage());
+
+            if (isset($exportDownload)) {
+                $exportDownload->update([
+                    'status' => 'failed',
+                    'message' => $e->getMessage(),
+                    'completed_at' => Carbon::now(),
+                ]);
+            }
+
+            session()->flash('error', 'Export failed: ' . $e->getMessage());
+            return back();
+        }
+    }
+
+    protected function formatBytes($bytes, $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= (1 << (10 * $pow));
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }
