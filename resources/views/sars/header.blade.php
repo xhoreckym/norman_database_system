@@ -15,6 +15,10 @@
     DCT Download
   </x-nav-link-header>
 
+  <x-nav-link-header :href="route('sars.statistics.index')" :active="request()->is('sars/statistics*')">
+    Statistics
+  </x-nav-link-header>
+
   @role('super_admin')
   <x-nav-link-header :href="route('querylog.index', ['module' => 'sars'])" :active="request()->is('*querylog*')">
     History of search

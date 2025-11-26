@@ -55,6 +55,7 @@ use App\Http\Controllers\Prioritisation\PrioritisationHomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Sars\SarsController;
 use App\Http\Controllers\Sars\SarsHomeController;
+use App\Http\Controllers\Sars\StatisticsController as SarsStatisticsController;
 use App\Http\Controllers\SLE\SuspectListExchangeController;
 use App\Http\Controllers\SLE\SuspectListExchangeHomeController;
 use App\Http\Controllers\Susdat\DuplicateController;
@@ -551,6 +552,19 @@ Route::prefix('sars')->group(function () {
         'destroy' => 'sars.home.destroy',
     ]);
 
+    // Statistics routes
+    Route::prefix('statistics')->group(function () {
+        // Public routes - anyone can view
+        Route::get('/', [SarsStatisticsController::class, 'index'])->name('sars.statistics.index');
+        Route::get('per-country', [SarsStatisticsController::class, 'perCountry'])->name('sars.statistics.perCountry');
+        Route::get('per-matrix', [SarsStatisticsController::class, 'perMatrix'])->name('sars.statistics.perMatrix');
+        Route::get('per-year', [SarsStatisticsController::class, 'perYear'])->name('sars.statistics.perYear');
+
+        // Admin-only route for generation
+        Route::post('generate', [SarsStatisticsController::class, 'generateStatistics'])
+            ->middleware(['auth', 'role:super_admin|admin'])
+            ->name('sars.statistics.generate');
+    });
 });
 
 Route::prefix('literature')->group(function () {
