@@ -16,6 +16,7 @@ use App\Http\Controllers\Backend\TemplateController;
 use App\Http\Controllers\Backend\UserLoginRetentionController;
 use App\Http\Controllers\Bioassay\BioassayController;
 use App\Http\Controllers\Bioassay\BioassayHomeController;
+use App\Http\Controllers\Bioassay\StatisticsController as BioassayStatisticsController;
 use App\Http\Controllers\Dashboard\DashboardMainController;
 use App\Http\Controllers\DatabaseDirectoryController;
 use App\Http\Controllers\Ecotox\EcotoxController;
@@ -487,6 +488,8 @@ Route::prefix('bioassays')->group(function () {
 
     Route::get('search/filter/', [BioassayController::class, 'filter'])->name('bioassay.search.filter');
     Route::get('search/search/', [BioassayController::class, 'search'])->name('bioassay.search.search');
+    Route::get('search/downloadjob/{query_log_id}', [BioassayController::class, 'startDownloadJob'])->name('bioassay.search.download');
+    Route::get('search/download/{filename}', [BioassayController::class, 'downloadCsv'])->name('bioassay.csv.download');
 
     Route::resource('search', BioassayController::class)->names([
         'index' => 'bioassay.search.index',
@@ -499,6 +502,22 @@ Route::prefix('bioassays')->group(function () {
     ]);
 
     Route::get('bioassay/countAll', [BioassayHomeController::class, 'countAll'])->middleware('auth')->name('bioassay.countAll');
+
+    // Statistics routes
+    Route::prefix('statistics')->group(function () {
+        // Public routes - anyone can view
+        Route::get('/', [BioassayStatisticsController::class, 'index'])->name('bioassay.statistics.index');
+        Route::get('per-country', [BioassayStatisticsController::class, 'perCountry'])->name('bioassay.statistics.perCountry');
+        Route::get('per-bioassay-name', [BioassayStatisticsController::class, 'perBioassayName'])->name('bioassay.statistics.perBioassayName');
+        Route::get('per-endpoint', [BioassayStatisticsController::class, 'perEndpoint'])->name('bioassay.statistics.perEndpoint');
+        Route::get('per-determinand', [BioassayStatisticsController::class, 'perDeterminand'])->name('bioassay.statistics.perDeterminand');
+        Route::get('per-year', [BioassayStatisticsController::class, 'perYear'])->name('bioassay.statistics.perYear');
+
+        // Admin-only route for generation
+        Route::post('generate', [BioassayStatisticsController::class, 'generateStatistics'])
+            ->middleware(['auth', 'role:super_admin|admin'])
+            ->name('bioassay.statistics.generate');
+    });
 });
 
 Route::prefix('sars')->group(function () {

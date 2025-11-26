@@ -23,6 +23,10 @@
     DCT Download
   </x-nav-link-header>
 
+  <x-nav-link-header :href="route('bioassay.statistics.index')" :active="request()->is('bioassays/statistics*')">
+    Statistics
+  </x-nav-link-header>
+
   @role('super_admin')
   <x-nav-link-header :href="route('querylog.index', ['module' => 'bioassay'])" :active="request()->is('*querylog*')">
     History of search

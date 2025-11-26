@@ -485,17 +485,82 @@ Add statistics link to the module header (`resources/views/newmodule/header.blad
 
 ## Module-Specific Considerations
 
+### CRITICAL: Foreign Key and Join Field Analysis
+
+**Before writing any statistics queries, you MUST verify the actual data types and relationships in the database.**
+
+#### Step 1: Check the Seeder Files
+
+Look at how data is seeded to understand what values are stored in foreign key columns:
+
+```php
+// Example from PassiveMainSeeder.php
+$records[] = [
+    'country_id' => $safeString($r['country_id']),  // STRING - stores abbreviation like "DE"
+    'matrix_id' => $safeForeignKey($r['matrix_id']), // INTEGER - stores numeric ID
+];
+```
+
+**Key indicators:**
+- `$safeString()` = column stores text/abbreviation
+- `$safeForeignKey()` or `$safeInt()` = column stores numeric ID
+
+#### Step 2: Check the Lookup Table Structure
+
+```bash
+# Check what columns exist in lookup tables
+psql -d norman_database -c "\d passive_data_country"
+```
+
+Or check the seeder that populates the lookup table:
+
+```php
+// PassiveDataSeeder.php - tables with text IDs
+$files_with_text_ids = [
+    'data_country',       // Uses abbreviation as the link
+    'data_country_other',
+];
+
+// These tables store: id (bigint), abbreviation (string), name (string)
+```
+
+#### Step 3: Choose the Correct Join
+
+| If main table stores... | Join on lookup table's... | Example |
+|------------------------|---------------------------|---------|
+| Numeric ID (bigint) | `id` column | `main.country_id = lookup.id` |
+| Abbreviation (string) | `abbreviation` column | `main.country_id = lookup.abbreviation` |
+
 ### Country Table Variations
 
-Different modules may use different country tables:
+Different modules use different country tables AND different join strategies:
 
-| Module | Country Table | Join Field |
-|--------|---------------|------------|
-| EMPODAT | `list_countries` | `id` (bigint) |
-| ARBG | `arbg_data_country` | `abbreviation` (string) |
-| Literature | `list_countries` | `id` (bigint) |
+| Module | Country Table | Main Table Column | Join Field | Data Type |
+|--------|---------------|-------------------|------------|-----------|
+| EMPODAT | `list_countries` | `country_id` | `id` | bigint → bigint |
+| ARBG | `arbg_data_country` | `country_id` | `abbreviation` | string → string |
+| Passive | `passive_data_country` | `country_id` | `abbreviation` | string → string |
+| Literature | `list_countries` | `country_id` | `id` | bigint → bigint |
+| EmpodatSuspect | `list_countries` | `country_id` (via station) | `id` | bigint → bigint |
 
-Always check the existing controller code to understand the correct table and join structure.
+**WARNING:** Column names can be misleading! A column named `country_id` might store:
+- A numeric ID (join on `lookup.id`)
+- A country abbreviation like "DE" (join on `lookup.abbreviation`)
+
+Always verify by checking the seeder or existing data.
+
+### Handling Empty String Values
+
+When a column stores strings (like abbreviations), empty strings `''` may exist alongside `NULL`. Always filter both:
+
+```php
+// WRONG - misses empty strings
+->whereNotNull('psm.country_id')
+
+// CORRECT - filters both NULL and empty strings
+->whereNotNull('psm.country_id')
+->where('psm.country_id', '!=', '')
+```
 
 ### Data Structure Variations
 
@@ -507,28 +572,55 @@ Some modules may have additional statistic types:
 
 ## Checklist for New Statistics Module
 
-1. [ ] Create `StatisticsController.php` with all required methods
-2. [ ] Add controller import to `routes/web.php`
-3. [ ] Add statistics routes (public views + admin-only generate)
-4. [ ] Create `statistics/` view directory with:
+### Pre-Development Analysis (DO THIS FIRST)
+
+1. [ ] **Check the main seeder file** (e.g., `PassiveMainSeeder.php`) to see how foreign keys are stored
+2. [ ] **Identify data types** for each foreign key column (`$safeString` vs `$safeForeignKey`)
+3. [ ] **Check lookup table seeders** to understand their structure (id, abbreviation, name)
+4. [ ] **Document the correct join fields** for each relationship before writing queries
+
+### Implementation
+
+5. [ ] Create `StatisticsController.php` with all required methods
+6. [ ] Add controller import to `routes/web.php`
+7. [ ] Add statistics routes (public views + admin-only generate)
+8. [ ] Create `statistics/` view directory with:
    - [ ] `layout.blade.php`
    - [ ] `index.blade.php`
    - [ ] `per_country.blade.php`
-   - [ ] `per_year.blade.php`
-   - [ ] `per_matrix.blade.php`
-5. [ ] Add navigation link to module header
-6. [ ] Verify correct table joins for country data
-7. [ ] Run `./vendor/bin/pint` on new controller
-8. [ ] Test statistics generation as admin
-9. [ ] Test statistics viewing as guest/regular user
+   - [ ] `per_year.blade.php` (if applicable)
+   - [ ] `per_matrix.blade.php` (if applicable)
+   - [ ] `per_substance.blade.php` (if applicable)
+9. [ ] Add navigation link to module header
+10. [ ] Run `./vendor/bin/pint` on new controller
+
+### Testing
+
+11. [ ] Test statistics generation as admin (use the form button, NOT direct URL)
+12. [ ] Test statistics viewing as guest/regular user
+13. [ ] Verify all counts match expected data
 
 ## Troubleshooting
 
 ### Common Errors
 
 **Error: "operator does not exist: character = bigint"**
-- Cause: Joining string field to integer field
-- Solution: Check country table structure and use correct join
+- Cause: Joining a string column (like country abbreviation "DE") to an integer column (like `id`)
+- Solution:
+  1. Check the seeder to see what type of value is stored in the foreign key column
+  2. If it stores abbreviations (strings), join on `lookup.abbreviation` not `lookup.id`
+  3. Example fix:
+  ```php
+  // WRONG: country_id stores "DE" but joining to integer id
+  ->join('passive_data_country as pdc', 'psm.country_id', '=', 'pdc.id')
+
+  // CORRECT: join string to string
+  ->join('passive_data_country as pdc', 'psm.country_id', '=', 'pdc.abbreviation')
+  ```
+
+**Error: HTTP 405 Method Not Allowed (on /generate URL)**
+- Cause: Accessing POST route via GET (typing URL in browser)
+- Solution: Statistics generation must be triggered via the form button which sends a POST request with CSRF token
 
 **Error: "Undefined route"**
 - Cause: Route not registered or wrong name
@@ -537,3 +629,15 @@ Some modules may have additional statistic types:
 **Error: Statistics not showing after generation**
 - Cause: Wrong `database_entity_id` or `key`
 - Solution: Check `database_entities` table for correct code and ID
+
+**Error: Country/Matrix counts are wrong or zero**
+- Cause: Empty strings `''` are being counted or not filtered properly
+- Solution: Always filter both NULL and empty strings:
+  ```php
+  ->whereNotNull('column')
+  ->where('column', '!=', '')
+  ```
+
+**Error: "SQLSTATE[42703]: Undefined column"**
+- Cause: Column name mismatch between tables
+- Solution: Check the actual column names in both tables using `\d table_name` in psql or checking the seeder/migration
