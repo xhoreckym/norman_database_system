@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Indoor;
 
 use App\Http\Controllers\Controller;
+use App\Models\Backend\ExportDownload;
 use App\Models\Backend\QueryLog;
 use App\Models\DatabaseEntity;
 use App\Models\Indoor\IndoorDataCountry;
@@ -10,8 +11,12 @@ use App\Models\Indoor\IndoorDataDcoe;
 use App\Models\Indoor\IndoorDataDtoe;
 use App\Models\Indoor\IndoorDataMatrix;
 use App\Models\Indoor\IndoorMain;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class IndoorController extends Controller
 {
@@ -218,5 +223,274 @@ class IndoorController extends Controller
             'searchParameters' => $searchParameters,
         ], $main_request);
 
+    }
+
+    /**
+     * Start direct CSV download for Indoor data
+     */
+    public function startDownloadJob($query_log_id)
+    {
+        if (! Auth::check()) {
+            session()->flash('error', 'You must be logged in to download the CSV file.');
+
+            return back();
+        }
+
+        // Disable DebugBar to prevent memory exhaustion during large exports
+        if (app()->bound('debugbar')) {
+            app('debugbar')->disable();
+        }
+
+        try {
+            // Get the query log record
+            $queryLog = QueryLog::findOrFail($query_log_id);
+
+            // Generate filename
+            $filename = 'indoor_export_uid_'.Auth::id().'_'.now()->format('YmdHis').'.csv';
+
+            // Get request information for logging
+            $ip = request()->ip();
+            $userAgent = request()->userAgent();
+
+            // Create an export download record for tracking
+            $exportDownload = ExportDownload::create([
+                'user_id' => Auth::id(),
+                'filename' => $filename,
+                'format' => 'csv',
+                'ip_address' => $ip,
+                'user_agent' => $userAgent,
+                'database_key' => 'indoor',
+                'status' => 'processing',
+                'started_at' => Carbon::now(),
+            ]);
+
+            // Associate with the query log
+            $exportDownload->queryLogs()->attach($query_log_id);
+
+            // Process the export directly
+            $startTime = microtime(true);
+            $directory = 'exports/indoor';
+
+            // Make sure the directory exists
+            Storage::makeDirectory($directory);
+
+            $path = Storage::path("{$directory}/{$filename}");
+            $handle = fopen($path, 'w');
+
+            if (! $handle) {
+                throw new \Exception("Unable to open file for writing: {$path}");
+            }
+
+            // Write CSV headers
+            $headers = [
+                'ID',
+                'Country',
+                'Station Name',
+                'Sample Code',
+                'Matrix',
+                'Environment Type',
+                'Environment Category',
+                'Concentration Value',
+                'Concentration Unit',
+                'Sampling Date',
+                'Latitude',
+                'Longitude',
+                'Remark',
+            ];
+            fputcsv($handle, $headers);
+
+            // Build optimized query with joins instead of eager loading
+            $content = json_decode($queryLog->content, true);
+            $requestData = $content['request'] ?? [];
+
+            // Process search fields
+            $searchFields = ['countrySearch', 'matrixSearch', 'environmentTypeSearch', 'environmentCategorySearch'];
+            $filters = [];
+            foreach ($searchFields as $field) {
+                $filters[$field] = is_array($requestData[$field] ?? null)
+                    ? $requestData[$field]
+                    : json_decode($requestData[$field] ?? '[]', true);
+            }
+
+            // Use raw query with joins for better performance
+            $baseQuery = DB::table('indoor_main as im')
+                ->leftJoin('indoor_data_country as idc', 'im.country', '=', 'idc.abbreviation')
+                ->leftJoin('indoor_data_matrix as idm', 'im.matrix_id', '=', 'idm.id')
+                ->leftJoin('indoor_data_dtoe as idt', 'im.dtoe_id', '=', 'idt.id')
+                ->leftJoin('indoor_data_dcoe as idcat', 'im.dcoe_id', '=', 'idcat.id')
+                ->select([
+                    'im.id',
+                    'idc.name as country_name',
+                    'im.country as country_code',
+                    'im.station_name',
+                    'im.sample_code',
+                    'idm.name as matrix_name',
+                    'idt.name as environment_type_name',
+                    'idcat.name as environment_category_name',
+                    'im.concentration_value',
+                    'im.concentration_unit',
+                    'im.sampling_date_y',
+                    'im.sampling_date_m',
+                    'im.sampling_date_d',
+                    'im.latitude_decimal',
+                    'im.longitude_decimal',
+                    'im.remark',
+                ]);
+
+            // Apply filters
+            if (! empty($filters['countrySearch'])) {
+                $baseQuery->whereIn('im.country', $filters['countrySearch']);
+            }
+
+            if (! empty($filters['matrixSearch'])) {
+                $baseQuery->whereIn('im.matrix_id', $filters['matrixSearch']);
+            }
+
+            if (! empty($filters['environmentTypeSearch'])) {
+                $baseQuery->whereIn('im.dtoe_id', $filters['environmentTypeSearch']);
+            }
+
+            if (! empty($filters['environmentCategorySearch'])) {
+                $baseQuery->whereIn('im.dcoe_id', $filters['environmentCategorySearch']);
+            }
+
+            // Process records in chunks
+            $totalExported = 0;
+
+            $baseQuery->orderBy('im.id')->chunk(1000, function ($records) use ($handle, &$totalExported) {
+                foreach ($records as $record) {
+                    // Format sampling date
+                    $samplingDate = '';
+                    if ($record->sampling_date_y) {
+                        $samplingDate = $record->sampling_date_y;
+                        if ($record->sampling_date_m) {
+                            $samplingDate .= '-'.str_pad($record->sampling_date_m, 2, '0', STR_PAD_LEFT);
+                            if ($record->sampling_date_d) {
+                                $samplingDate .= '-'.str_pad($record->sampling_date_d, 2, '0', STR_PAD_LEFT);
+                            }
+                        }
+                    }
+
+                    $row = [
+                        $record->id,
+                        $record->country_name ?? $record->country_code ?? '',
+                        $record->station_name ?? '',
+                        $record->sample_code ?? '',
+                        $record->matrix_name ?? '',
+                        $record->environment_type_name ?? '',
+                        $record->environment_category_name ?? '',
+                        $record->concentration_value ?? '',
+                        $record->concentration_unit ?? '',
+                        $samplingDate,
+                        $record->latitude_decimal ?? '',
+                        $record->longitude_decimal ?? '',
+                        $record->remark ?? '',
+                    ];
+                    fputcsv($handle, $row);
+                    $totalExported++;
+                }
+            });
+
+            fclose($handle);
+
+            // Get file size and processing time
+            $fileSize = Storage::size("{$directory}/{$filename}");
+            $formattedFileSize = $this->formatBytes($fileSize);
+            $processingTime = round(microtime(true) - $startTime, 2);
+
+            // Update the export download record with completion metrics
+            $exportDownload->update([
+                'status' => 'completed',
+                'record_count' => $totalExported,
+                'file_size_bytes' => $fileSize,
+                'file_size_formatted' => $formattedFileSize,
+                'processing_time_seconds' => $processingTime,
+                'completed_at' => Carbon::now(),
+            ]);
+
+            Log::info("Indoor export complete: {$totalExported} records exported in {$processingTime} seconds. File size: {$formattedFileSize}");
+
+            // Redirect directly to download since processing is complete
+            return redirect()->route('indoor.csv.download', ['filename' => $filename]);
+
+        } catch (\Exception $e) {
+            Log::error('Indoor export failed: '.$e->getMessage());
+
+            // Update export download record if it exists
+            if (isset($exportDownload)) {
+                $exportDownload->update([
+                    'status' => 'failed',
+                    'message' => $e->getMessage(),
+                    'completed_at' => Carbon::now(),
+                ]);
+            }
+
+            session()->flash('error', 'Export failed: '.$e->getMessage());
+
+            return back();
+        }
+    }
+
+    /**
+     * Download the generated CSV file
+     */
+    public function downloadCsv($filename)
+    {
+        $directory = 'exports/indoor';
+        $path = Storage::path("{$directory}/{$filename}");
+
+        // Debug logging for file availability
+        Log::info("Download request for: {$filename}", [
+            'path' => $path,
+            'exists' => file_exists($path),
+            'directory_contents' => Storage::files($directory),
+        ]);
+
+        if (! file_exists($path)) {
+            // Try to find similar files for debugging
+            $similarFiles = collect(Storage::files($directory))
+                ->filter(function ($file) use ($filename) {
+                    $fileBasename = basename($file);
+                    $requestBasename = basename($filename);
+
+                    return str_contains($fileBasename, explode('_', $requestBasename)[3] ?? '') ||
+                           str_contains($fileBasename, explode('_', $requestBasename)[2] ?? '');
+                })
+                ->values();
+
+            Log::warning("File not found: {$filename}", [
+                'path' => $path,
+                'similar_files' => $similarFiles->toArray(),
+                'user_id' => Auth::id(),
+            ]);
+
+            return response()->json([
+                'error' => 'File not found',
+                'message' => 'The requested CSV file does not exist. It may have expired or failed to generate.',
+                'similar_files' => $similarFiles->map(function ($file) {
+                    return basename($file);
+                }),
+            ], 404);
+        }
+
+        return response()->download($path, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
+    }
+
+    /**
+     * Format bytes to human-readable file size
+     */
+    protected function formatBytes($bytes, $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+
+        $bytes /= (1 << (10 * $pow));
+
+        return round($bytes, $precision).' '.$units[$pow];
     }
 }

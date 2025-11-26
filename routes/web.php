@@ -39,6 +39,7 @@ use App\Http\Controllers\Factsheet\FactsheetController;
 use App\Http\Controllers\Factsheet\FactsheetStatisticsController;
 use App\Http\Controllers\Indoor\IndoorController;
 use App\Http\Controllers\Indoor\IndoorHomeController;
+use App\Http\Controllers\Indoor\IndoorStatisticsController;
 use App\Http\Controllers\Literature\LiteratureController;
 use App\Http\Controllers\Literature\LiteratureHomeController;
 use App\Http\Controllers\MainAPIController;
@@ -425,8 +426,21 @@ Route::prefix('indoor')->group(function () {
 
     Route::get('search/filter/', [IndoorController::class, 'filter'])->name('indoor.search.filter');
     Route::get('search/search/', [IndoorController::class, 'search'])->name('indoor.search.search');
+    Route::get('search/downloadjob/{query_log_id}', [IndoorController::class, 'startDownloadJob'])->name('indoor.search.download');
+    Route::get('search/download/{filename}', [IndoorController::class, 'downloadCsv'])->name('indoor.csv.download');
 
     Route::get('indoor/countAll', [IndoorHomeController::class, 'countAll'])->middleware('auth')->name('indoor.countAll');
+
+    // Statistics routes
+    Route::prefix('statistics')->group(function () {
+        Route::get('/', [IndoorStatisticsController::class, 'index'])->name('indoor.statistics.index');
+        Route::get('per-country', [IndoorStatisticsController::class, 'perCountry'])->name('indoor.statistics.perCountry');
+        Route::get('per-matrix', [IndoorStatisticsController::class, 'perMatrix'])->name('indoor.statistics.perMatrix');
+        Route::get('per-environment-type', [IndoorStatisticsController::class, 'perEnvironmentType'])->name('indoor.statistics.perEnvironmentType');
+        Route::get('per-environment-category', [IndoorStatisticsController::class, 'perEnvironmentCategory'])->name('indoor.statistics.perEnvironmentCategory');
+        Route::post('generate', [IndoorStatisticsController::class, 'generateAll'])->middleware(['auth', 'role:super_admin|admin'])->name('indoor.statistics.generate');
+    });
+
     Route::get('{id}', [IndoorController::class, 'show'])->name('indoor.show');
 });
 

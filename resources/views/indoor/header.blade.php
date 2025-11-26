@@ -14,10 +14,14 @@
     Search
   </span>
   @else
-  <x-nav-link-header :href="route('indoor.search.filter')" :active="request()->is('*search*')">
+  <x-nav-link-header :href="route('indoor.search.filter')" :active="request()->is('indoor/search*')">
     Search
   </x-nav-link-header>
   @endif
+
+  <x-nav-link-header :href="route('indoor.statistics.index')" :active="request()->is('indoor/statistics*')">
+    Statistics
+  </x-nav-link-header>
 
   <x-nav-link-header :href="route('templates.specific.index', ['code' => 'indoor'])" :active="request()->is('backend/templates/entity/indoor*')">
     DCT Download
