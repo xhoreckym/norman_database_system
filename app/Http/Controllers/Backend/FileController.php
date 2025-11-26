@@ -7,6 +7,7 @@ use App\Models\Backend\File;
 use App\Models\Backend\Project;
 use App\Models\Backend\Template;
 use App\Models\DatabaseEntity;
+use App\Services\FileRescanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +22,7 @@ class FileController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 25);
+        $perPage = $request->input('per_page', 100);
         $search = $request->input('search', '');
         $sort = $request->input('sort', 'id');
         $direction = $request->input('direction', 'desc');
@@ -65,7 +66,7 @@ class FileController extends Controller
      */
     public function getFileData(Request $request)
     {
-        $perPage = $request->input('per_page', 25);
+        $perPage = $request->input('per_page', 100);
         $search = $request->input('search', '');
         $sort = $request->input('sort', 'id');
         $direction = $request->input('direction', 'desc');
@@ -471,5 +472,24 @@ class FileController extends Controller
         $databaseEntities = DatabaseEntity::orderBy('name')->get();
 
         return view('backend.files.index', compact('files', 'databaseEntities', 'entityId'));
+    }
+
+    /**
+     * Rescan file to update main_id_from, main_id_to, and number_of_records.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function rescan(File $file, FileRescanService $rescanService)
+    {
+        $result = $rescanService->rescan($file);
+
+        if ($result['success']) {
+            return redirect()->back()->with('success', $result['message'].
+                ' Records: '.number_format($result['data']['number_of_records']).
+                ', ID range: '.number_format($result['data']['main_id_from'] ?? 0).
+                ' - '.number_format($result['data']['main_id_to'] ?? 0));
+        }
+
+        return redirect()->back()->with('error', $result['message']);
     }
 }

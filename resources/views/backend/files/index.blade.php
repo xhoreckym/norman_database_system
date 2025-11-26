@@ -7,6 +7,18 @@
     <div class="w-full mx-auto sm:px-6 lg:px-8">
       <div class="bg-white shadow-lg sm:rounded-lg">
         <div class="p-6 text-gray-900">
+          <!-- Flash Messages -->
+          @if(session('success'))
+            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+              {{ session('success') }}
+            </div>
+          @endif
+          @if(session('error'))
+            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              {{ session('error') }}
+            </div>
+          @endif
+
           <!-- File Actions -->
           <div class="mb-6 flex justify-between items-center">
             <h2 class="text-xl font-semibold text-gray-800">Files Management</h2>
@@ -45,7 +57,7 @@
                   <button type="submit" class="btn-submit px-4 py-2">
                     Search
                   </button>
-                  @if($search || $perPage != 25)
+                  @if($search || $perPage != 100)
                     <a href="{{ route('files.index') }}" class="ml-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                       Clear
                     </a>
@@ -114,6 +126,16 @@
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
                           </a>
+                        @endif
+                        @if($file->database_entity_id)
+                          <form action="{{ route('files.rescan', $file) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="text-purple-600 hover:text-purple-800" title="Rescan">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                            </button>
+                          </form>
                         @endif
                       </div>
                     </td>

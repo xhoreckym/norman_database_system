@@ -147,6 +147,7 @@ Route::prefix('backend')->middleware('auth')->group(function () {
 
 Route::prefix('backend')->group(function () {
     Route::get('files/{file}/download', [FileController::class, 'download'])->name('files.download');
+    Route::post('files/{file}/rescan', [FileController::class, 'rescan'])->name('files.rescan');
     Route::get('templates/entity/{code}', [TemplateController::class, 'specificIndex'])->name('templates.specific.index');
 });
 

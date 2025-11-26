@@ -7,6 +7,18 @@
     <div class="w-full mx-auto sm:px-6 lg:px-8">
       <div class="bg-white shadow-lg sm:rounded-lg">
         <div class="p-6 text-gray-900">
+          <!-- Flash Messages -->
+          @if(session('success'))
+            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+              {{ session('success') }}
+            </div>
+          @endif
+          @if(session('error'))
+            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              {{ session('error') }}
+            </div>
+          @endif
+
           <!-- File Actions -->
           <div class="mb-6 flex justify-between items-center">
             <div>
@@ -359,6 +371,20 @@
 
               <!-- Column 3 - ID Ranges -->
               <div class="space-y-6">
+                <!-- Rescan Button -->
+                @if(!$isCreate && $file->database_entity_id)
+                  <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Rescan Main Table</h3>
+                    <p class="text-xs text-gray-500 mb-4">Recalculate main_id_from, main_id_to, and number_of_records from the database.</p>
+                    <form action="{{ route('files.rescan', $file) }}" method="POST" class="inline">
+                      @csrf
+                      <button type="submit" class="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition" onclick="return confirm('Rescan this file? This will update the ID range and record count.')">
+                        Rescan Records
+                      </button>
+                    </form>
+                  </div>
+                @endif
+
                 <!-- Main ID Range -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                   <h3 class="text-lg font-semibold text-gray-800 mb-4">Main ID Range</h3>
