@@ -96,7 +96,7 @@ class DashboardMainController extends Controller
             ],
         ];
 
-        // Admin process groups
+        // Admin process groups - ordered by database_entity id
         $adminProcessGroups = [
             [
                 'name' => 'Empodat',
@@ -119,16 +119,32 @@ class DashboardMainController extends Controller
                 ],
             ],
             [
+                // Ordered by database_entity.id: 3=ecotox, 4=sle, 5=arbg, 8=indoor, 9=passive, 11=prioritisation, 12=bioassay, 17=literature, 18=empodat_suspect
                 'name' => 'Database Counts',
                 'processes' => [
+                    [
+                        'name' => 'Ecotox',
+                        'route' => 'ecotox.ecotox.countAll',
+                        'method' => 'GET',
+                    ],
+                    [
+                        'name' => 'Entire Ecotox DB',
+                        'route' => 'ecotox.countAll',
+                        'method' => 'GET',
+                    ],
+                    [
+                        'name' => 'Lowest PNEC',
+                        'route' => 'ecotox.lowestpnec.countAll',
+                        'method' => 'GET',
+                    ],
                     [
                         'name' => 'SLE',
                         'route' => 'slehome.countAll',
                         'method' => 'GET',
                     ],
                     [
-                        'name' => 'Bioassay',
-                        'route' => 'bioassay.countAll',
+                        'name' => 'ARBG',
+                        'route' => 'arbg.countAll',
                         'method' => 'GET',
                     ],
                     [
@@ -147,28 +163,13 @@ class DashboardMainController extends Controller
                         'method' => 'GET',
                     ],
                     [
-                        'name' => 'ARBG',
-                        'route' => 'arbg.countAll',
+                        'name' => 'Bioassay',
+                        'route' => 'bioassay.countAll',
                         'method' => 'GET',
                     ],
                     [
                         'name' => 'Literature',
                         'route' => 'literature.countAll',
-                        'method' => 'GET',
-                    ],
-                    [
-                        'name' => 'Lowest PNEC',
-                        'route' => 'ecotox.lowestpnec.countAll',
-                        'method' => 'GET',
-                    ],
-                    [
-                        'name' => 'Ecotox ',
-                        'route' => 'ecotox.ecotox.countAll',
-                        'method' => 'GET',
-                    ],
-                    [
-                        'name' => 'Entire Ecotox DB',
-                        'route' => 'ecotox.countAll',
                         'method' => 'GET',
                     ],
                     [

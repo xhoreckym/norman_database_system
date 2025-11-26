@@ -249,6 +249,7 @@ Route::prefix('empodat')->group(function () {
     Route::post('unique/search/matrix', [UniqueSearchController::class, 'matrices'])->name('cod.unique.search.matrices');
 
     Route::post('unique/search/dbentity', [UniqueSearchController::class, 'updateDatabaseEntitiesCounts'])->name('update.dbentities.counts');
+    Route::post('unique/search/dbentity/lastupdate', [UniqueSearchController::class, 'updateDatabaseEntitiesLastUpdate'])->name('update.dbentities.lastupdate');
 
     Route::get('templates/entity/{code}', [EmpodatHomeController::class, 'specificIndex'])->name('empodat.templates');
 

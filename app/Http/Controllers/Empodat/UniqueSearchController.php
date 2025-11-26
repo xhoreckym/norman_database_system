@@ -106,4 +106,33 @@ class UniqueSearchController extends Controller
         session()->flash('success', 'Database counts updated successfully');
         return redirect()->back();
     }
+
+    /**
+     * Update last_update for all database entities based on their latest file's uploaded_at.
+     */
+    public function updateDatabaseEntitiesLastUpdate()
+    {
+        $updatedCount = 0;
+
+        // Get all database entities
+        $entities = DatabaseEntity::all();
+
+        foreach ($entities as $entity) {
+            // Find the latest file for this database entity
+            $latestFile = DB::table('files')
+                ->where('database_entity_id', $entity->id)
+                ->where('is_deleted', false)
+                ->orderBy('uploaded_at', 'desc')
+                ->first();
+
+            if ($latestFile && $latestFile->uploaded_at) {
+                $entity->last_update = $latestFile->uploaded_at;
+                $entity->save();
+                $updatedCount++;
+            }
+        }
+
+        session()->flash('success', "Last update timestamps refreshed for {$updatedCount} database entities.");
+        return redirect()->back();
+    }
 }

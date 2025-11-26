@@ -40,6 +40,13 @@
               <i class="fas fa-calculator mr-1"></i>
               Update Record Counts
             </a>
+            <form action="{{ route('update.dbentities.lastupdate') }}" method="POST" class="inline">
+              @csrf
+              <button type="submit" class="btn-submit text-xs">
+                <i class="fas fa-clock mr-1"></i>
+                Refresh Last Updates
+              </button>
+            </form>
             <form action="{{ route('factsheets.statistics.populate-all') }}" method="POST" class="inline">
               @csrf
               <button type="submit" class="btn-submit text-xs">
