@@ -18,6 +18,15 @@
               {{ session('error') }}
             </div>
           @endif
+          @if($errors->any())
+            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              <ul class="list-disc list-inside">
+                @foreach($errors->all() as $error)
+                  <li>{{ $error }}</li>
+                @endforeach
+              </ul>
+            </div>
+          @endif
 
           <!-- File Actions -->
           <div class="mb-6 flex justify-between items-center">
@@ -376,12 +385,13 @@
                   <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-800 mb-2">Rescan Main Table</h3>
                     <p class="text-xs text-gray-500 mb-4">Recalculate main_id_from, main_id_to, and number_of_records from the database.</p>
-                    <form action="{{ route('files.rescan', $file) }}" method="POST" class="inline">
-                      @csrf
-                      <button type="submit" class="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition" onclick="return confirm('Rescan this file? This will update the ID range and record count.')">
-                        Rescan Records
-                      </button>
-                    </form>
+                    <a
+                      href="{{ route('files.rescan', $file) }}"
+                      onclick="event.preventDefault(); if(confirm('Rescan this file? This will update the ID range and record count.')) { document.getElementById('rescan-form-{{ $file->id }}').submit(); }"
+                      class="block w-full px-4 py-2 bg-gray-600 text-white text-center rounded-md hover:bg-gray-700 transition cursor-pointer"
+                    >
+                      Rescan Records
+                    </a>
                   </div>
                 @endif
 
@@ -575,6 +585,13 @@
               </button>
             </div>
           </form>
+
+          <!-- Rescan Form (outside main form to avoid nested forms) -->
+          @if(!$isCreate && $file->database_entity_id)
+            <form id="rescan-form-{{ $file->id }}" action="{{ route('files.rescan', $file) }}" method="POST" class="hidden">
+              @csrf
+            </form>
+          @endif
         </div>
       </div>
     </div>

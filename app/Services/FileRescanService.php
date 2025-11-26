@@ -15,12 +15,12 @@ class FileRescanService
      */
     protected array $scanners = [
         2 => 'scanEmpodat',           // Chemical Occurrence Data
+        17 => 'scanLiterature',       // Literature
         18 => 'scanEmpodatSuspect',   // Empodat Suspect
         // 8 => 'scanIndoor',          // Indoor Environment
         // 9 => 'scanPassive',         // Passive Sampling
         // 12 => 'scanBioassays',      // Bioassays Monitoring Data
         // 13 => 'scanSars',           // SARS-CoV-2 in sewage
-        // 17 => 'scanLiterature',     // Literature
     ];
 
     /**
@@ -115,6 +115,26 @@ class FileRescanService
     protected function scanEmpodatSuspect(File $file): array
     {
         $stats = \Illuminate\Support\Facades\DB::table('empodat_suspect_main')
+            ->where('file_id', $file->id)
+            ->selectRaw('MIN(id) as min_id, MAX(id) as max_id, COUNT(*) as count')
+            ->first();
+
+        return [
+            'main_id_from' => $stats->min_id,
+            'main_id_to' => $stats->max_id,
+            'number_of_records' => (int) $stats->count,
+        ];
+    }
+
+    /**
+     * Scanner for Literature.
+     * Relation: literature_temp_main.file_id = files.id
+     *
+     * @return array{main_id_from: ?int, main_id_to: ?int, number_of_records: int}
+     */
+    protected function scanLiterature(File $file): array
+    {
+        $stats = \Illuminate\Support\Facades\DB::table('literature_temp_main')
             ->where('file_id', $file->id)
             ->selectRaw('MIN(id) as min_id, MAX(id) as max_id, COUNT(*) as count')
             ->first();

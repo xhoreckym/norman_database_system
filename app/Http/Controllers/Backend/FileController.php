@@ -354,8 +354,8 @@ class FileController extends Controller
 
         $file->save();
 
-        return redirect()->route('files.index')
-            ->with('success', 'File updated successfully');
+        return redirect()->route('files.edit', $file)
+            ->with('success', 'File updated successfully.');
     }
 
     /**
