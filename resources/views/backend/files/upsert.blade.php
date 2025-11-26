@@ -326,7 +326,7 @@
                   </div>
 
                   <!-- Matrice DCT -->
-                  <div>
+                  <div class="mb-4">
                     <label for="matrice_dct" class="block text-sm font-medium text-gray-700 mb-1">Matrice DCT</label>
                     <input
                       type="number"
@@ -336,6 +336,22 @@
                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('matrice_dct') border-red-500 @enderror"
                     >
                     @error('matrice_dct')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
+
+                  <!-- Status (Deleted) -->
+                  <div>
+                    <label for="is_deleted" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select
+                      name="is_deleted"
+                      id="is_deleted"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('is_deleted') border-red-500 @enderror"
+                    >
+                      <option value="0" {{ (old('is_deleted', $file->is_deleted) == 0) ? 'selected' : '' }}>Active</option>
+                      <option value="1" {{ (old('is_deleted', $file->is_deleted) == 1) ? 'selected' : '' }}>Deleted</option>
+                    </select>
+                    @error('is_deleted')
                       <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                   </div>

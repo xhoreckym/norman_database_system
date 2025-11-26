@@ -28,8 +28,7 @@ class FileController extends Controller
         $direction = $request->input('direction', 'desc');
         $databaseEntityId = $request->input('database_entity_id', '');
 
-        $query = File::with(['template', 'databaseEntity', 'uploader', 'project'])
-            ->notDeleted();
+        $query = File::with(['template', 'databaseEntity', 'uploader', 'project']);
 
         // Apply search
         if (! empty($search)) {
@@ -82,8 +81,7 @@ class FileController extends Controller
         $entityId = $request->input('database_entity_id', '');
         $projectId = $request->input('project_id', '');
 
-        $query = File::with(['template', 'databaseEntity', 'uploader', 'project'])
-            ->notDeleted();
+        $query = File::with(['template', 'databaseEntity', 'uploader', 'project']);
 
         // Apply search
         if (! empty($search)) {
@@ -302,6 +300,7 @@ class FileController extends Controller
             'list_type' => 'nullable|string|max:255',
             'note' => 'nullable|string',
             'matrice_dct' => 'nullable|integer',
+            'is_deleted' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -351,6 +350,7 @@ class FileController extends Controller
         $file->list_type = $request->list_type;
         $file->note = $request->note;
         $file->matrice_dct = $request->matrice_dct;
+        $file->is_deleted = $request->is_deleted ?? false;
 
         $file->save();
 
@@ -447,7 +447,6 @@ class FileController extends Controller
         $projectId = $request->get('project_id');
 
         $query = File::with(['template', 'databaseEntity', 'uploader', 'project'])
-            ->notDeleted()
             ->orderBy('created_at', 'desc');
 
         if ($projectId) {
@@ -470,7 +469,6 @@ class FileController extends Controller
         $entityId = $request->get('database_entity_id');
 
         $query = File::with(['template', 'databaseEntity', 'uploader', 'project'])
-            ->notDeleted()
             ->orderBy('created_at', 'desc');
 
         if ($entityId) {

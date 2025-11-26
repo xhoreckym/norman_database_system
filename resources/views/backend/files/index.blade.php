@@ -116,7 +116,13 @@
                     <td class="p-2 text-right">{{ $file->main_id_to ? number_format($file->main_id_to, 0, '.', ' ') : '-' }}</td>
                     <td class="p-2 text-right">{{ number_format($file->number_of_records ?? 0, 0, '.', ' ') }}</td>
                     <td class="p-2 text-center">{{ $file->is_protected ? 'Yes' : 'No' }}</td>
-                    <td class="p-2 text-center">{{ $file->is_deleted ? 'Yes' : 'No' }}</td>
+                    <td class="p-2 text-center">
+                      @if($file->is_deleted)
+                        <span class="px-2 py-1 bg-red-600 text-white text-xs font-medium rounded">Yes</span>
+                      @else
+                        No
+                      @endif
+                    </td>
                     <td class="p-2">{{ $file->uploader ? $file->uploader->first_name . ' ' . $file->uploader->last_name : '-' }}</td>
                     <td class="p-2">{{ $file->uploaded_at ? $file->uploaded_at->format('Y-m-d') : '-' }}</td>
                     <td class="p-2 text-center">
