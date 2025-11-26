@@ -15,6 +15,10 @@
     DCT Download
   </x-nav-link-header>
 
+  <x-nav-link-header :href="route('literature.statistics.index')" :active="request()->is('*statistics*')">
+    Statistics
+  </x-nav-link-header>
+
   @role('super_admin')
   <x-nav-link-header :href="route('querylog.index', ['module' => 'literature'])" :active="request()->is('*querylog*')">
     History of search

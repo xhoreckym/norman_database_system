@@ -43,6 +43,7 @@ use App\Http\Controllers\Indoor\IndoorHomeController;
 use App\Http\Controllers\Indoor\IndoorStatisticsController;
 use App\Http\Controllers\Literature\LiteratureController;
 use App\Http\Controllers\Literature\LiteratureHomeController;
+use App\Http\Controllers\Literature\StatisticsController as LiteratureStatisticsController;
 use App\Http\Controllers\MainAPIController;
 use App\Http\Controllers\Passive\PassiveController;
 use App\Http\Controllers\Passive\PassiveHomeController;
@@ -600,6 +601,21 @@ Route::prefix('literature')->group(function () {
 
     // Count all records
     Route::get('literature/countAll', [LiteratureHomeController::class, 'countAll'])->middleware('auth')->name('literature.countAll');
+
+    // Statistics routes
+    Route::prefix('statistics')->group(function () {
+        // Public routes - anyone can view
+        Route::get('/', [LiteratureStatisticsController::class, 'index'])->name('literature.statistics.index');
+        Route::get('per-country', [LiteratureStatisticsController::class, 'perCountry'])->name('literature.statistics.perCountry');
+        Route::get('per-ecosystem', [LiteratureStatisticsController::class, 'perEcosystem'])->name('literature.statistics.perEcosystem');
+        Route::get('per-class', [LiteratureStatisticsController::class, 'perClass'])->name('literature.statistics.perClass');
+        Route::get('per-substance', [LiteratureStatisticsController::class, 'perSubstance'])->name('literature.statistics.perSubstance');
+
+        // Admin-only route for generation
+        Route::post('generate', [LiteratureStatisticsController::class, 'generateStatistics'])
+            ->middleware(['auth', 'role:super_admin|admin'])
+            ->name('literature.statistics.generate');
+    });
 
     // Lookup Tables - Admin only routes
     Route::middleware(['auth', 'role:super_admin|admin'])->group(function () {
