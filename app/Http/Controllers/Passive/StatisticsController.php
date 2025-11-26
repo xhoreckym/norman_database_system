@@ -118,14 +118,16 @@ class StatisticsController extends Controller
     private function generateCountryStats(DatabaseEntity $entity): void
     {
         // Records per country
+        // Note: country_id in passive_sampling_main stores the abbreviation (string), not numeric ID
         $recordsByCountry = DB::table('passive_sampling_main as psm')
-            ->join('passive_data_country as pdc', 'psm.country_id', '=', 'pdc.id')
+            ->join('passive_data_country as pdc', 'psm.country_id', '=', 'pdc.abbreviation')
             ->select(
                 'pdc.name as country_name',
                 'pdc.abbreviation as country_code',
                 DB::raw('COUNT(*) as record_count')
             )
             ->whereNotNull('psm.country_id')
+            ->where('psm.country_id', '!=', '')
             ->groupBy('pdc.name', 'pdc.abbreviation')
             ->orderBy('record_count', 'desc')
             ->get();
@@ -240,6 +242,7 @@ class StatisticsController extends Controller
             ->count('sus_id');
         $totalCountries = PassiveSamplingMain::distinct('country_id')
             ->whereNotNull('country_id')
+            ->where('country_id', '!=', '')
             ->count('country_id');
         $totalMatrices = PassiveSamplingMain::distinct('matrix_id')
             ->whereNotNull('matrix_id')
