@@ -14,7 +14,7 @@
     Search Bacteria
   </span>
   @else
-  <x-nav-link-header :href="route('arbg.bacteria.search.filter')" :active="request()->is('arbg/bacteria*')">
+  <x-nav-link-header :href="route('arbg.bacteria.search.filter')" :active="request()->is('arbg/bacteria*') && !request()->is('arbg/bacteria/statistics*')">
     Search Bacteria
   </x-nav-link-header>
   @endif
@@ -26,10 +26,18 @@
     Search Genes
   </span>
   @else
-  <x-nav-link-header :href="route('arbg.gene.search.filter')" :active="request()->is('arbg/gene*')">
+  <x-nav-link-header :href="route('arbg.gene.search.filter')" :active="request()->is('arbg/gene*') && !request()->is('arbg/gene/statistics*')">
     Search Genes
   </x-nav-link-header>
   @endif
+
+  <x-nav-link-header :href="route('arbg.bacteria.statistics.index')" :active="request()->is('arbg/bacteria/statistics*')">
+    Bacteria Statistics
+  </x-nav-link-header>
+
+  <x-nav-link-header :href="route('arbg.gene.statistics.index')" :active="request()->is('arbg/gene/statistics*')">
+    Gene Statistics
+  </x-nav-link-header>
 
   <x-nav-link-header :href="route('templates.specific.index', ['code' => 'arbg'])" :active="request()->is('backend/templates/entity/arbg*')">
     DCT Download

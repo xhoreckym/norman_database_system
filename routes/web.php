@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\ARBG\ARBGHomeController;
 use App\Http\Controllers\ARBG\BacteriaController;
+use App\Http\Controllers\ARBG\BacteriaStatisticsController;
 use App\Http\Controllers\ARBG\GeneController;
+use App\Http\Controllers\ARBG\GeneStatisticsController;
 use App\Http\Controllers\Backend\FileController;
 use App\Http\Controllers\Backend\GeneralController;
 use App\Http\Controllers\Backend\NotificationController;
@@ -382,6 +384,16 @@ Route::prefix('arbg')->group(function () {
         Route::get('search/download/{filename}', [BacteriaController::class, 'downloadCsv'])
             ->name('arbg.bacteria.csv.download');
         Route::get('countAll', [ARBGHomeController::class, 'countAllBacteria'])->middleware('auth')->name('arbg.bacteria.countAll');
+
+        // Statistics routes
+        Route::prefix('statistics')->group(function () {
+            Route::get('/', [BacteriaStatisticsController::class, 'index'])->name('arbg.bacteria.statistics.index');
+            Route::get('per-country', [BacteriaStatisticsController::class, 'perCountry'])->name('arbg.bacteria.statistics.perCountry');
+            Route::get('per-year', [BacteriaStatisticsController::class, 'perYear'])->name('arbg.bacteria.statistics.perYear');
+            Route::get('per-matrix', [BacteriaStatisticsController::class, 'perMatrix'])->name('arbg.bacteria.statistics.perMatrix');
+            Route::post('generate', [BacteriaStatisticsController::class, 'generateAll'])->middleware(['auth', 'role:super_admin|admin'])->name('arbg.bacteria.statistics.generate');
+        });
+
         Route::get('{id}', [BacteriaController::class, 'show'])->name('arbg.bacteria.show');
     });
 
@@ -392,6 +404,16 @@ Route::prefix('arbg')->group(function () {
         Route::get('search/download/{filename}', [GeneController::class, 'downloadCsv'])
             ->name('arbg.gene.csv.download');
         Route::get('countAll', [ARBGHomeController::class, 'countAllGene'])->middleware('auth')->name('arbg.gene.countAll');
+
+        // Statistics routes
+        Route::prefix('statistics')->group(function () {
+            Route::get('/', [GeneStatisticsController::class, 'index'])->name('arbg.gene.statistics.index');
+            Route::get('per-country', [GeneStatisticsController::class, 'perCountry'])->name('arbg.gene.statistics.perCountry');
+            Route::get('per-year', [GeneStatisticsController::class, 'perYear'])->name('arbg.gene.statistics.perYear');
+            Route::get('per-matrix', [GeneStatisticsController::class, 'perMatrix'])->name('arbg.gene.statistics.perMatrix');
+            Route::post('generate', [GeneStatisticsController::class, 'generateAll'])->middleware(['auth', 'role:super_admin|admin'])->name('arbg.gene.statistics.generate');
+        });
+
         Route::get('{id}', [GeneController::class, 'show'])->name('arbg.gene.show');
     });
 
