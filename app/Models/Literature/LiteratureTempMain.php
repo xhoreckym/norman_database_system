@@ -34,6 +34,7 @@ class LiteratureTempMain extends Model
      * @var array
      */
     protected $fillable = [
+        'file_id',
         'rowid',
         'substance_id',
         'species_id',
@@ -71,6 +72,7 @@ class LiteratureTempMain extends Model
      * @var array
      */
     protected $casts = [
+        'file_id' => 'integer',
         'rowid' => 'integer',
         'substance_id' => 'integer',
         'species_id' => 'integer',
@@ -197,16 +199,11 @@ class LiteratureTempMain extends Model
     }
 
     /**
-     * Get the files associated with this literature record.
+     * Get the file associated with this literature record.
      */
-    public function files()
+    public function file()
     {
-        return $this->belongsToMany(
-            File::class,
-            'file_literature_temp_main',
-            'literature_temp_main_id',
-            'file_id'
-        )->withTimestamps();
+        return $this->belongsTo(File::class, 'file_id');
     }
 
     /**
@@ -318,13 +315,11 @@ class LiteratureTempMain extends Model
             return $query;
         }
 
-        return $query->whereHas('files', function ($q) use ($fileIds) {
-            $q->whereIn('files.id', $fileIds);
-        });
+        return $query->whereIn('file_id', $fileIds);
     }
 
     /**
-     * Scope to filter by projects (through files relationship)
+     * Scope to filter by projects (through file relationship)
      */
     public function scopeByProjects($query, array $projectIds)
     {
@@ -332,8 +327,8 @@ class LiteratureTempMain extends Model
             return $query;
         }
 
-        return $query->whereHas('files', function ($q) use ($projectIds) {
-            $q->whereIn('files.project_id', $projectIds);
+        return $query->whereHas('file', function ($q) use ($projectIds) {
+            $q->whereIn('project_id', $projectIds);
         });
     }
 

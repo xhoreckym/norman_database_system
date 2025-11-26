@@ -29,8 +29,20 @@
             </div>
           </div>
 
+          <!-- Database Filter (Master) -->
+          <div class="mb-4">
+            <label for="database_entity_id" class="block text-sm font-medium text-gray-700">Database</label>
+            <select id="database_entity_id" onchange="window.location.href='{{ route('files.index') }}?database_entity_id=' + this.value" class="mt-1 block w-64 pl-3 pr-10 py-2 text-base border-gray-300 rounded-md focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm">
+              <option value="">All Databases</option>
+              @foreach($databaseEntities as $entity)
+                <option value="{{ $entity->id }}" {{ $databaseEntityId == $entity->id ? 'selected' : '' }}>{{ $entity->name }}</option>
+              @endforeach
+            </select>
+          </div>
+
           <!-- Search and Filter Form -->
           <form method="GET" action="{{ route('files.index') }}" id="filterForm" class="mb-6">
+            <input type="hidden" name="database_entity_id" value="{{ $databaseEntityId }}">
             <div class="flex justify-between items-center">
               <div class="flex space-x-4 flex-1">
                 <div class="w-32">
@@ -58,7 +70,7 @@
                     Search
                   </button>
                   @if($search || $perPage != 100)
-                    <a href="{{ route('files.index') }}" class="ml-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    <a href="{{ route('files.index', ['database_entity_id' => $databaseEntityId]) }}" class="ml-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                       Clear
                     </a>
                   @endif
@@ -95,7 +107,7 @@
                 @forelse ($files as $file)
                   <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif hover:bg-slate-300">
                     <td class="p-2 font-mono">{{ $file->id }}</td>
-                    <td class="p-2">{{ $file->name ?? $file->original_name ?? '-' }}</td>
+                    <td class="p-2">{{ $file->original_name ?? $file->name ?? '-' }}</td>
                     <td class="p-2">{{ $file->project->name ?? '-' }}</td>
                     <td class="p-2">{{ $file->databaseEntity->name ?? '-' }}</td>
                     <td class="p-2">{{ $file->template->name ?? '-' }}</td>

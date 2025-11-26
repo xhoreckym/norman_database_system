@@ -189,60 +189,6 @@ class LiteratureSeeder_ULEI extends Seeder
         // Re-enable query logging
         DB::connection()->enableQueryLog();
 
-        // Link all seeded records to file_id 477 (ULEI data source)
-        $this->linkRecordsToFile($fileId);
-    }
-
-    /**
-     * Link all seeded literature records to a specific file
-     */
-    protected function linkRecordsToFile(int $fileId): void
-    {
-        $this->command->info("Linking literature records to file_id {$fileId}...");
-
-        // First, remove any existing links for this file to avoid duplicates
-        DB::table('file_literature_temp_main')
-            ->where('file_id', $fileId)
-            ->delete();
-
-        // Get all literature_temp_main IDs
-        $literatureIds = DB::table('literature_temp_main')
-            ->pluck('id')
-            ->toArray();
-
-        if (empty($literatureIds)) {
-            $this->command->warn("No literature records found to link.");
-            return;
-        }
-
-        $this->command->info("Found " . count($literatureIds) . " literature records to link.");
-
-        // Create pivot records in batches
-        $now = Carbon::now();
-        $pivotRecords = [];
-        $batchSize = 1000;
-
-        foreach ($literatureIds as $literatureId) {
-            $pivotRecords[] = [
-                'file_id' => $fileId,
-                'literature_temp_main_id' => $literatureId,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
-
-            // Insert batch when it reaches the batch size
-            if (count($pivotRecords) >= $batchSize) {
-                DB::table('file_literature_temp_main')->insert($pivotRecords);
-                $pivotRecords = [];
-            }
-        }
-
-        // Insert remaining records
-        if (!empty($pivotRecords)) {
-            DB::table('file_literature_temp_main')->insert($pivotRecords);
-        }
-
-        $this->command->info("Successfully linked " . count($literatureIds) . " records to file_id {$fileId}.");
     }
 
     /**
@@ -462,6 +408,9 @@ class LiteratureSeeder_ULEI extends Seeder
         }
 
         return [
+            // File reference
+            'file_id' => $this->fileId,
+
             // Basic identifiers
             'rowid' => $this->cleanInt($data['rowid'] ?? null),
             'substance_id' => $this->lookupSubstance($data['chemical_name']),

@@ -168,7 +168,7 @@ class LiteratureController extends Controller
         // Get all projects that have files associated with literature records
         $projects = Project::query()
             ->join('files', 'projects.id', '=', 'files.project_id')
-            ->join('file_literature_temp_main', 'files.id', '=', 'file_literature_temp_main.file_id')
+            ->join('literature_temp_main', 'files.id', '=', 'literature_temp_main.file_id')
             ->select('projects.id', 'projects.name', 'projects.abbreviation')
             ->distinct()
             ->orderBy('projects.name', 'asc')

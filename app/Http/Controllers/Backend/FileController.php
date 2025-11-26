@@ -26,6 +26,7 @@ class FileController extends Controller
         $search = $request->input('search', '');
         $sort = $request->input('sort', 'id');
         $direction = $request->input('direction', 'desc');
+        $databaseEntityId = $request->input('database_entity_id', '');
 
         $query = File::with(['template', 'databaseEntity', 'uploader', 'project'])
             ->notDeleted();
@@ -39,6 +40,11 @@ class FileController extends Controller
             });
         }
 
+        // Apply database entity filter
+        if (! empty($databaseEntityId)) {
+            $query->where('database_entity_id', $databaseEntityId);
+        }
+
         // Apply sorting - only allow safe columns
         $allowedSortColumns = ['id', 'name', 'original_name', 'file_size', 'uploaded_at', 'created_at', 'updated_at'];
         if (in_array($sort, $allowedSortColumns)) {
@@ -48,6 +54,7 @@ class FileController extends Controller
         }
 
         $files = $query->paginate($perPage)->appends($request->except('page'));
+        $databaseEntities = DatabaseEntity::whereNull('parent_id')->orderBy('id')->get();
 
         return view('backend.files.index', [
             'files' => $files,
@@ -56,6 +63,8 @@ class FileController extends Controller
             'perPage' => $perPage,
             'sort' => $sort,
             'direction' => $direction,
+            'databaseEntities' => $databaseEntities,
+            'databaseEntityId' => $databaseEntityId,
         ]);
     }
 
