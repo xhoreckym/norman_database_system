@@ -45,6 +45,7 @@ use App\Http\Controllers\Literature\LiteratureHomeController;
 use App\Http\Controllers\MainAPIController;
 use App\Http\Controllers\Passive\PassiveController;
 use App\Http\Controllers\Passive\PassiveHomeController;
+use App\Http\Controllers\Passive\StatisticsController as PassiveStatisticsController;
 use App\Http\Controllers\Prioritisation\ModellingDanubeController;
 use App\Http\Controllers\Prioritisation\ModellingScarceController;
 use App\Http\Controllers\Prioritisation\MonitoringDanubeController;
@@ -465,6 +466,19 @@ Route::prefix('passive')->group(function () {
 
     Route::get('passive/countAll', [PassiveHomeController::class, 'countAll'])->middleware('auth')->name('passive.countAll');
 
+    // Statistics routes
+    Route::prefix('statistics')->group(function () {
+        // Public routes - anyone can view
+        Route::get('/', [PassiveStatisticsController::class, 'index'])->name('passive.statistics.index');
+        Route::get('per-country', [PassiveStatisticsController::class, 'perCountry'])->name('passive.statistics.perCountry');
+        Route::get('per-matrix', [PassiveStatisticsController::class, 'perMatrix'])->name('passive.statistics.perMatrix');
+        Route::get('per-substance', [PassiveStatisticsController::class, 'perSubstance'])->name('passive.statistics.perSubstance');
+
+        // Admin-only route for generation
+        Route::post('generate', [PassiveStatisticsController::class, 'generateStatistics'])
+            ->middleware(['auth', 'role:super_admin|admin'])
+            ->name('passive.statistics.generate');
+    });
 });
 
 Route::prefix('bioassays')->group(function () {

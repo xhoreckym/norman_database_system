@@ -23,6 +23,10 @@
     DCT Download
   </x-nav-link-header>
 
+  <x-nav-link-header :href="route('passive.statistics.index')" :active="request()->is('passive/statistics*')">
+    Statistics
+  </x-nav-link-header>
+
   @role('super_admin')
   <x-nav-link-header :href="route('querylog.index', ['module' => 'passive'])" :active="request()->is('*querylog*')">
     History of search
