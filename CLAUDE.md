@@ -38,6 +38,11 @@
 - Never use traditional BLUE and INDIGO colors
 - the links inside text, are done via class="link-lime-text" 
 
+## Formatting
+- decimal separator: "." (dot)
+- thousand separator: " " (space)
+- columns with ID shall be always with "font-mono"
+
 ## Laravel Best Practices
 - Use resource controllers: `php artisan make:controller PostController --resource`
 - Use make:migration: `php artisan make:migration`

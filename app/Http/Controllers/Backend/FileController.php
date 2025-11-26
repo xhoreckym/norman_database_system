@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Backend\File;
-use App\Models\Backend\Template;
 use App\Models\Backend\Project;
+use App\Models\Backend\Template;
 use App\Models\DatabaseEntity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -18,7 +17,6 @@ class FileController extends Controller
     /**
      * Display a listing of the files.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\View\View
      */
     public function index(Request $request)
@@ -32,7 +30,7 @@ class FileController extends Controller
             ->notDeleted();
 
         // Apply search
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
                     ->orWhere('original_name', 'ilike', "%{$search}%")
@@ -63,7 +61,6 @@ class FileController extends Controller
     /**
      * Get file data for AJAX requests.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getFileData(Request $request)
@@ -74,35 +71,35 @@ class FileController extends Controller
         $direction = $request->input('direction', 'desc');
         $entityId = $request->input('database_entity_id', '');
         $projectId = $request->input('project_id', '');
-        
+
         $query = File::with(['template', 'databaseEntity', 'uploader', 'project'])
             ->notDeleted();
-        
+
         // Apply search
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
                     ->orWhere('original_name', 'ilike', "%{$search}%")
                     ->orWhere('description', 'ilike', "%{$search}%");
             });
         }
-        
+
         // Apply filters
-        if (!empty($entityId)) {
+        if (! empty($entityId)) {
             $query->byDatabaseEntity($entityId);
         }
-        
-        if (!empty($projectId)) {
+
+        if (! empty($projectId)) {
             $query->byProject($projectId);
         }
-        
+
         // Apply sorting
         if (in_array($sort, ['id', 'name', 'original_name', 'file_size', 'uploaded_at', 'created_at', 'updated_at'])) {
             $query->orderBy($sort, $direction);
         }
-        
+
         $results = $query->paginate($perPage);
-        
+
         return response()->json($results);
     }
 
@@ -132,17 +129,17 @@ class FileController extends Controller
      */
     public function create()
     {
-        $file = new File();
+        $file = new File;
         $templates = Template::where('is_active', true)->orderBy('name')->get();
         $databaseEntities = DatabaseEntity::orderBy('name')->get();
         $projects = Project::orderBy('name')->get();
         $isCreate = true;
-        
+
         return view('backend.files.upsert', compact(
-            'file', 
-            'templates', 
-            'databaseEntities', 
-            'projects', 
+            'file',
+            'templates',
+            'databaseEntities',
+            'projects',
             'isCreate'
         ));
     }
@@ -150,7 +147,6 @@ class FileController extends Controller
     /**
      * Store a newly created file in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
@@ -165,6 +161,20 @@ class FileController extends Controller
             'processing_notes' => 'nullable|string',
             'is_protected' => 'nullable|boolean',
             'number_of_records' => 'nullable|integer|min:0',
+            'uploaded_by' => 'nullable|exists:users,id',
+            'doi' => 'nullable|string|max:255',
+            'main_id_from' => 'nullable|integer',
+            'main_id_to' => 'nullable|integer',
+            'analysis_number' => 'nullable|integer',
+            'source_id_from' => 'nullable|integer',
+            'source_id_to' => 'nullable|integer',
+            'source_number' => 'nullable|integer',
+            'method_id_from' => 'nullable|integer',
+            'method_id_to' => 'nullable|integer',
+            'method_number' => 'nullable|integer',
+            'list_type' => 'nullable|string|max:255',
+            'note' => 'nullable|string',
+            'matrice_dct' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
@@ -176,7 +186,7 @@ class FileController extends Controller
         // Handle file upload
         $uploadedFile = $request->file('file');
         $originalName = $uploadedFile->getClientOriginalName();
-        $fileName = time() . '_' . $originalName;
+        $fileName = time().'_'.$originalName;
         $filePath = $uploadedFile->storeAs('uploads', $fileName, 'public');
 
         // Create file record
@@ -191,11 +201,24 @@ class FileController extends Controller
             'database_entity_id' => $request->database_entity_id,
             'project_id' => $request->project_id,
             'processing_notes' => $request->processing_notes,
-            'uploaded_by' => Auth::id(),
+            'uploaded_by' => $request->uploaded_by ?? Auth::id(),
             'uploaded_at' => now(),
             'is_deleted' => false,
             'is_protected' => $request->is_protected ?? false,
             'number_of_records' => $request->number_of_records ?? 0,
+            'doi' => $request->doi,
+            'main_id_from' => $request->main_id_from,
+            'main_id_to' => $request->main_id_to,
+            'analysis_number' => $request->analysis_number,
+            'source_id_from' => $request->source_id_from,
+            'source_id_to' => $request->source_id_to,
+            'source_number' => $request->source_number,
+            'method_id_from' => $request->method_id_from,
+            'method_id_to' => $request->method_id_to,
+            'method_number' => $request->method_number,
+            'list_type' => $request->list_type,
+            'note' => $request->note,
+            'matrice_dct' => $request->matrice_dct,
         ]);
 
         $file->save();
@@ -207,21 +230,19 @@ class FileController extends Controller
     /**
      * Display the specified file.
      *
-     * @param  \App\Models\Backend\File  $file
      * @return \Illuminate\View\View
      */
     public function show(File $file)
     {
         // Load only essential relationships without heavy queries
         $file->load(['template', 'databaseEntity', 'uploader', 'project']);
-        
+
         return view('backend.files.show', compact('file'));
     }
 
     /**
      * Show the form for editing the specified file.
      *
-     * @param  \App\Models\Backend\File  $file
      * @return \Illuminate\View\View
      */
     public function edit(File $file)
@@ -230,12 +251,12 @@ class FileController extends Controller
         $databaseEntities = DatabaseEntity::orderBy('name')->get();
         $projects = Project::orderBy('name')->get();
         $isCreate = false;
-        
+
         return view('backend.files.upsert', compact(
-            'file', 
-            'templates', 
-            'databaseEntities', 
-            'projects', 
+            'file',
+            'templates',
+            'databaseEntities',
+            'projects',
             'isCreate'
         ));
     }
@@ -243,8 +264,6 @@ class FileController extends Controller
     /**
      * Update the specified file in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Backend\File  $file
      * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, File $file)
@@ -259,6 +278,20 @@ class FileController extends Controller
             'processing_notes' => 'nullable|string',
             'is_protected' => 'nullable|boolean',
             'number_of_records' => 'nullable|integer|min:0',
+            'uploaded_by' => 'nullable|exists:users,id',
+            'doi' => 'nullable|string|max:255',
+            'main_id_from' => 'nullable|integer',
+            'main_id_to' => 'nullable|integer',
+            'analysis_number' => 'nullable|integer',
+            'source_id_from' => 'nullable|integer',
+            'source_id_to' => 'nullable|integer',
+            'source_number' => 'nullable|integer',
+            'method_id_from' => 'nullable|integer',
+            'method_id_to' => 'nullable|integer',
+            'method_number' => 'nullable|integer',
+            'list_type' => 'nullable|string|max:255',
+            'note' => 'nullable|string',
+            'matrice_dct' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
@@ -273,12 +306,12 @@ class FileController extends Controller
             if ($file->file_path && Storage::disk('public')->exists($file->file_path)) {
                 Storage::disk('public')->delete($file->file_path);
             }
-            
+
             $uploadedFile = $request->file('new_file');
             $originalName = $uploadedFile->getClientOriginalName();
-            $fileName = time() . '_' . $originalName;
+            $fileName = time().'_'.$originalName;
             $filePath = $uploadedFile->storeAs('uploads', $fileName, 'public');
-            
+
             $file->original_name = $originalName;
             $file->file_path = $filePath;
             $file->file_size = $uploadedFile->getSize();
@@ -294,6 +327,20 @@ class FileController extends Controller
         $file->processing_notes = $request->processing_notes;
         $file->is_protected = $request->is_protected ?? false;
         $file->number_of_records = $request->number_of_records ?? 0;
+        $file->uploaded_by = $request->uploaded_by;
+        $file->doi = $request->doi;
+        $file->main_id_from = $request->main_id_from;
+        $file->main_id_to = $request->main_id_to;
+        $file->analysis_number = $request->analysis_number;
+        $file->source_id_from = $request->source_id_from;
+        $file->source_id_to = $request->source_id_to;
+        $file->source_number = $request->source_number;
+        $file->method_id_from = $request->method_id_from;
+        $file->method_id_to = $request->method_id_to;
+        $file->method_number = $request->method_number;
+        $file->list_type = $request->list_type;
+        $file->note = $request->note;
+        $file->matrice_dct = $request->matrice_dct;
 
         $file->save();
 
@@ -304,7 +351,6 @@ class FileController extends Controller
     /**
      * Soft delete the specified file.
      *
-     * @param  \App\Models\Backend\File  $file
      * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(File $file)
@@ -318,7 +364,6 @@ class FileController extends Controller
     /**
      * Permanently delete the specified file.
      *
-     * @param  \App\Models\Backend\File  $file
      * @return \Illuminate\Http\RedirectResponse
      */
     public function forceDestroy(File $file)
@@ -339,7 +384,6 @@ class FileController extends Controller
     /**
      * Restore a soft deleted file.
      *
-     * @param  \App\Models\Backend\File  $file
      * @return \Illuminate\Http\RedirectResponse
      */
     public function restore(File $file)
@@ -361,25 +405,24 @@ class FileController extends Controller
             ->deleted()
             ->orderBy('updated_at', 'desc')
             ->paginate(20);
-            
+
         return view('backend.files.deleted', compact('files'));
     }
 
     /**
      * Download the file.
      *
-     * @param  \App\Models\Backend\File  $file
      * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Illuminate\Http\RedirectResponse
      */
     public function download(File $file)
     {
-        if (!$file->file_path || !Storage::disk('public')->exists($file->file_path)) {
+        if (! $file->file_path || ! Storage::disk('public')->exists($file->file_path)) {
             return redirect()->back()
                 ->with('error', 'File not found');
         }
 
         return Storage::disk('public')->download(
-            $file->file_path, 
+            $file->file_path,
             $file->original_name
         );
     }
@@ -387,48 +430,46 @@ class FileController extends Controller
     /**
      * Filter files by project.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\View\View
      */
     public function filterByProject(Request $request)
     {
         $projectId = $request->get('project_id');
-        
+
         $query = File::with(['template', 'databaseEntity', 'uploader', 'project'])
             ->notDeleted()
             ->orderBy('created_at', 'desc');
-            
+
         if ($projectId) {
             $query->byProject($projectId);
         }
-        
+
         $files = $query->paginate(20);
         $projects = Project::orderBy('name')->get();
-        
+
         return view('backend.files.index', compact('files', 'projects', 'projectId'));
     }
 
     /**
      * Filter files by database entity.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\View\View
      */
     public function filterByEntity(Request $request)
     {
         $entityId = $request->get('database_entity_id');
-        
+
         $query = File::with(['template', 'databaseEntity', 'uploader', 'project'])
             ->notDeleted()
             ->orderBy('created_at', 'desc');
-            
+
         if ($entityId) {
             $query->byDatabaseEntity($entityId);
         }
-        
+
         $files = $query->paginate(20);
         $databaseEntities = DatabaseEntity::orderBy('name')->get();
-        
+
         return view('backend.files.index', compact('files', 'databaseEntities', 'entityId'));
     }
 }

@@ -37,13 +37,11 @@
               @method('PUT')
             @endif
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <!-- Left Column - Basic Information -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <!-- Column 1 - Basic Information -->
               <div class="space-y-6">
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    Basic Information
-                  </h3>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
 
                   <!-- Name -->
                   <div class="mb-4">
@@ -54,25 +52,55 @@
                       id="name"
                       value="{{ old('name', $file->name) }}"
                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('name') border-red-500 @enderror"
-                      placeholder="Enter a display name for the file"
+                      placeholder="Enter a display name"
                     >
-                    <p class="mt-1 text-xs text-gray-500">Leave empty to use the original filename</p>
                     @error('name')
                       <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                   </div>
 
                   <!-- Description -->
-                  <div>
+                  <div class="mb-4">
                     <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea
                       name="description"
                       id="description"
-                      rows="4"
+                      rows="3"
                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('description') border-red-500 @enderror"
-                      placeholder="Describe the content and purpose of this file..."
+                      placeholder="File description..."
                     >{{ old('description', $file->description) }}</textarea>
                     @error('description')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
+
+                  <!-- DOI -->
+                  <div class="mb-4">
+                    <label for="doi" class="block text-sm font-medium text-gray-700 mb-1">DOI</label>
+                    <input
+                      type="text"
+                      name="doi"
+                      id="doi"
+                      value="{{ old('doi', $file->doi) }}"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('doi') border-red-500 @enderror"
+                      placeholder="e.g., 10.60954/empodat.xxxx"
+                    >
+                    @error('doi')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
+
+                  <!-- Processing Notes -->
+                  <div>
+                    <label for="processing_notes" class="block text-sm font-medium text-gray-700 mb-1">Processing Notes</label>
+                    <textarea
+                      name="processing_notes"
+                      id="processing_notes"
+                      rows="3"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('processing_notes') border-red-500 @enderror"
+                      placeholder="Processing notes..."
+                    >{{ old('processing_notes', $file->processing_notes) }}</textarea>
+                    @error('processing_notes')
                       <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                   </div>
@@ -80,12 +108,9 @@
 
                 <!-- File Upload Section -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    File Upload
-                  </h3>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">File Upload</h3>
 
                   @if(isset($isCreate) && $isCreate)
-                    <!-- File Upload - only show on create -->
                     <div>
                       <label for="file" class="block text-sm font-medium text-gray-700 mb-1">Select File</label>
                       <input
@@ -100,15 +125,12 @@
                               hover:file:bg-gray-300"
                         required
                       >
-                      <p class="mt-2 text-sm text-gray-500">
-                        Maximum file size: 20MB. Supported formats: CSV, Excel, PDF, Word, Text, ZIP
-                      </p>
+                      <p class="mt-2 text-sm text-gray-500">Maximum file size: 20MB</p>
                       @error('file')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                       @enderror
                     </div>
                   @else
-                    <!-- Current File Info - only show on edit -->
                     <div class="mb-4">
                       <label class="block text-sm font-medium text-gray-700 mb-2">Current File</label>
                       <div class="bg-white p-3 rounded border border-gray-300">
@@ -120,19 +142,14 @@
                             </div>
                           </div>
                           @if($file->file_path && $file->existsOnDisk())
-                            <a href="{{ route('files.download', $file) }}" class="link-lime-text text-sm" title="Download">
-                              Download
-                            </a>
+                            <a href="{{ route('files.download', $file) }}" class="link-lime-text text-sm">Download</a>
                           @else
-                            <span class="text-gray-500 text-sm" title="File not available">
-                              Not Available
-                            </span>
+                            <span class="text-gray-500 text-sm">Not Available</span>
                           @endif
                         </div>
                       </div>
                     </div>
 
-                    <!-- New File Upload - only show on edit -->
                     <div>
                       <label for="new_file" class="block text-sm font-medium text-gray-700 mb-1">Replace File (Optional)</label>
                       <input
@@ -146,9 +163,6 @@
                               file:bg-gray-200 file:text-gray-800
                               hover:file:bg-gray-300"
                       >
-                      <p class="mt-2 text-sm text-gray-500">
-                        Leave empty to keep the current file. Uploading a new file will replace the existing one.
-                      </p>
                       @error('new_file')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                       @enderror
@@ -156,33 +170,31 @@
                   @endif
                 </div>
 
-                <!-- Processing Notes -->
+                <!-- Note -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    Processing Notes
-                  </h3>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Note</h3>
                   <textarea
-                    name="processing_notes"
-                    id="processing_notes"
+                    name="note"
+                    id="note"
                     rows="4"
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('processing_notes') border-red-500 @enderror"
-                    placeholder="Add any processing notes, validation results, or special instructions..."
-                  >{{ old('processing_notes', $file->processing_notes) }}</textarea>
-                  @error('processing_notes')
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('note') border-red-500 @enderror"
+                    placeholder="Additional notes..."
+                  >{{ old('note', $file->note) }}</textarea>
+                  @error('note')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                   @enderror
                 </div>
               </div>
 
-              <!-- Right Column - Associations -->
+              <!-- Column 2 - Associations & Settings -->
               <div class="space-y-6">
                 <!-- Project Assignment -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    Project Assignment
-                  </h3>
-                  <div>
-                    <label for="project_id" class="block text-sm font-medium text-gray-700 mb-1">Select Project</label>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Associations</h3>
+
+                  <!-- Project -->
+                  <div class="mb-4">
+                    <label for="project_id" class="block text-sm font-medium text-gray-700 mb-1">Project</label>
                     <select
                       name="project_id"
                       id="project_id"
@@ -198,20 +210,14 @@
                         </option>
                       @endforeach
                     </select>
-                    <p class="mt-1 text-xs text-gray-500">Associate this file with a specific project</p>
                     @error('project_id')
                       <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                   </div>
-                </div>
 
-                <!-- Database Entity -->
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    Database Entity
-                  </h3>
-                  <div>
-                    <label for="database_entity_id" class="block text-sm font-medium text-gray-700 mb-1">Select Database Entity</label>
+                  <!-- Database Entity -->
+                  <div class="mb-4">
+                    <label for="database_entity_id" class="block text-sm font-medium text-gray-700 mb-1">Database Entity</label>
                     <select
                       name="database_entity_id"
                       id="database_entity_id"
@@ -224,20 +230,14 @@
                         </option>
                       @endforeach
                     </select>
-                    <p class="mt-1 text-xs text-gray-500">Link this file to a specific database module</p>
                     @error('database_entity_id')
                       <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                   </div>
-                </div>
 
-                <!-- Template -->
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    Template
-                  </h3>
-                  <div>
-                    <label for="template_id" class="block text-sm font-medium text-gray-700 mb-1">Select Template</label>
+                  <!-- Template -->
+                  <div class="mb-4">
+                    <label for="template_id" class="block text-sm font-medium text-gray-700 mb-1">Template</label>
                     <select
                       name="template_id"
                       id="template_id"
@@ -253,47 +253,79 @@
                         </option>
                       @endforeach
                     </select>
-                    <p class="mt-1 text-xs text-gray-500">Associate with a data collection template if applicable</p>
                     @error('template_id')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
+
+                  <!-- Uploaded By -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Uploaded By</label>
+                    @livewire('backend.user-search', ['selectedUserId' => old('uploaded_by', $file->uploaded_by)])
+                    @error('uploaded_by')
                       <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                   </div>
                 </div>
 
-                <!-- File Protection Settings -->
+                <!-- Settings -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    Protection Settings
-                  </h3>
-                  <div>
-                    <label for="is_protected" class="block text-sm font-medium text-gray-700 mb-1">File Protection</label>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Settings</h3>
+
+                  <!-- Protection -->
+                  <div class="mb-4">
+                    <label for="is_protected" class="block text-sm font-medium text-gray-700 mb-1">Protection</label>
                     <select
                       name="is_protected"
                       id="is_protected"
                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('is_protected') border-red-500 @enderror"
                     >
-                      <option value="0" {{ (old('is_protected', $file->is_protected) == 0) ? 'selected' : '' }}>
-                        Unprotected (Public)
-                      </option>
-                      <option value="1" {{ (old('is_protected', $file->is_protected) == 1) ? 'selected' : '' }}>
-                        Protected (Admin Only)
-                      </option>
+                      <option value="0" {{ (old('is_protected', $file->is_protected) == 0) ? 'selected' : '' }}>Unprotected</option>
+                      <option value="1" {{ (old('is_protected', $file->is_protected) == 1) ? 'selected' : '' }}>Protected</option>
                     </select>
-                    <p class="mt-1 text-xs text-gray-500">
-                      Protected files are only accessible to users with admin, super_admin, or empodat roles
-                    </p>
                     @error('is_protected')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
+
+                  <!-- List Type -->
+                  <div class="mb-4">
+                    <label for="list_type" class="block text-sm font-medium text-gray-700 mb-1">List Type</label>
+                    <input
+                      type="text"
+                      name="list_type"
+                      id="list_type"
+                      value="{{ old('list_type', $file->list_type) }}"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('list_type') border-red-500 @enderror"
+                      placeholder="e.g., SW, GW, SEDIMENT"
+                    >
+                    @error('list_type')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
+
+                  <!-- Matrice DCT -->
+                  <div>
+                    <label for="matrice_dct" class="block text-sm font-medium text-gray-700 mb-1">Matrice DCT</label>
+                    <input
+                      type="number"
+                      name="matrice_dct"
+                      id="matrice_dct"
+                      value="{{ old('matrice_dct', $file->matrice_dct) }}"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('matrice_dct') border-red-500 @enderror"
+                    >
+                    @error('matrice_dct')
                       <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                   </div>
                 </div>
 
-                <!-- File Statistics -->
+                <!-- Statistics -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                  <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    File Statistics
-                  </h3>
-                  <div>
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Statistics</h3>
+
+                  <!-- Number of Records -->
+                  <div class="mb-4">
                     <label for="number_of_records" class="block text-sm font-medium text-gray-700 mb-1">Number of Records</label>
                     <input
                       type="number"
@@ -302,58 +334,193 @@
                       value="{{ old('number_of_records', $file->number_of_records ?? 0) }}"
                       min="0"
                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('number_of_records') border-red-500 @enderror"
-                      placeholder="0"
                     >
-                    <p class="mt-1 text-xs text-gray-500">
-                      Total number of data records contained in this file
-                    </p>
                     @error('number_of_records')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
+
+                  <!-- Analysis Number -->
+                  <div>
+                    <label for="analysis_number" class="block text-sm font-medium text-gray-700 mb-1">Analysis Number</label>
+                    <input
+                      type="number"
+                      name="analysis_number"
+                      id="analysis_number"
+                      value="{{ old('analysis_number', $file->analysis_number) }}"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('analysis_number') border-red-500 @enderror"
+                    >
+                    @error('analysis_number')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
+                </div>
+              </div>
+
+              <!-- Column 3 - ID Ranges -->
+              <div class="space-y-6">
+                <!-- Main ID Range -->
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Main ID Range</h3>
+                  <p class="text-xs text-gray-500 mb-4">ID range from *_main tables (empodat_main, indoor_main, etc.)</p>
+
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label for="main_id_from" class="block text-sm font-medium text-gray-700 mb-1">From</label>
+                      <input
+                        type="number"
+                        name="main_id_from"
+                        id="main_id_from"
+                        value="{{ old('main_id_from', $file->main_id_from) }}"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('main_id_from') border-red-500 @enderror"
+                      >
+                      @error('main_id_from')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                      @enderror
+                    </div>
+                    <div>
+                      <label for="main_id_to" class="block text-sm font-medium text-gray-700 mb-1">To</label>
+                      <input
+                        type="number"
+                        name="main_id_to"
+                        id="main_id_to"
+                        value="{{ old('main_id_to', $file->main_id_to) }}"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('main_id_to') border-red-500 @enderror"
+                      >
+                      @error('main_id_to')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                      @enderror
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Source ID Range -->
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Source ID Range</h3>
+
+                  <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label for="source_id_from" class="block text-sm font-medium text-gray-700 mb-1">From</label>
+                      <input
+                        type="number"
+                        name="source_id_from"
+                        id="source_id_from"
+                        value="{{ old('source_id_from', $file->source_id_from) }}"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('source_id_from') border-red-500 @enderror"
+                      >
+                      @error('source_id_from')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                      @enderror
+                    </div>
+                    <div>
+                      <label for="source_id_to" class="block text-sm font-medium text-gray-700 mb-1">To</label>
+                      <input
+                        type="number"
+                        name="source_id_to"
+                        id="source_id_to"
+                        value="{{ old('source_id_to', $file->source_id_to) }}"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('source_id_to') border-red-500 @enderror"
+                      >
+                      @error('source_id_to')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                      @enderror
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="source_number" class="block text-sm font-medium text-gray-700 mb-1">Source Number</label>
+                    <input
+                      type="number"
+                      name="source_number"
+                      id="source_number"
+                      value="{{ old('source_number', $file->source_number) }}"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('source_number') border-red-500 @enderror"
+                    >
+                    @error('source_number')
                       <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                   </div>
                 </div>
 
-                <!-- File Preview/Info (for edit mode) -->
+                <!-- Method ID Range -->
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Method ID Range</h3>
+
+                  <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label for="method_id_from" class="block text-sm font-medium text-gray-700 mb-1">From</label>
+                      <input
+                        type="number"
+                        name="method_id_from"
+                        id="method_id_from"
+                        value="{{ old('method_id_from', $file->method_id_from) }}"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('method_id_from') border-red-500 @enderror"
+                      >
+                      @error('method_id_from')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                      @enderror
+                    </div>
+                    <div>
+                      <label for="method_id_to" class="block text-sm font-medium text-gray-700 mb-1">To</label>
+                      <input
+                        type="number"
+                        name="method_id_to"
+                        id="method_id_to"
+                        value="{{ old('method_id_to', $file->method_id_to) }}"
+                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('method_id_to') border-red-500 @enderror"
+                      >
+                      @error('method_id_to')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                      @enderror
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="method_number" class="block text-sm font-medium text-gray-700 mb-1">Method Number</label>
+                    <input
+                      type="number"
+                      name="method_number"
+                      id="method_number"
+                      value="{{ old('method_number', $file->method_number) }}"
+                      class="block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm @error('method_number') border-red-500 @enderror"
+                    >
+                    @error('method_number')
+                      <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                  </div>
+                </div>
+
+                <!-- File Info (edit mode only) -->
                 @if(!isset($isCreate) || !$isCreate)
                   <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                      File Information
-                    </h3>
-                    <div class="space-y-3 text-sm">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">File Information</h3>
+                    <div class="space-y-2 text-sm">
                       <div class="flex justify-between">
                         <span class="text-gray-600">File ID:</span>
                         <span class="font-mono font-semibold text-gray-900">{{ $file->id }}</span>
                       </div>
                       <div class="flex justify-between">
                         <span class="text-gray-600">Upload Date:</span>
-                        <span class="font-medium">{{ $file->uploaded_at ? $file->uploaded_at->format('M j, Y') : 'N/A' }}</span>
+                        <span class="font-medium">{{ $file->uploaded_at ? $file->uploaded_at->format('Y-m-d H:i') : 'N/A' }}</span>
                       </div>
                       <div class="flex justify-between">
                         <span class="text-gray-600">Uploaded By:</span>
-                        <span class="font-medium">{{ $file->uploader->name ?? 'Unknown' }}</span>
+                        <span class="font-medium">{{ $file->uploader ? $file->uploader->first_name . ' ' . $file->uploader->last_name : 'Unknown' }}</span>
                       </div>
                       <div class="flex justify-between">
                         <span class="text-gray-600">Status:</span>
                         @if($file->is_deleted)
-                          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-200 text-gray-800">
-                            Deleted
-                          </span>
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">Deleted</span>
                         @else
-                          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-                            Active
-                          </span>
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
                         @endif
                       </div>
                       <div class="flex justify-between">
                         <span class="text-gray-600">Protected:</span>
                         @if($file->is_protected)
-                          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
-                            Yes
-                          </span>
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Yes</span>
                         @else
-                          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-                            No
-                          </span>
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">No</span>
                         @endif
                       </div>
                     </div>

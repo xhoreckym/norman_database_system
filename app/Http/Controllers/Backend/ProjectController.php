@@ -14,8 +14,8 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $projects = Project::orderBy('created_at', 'desc')
-            ->paginate(10); // Added pagination for better performance with large datasets
+        $projects = Project::orderBy('id')
+            ->paginate(100);
             
         return view('backend.projects.index', [
             'projects' => $projects

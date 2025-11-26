@@ -23,6 +23,7 @@
               <table class="table-standard w-full">
                 <thead>
                   <tr class="bg-gray-600 text-white">
+                    <th class="py-2 px-4 text-left">ID</th>
                     <th class="py-2 px-4 text-left">Project Name</th>
                     <th class="py-2 px-4 text-left">Abbreviation</th>
                     <th class="py-2 px-4 text-left">Description</th>
@@ -32,6 +33,7 @@
                 <tbody>
                   @foreach ($projects as $project)
                   <tr class="@if($loop->odd) bg-slate-100 @else bg-slate-200 @endif hover:bg-slate-300 transition">
+                    <td class="py-2 px-4">{{ $project->id }}</td>
                     <td class="py-2 px-4">{{ $project->name }}</td>
                     <td class="py-2 px-4">{{ $project->abbreviation }}</td>
                     <td class="py-2 px-4">{{ Str::limit($project->description, 100) }}</td>

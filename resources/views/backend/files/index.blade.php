@@ -54,142 +54,66 @@
               </div>
             </div>
 
-            <!-- Hidden fields for sort -->
             <input type="hidden" name="sort" id="sortField" value="{{ $sort }}">
             <input type="hidden" name="direction" id="sortDirection" value="{{ $direction }}">
           </form>
 
           <!-- Files Table -->
           <div class="overflow-x-auto">
-            <table class="table-standard w-full">
+            <table class="table-standard w-full text-sm">
               <thead>
                 <tr class="bg-gray-600 text-white">
-                  <th class="p-1 text-center">ID</th>
-                  <th class="p-1 text-left">Name</th>
-                  <th class="p-1 text-left">Original Name</th>
-                  <th class="p-1 text-left">Project</th>
-                  <th class="p-1 text-left">Database</th>
-                  <th class="p-1 text-left">Template</th>
-                  <th class="p-1 text-center">Size</th>
-                  <th class="p-1 text-center">MIME Type</th>
-                  <th class="p-1 text-center">Records</th>
-                  <th class="p-1 text-center">Protected</th>
-                  <th class="p-1 text-center">Deleted</th>
-                  <th class="p-1 text-left">Uploaded By</th>
-                  <th class="p-1 text-center">Upload Date</th>
-                  <th class="p-1 text-center">Actions</th>
+                  <th class="p-2 text-left">ID</th>
+                  <th class="p-2 text-left">File Name</th>
+                  <th class="p-2 text-left">Project</th>
+                  <th class="p-2 text-left">Database</th>
+                  <th class="p-2 text-left">Template</th>
+                  <th class="p-2 text-right">Size</th>
+                  <th class="p-2 text-right">Main ID From</th>
+                  <th class="p-2 text-right">Main ID To</th>
+                  <th class="p-2 text-right">Records</th>
+                  <th class="p-2 text-center">Protected</th>
+                  <th class="p-2 text-center">Deleted</th>
+                  <th class="p-2 text-left">Uploaded By</th>
+                  <th class="p-2 text-left">Uploaded At</th>
+                  <th class="p-2 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                @forelse ($files as $index => $file)
-                  <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
-                    <td class="p-1 text-center">
-                      <span class="font-mono text-xs font-semibold text-gray-800 bg-gray-200 px-2 py-1 rounded">{{ $file->id }}</span>
-                    </td>
-                    <td class="p-1">
-                      <div class="font-medium text-gray-900">{{ $file->name ?? 'N/A' }}</div>
-                      @if($file->description)
-                        <div class="text-xs text-gray-600">{{ Str::limit($file->description, 40) }}</div>
-                      @endif
-                    </td>
-                    <td class="p-1">
-                      <span class="text-sm text-gray-900">{{ $file->original_name ?? 'N/A' }}</span>
-                    </td>
-                    <td class="p-1">
-                      @if($file->project)
-                        <span class="text-sm text-gray-800">{{ $file->project->name }}</span>
-                      @else
-                        <span class="text-gray-400 text-xs">N/A</span>
-                      @endif
-                    </td>
-                    <td class="p-1">
-                      @if($file->databaseEntity)
-                        <span class="text-sm text-gray-800">{{ $file->databaseEntity->name }}</span>
-                      @else
-                        <span class="text-gray-400 text-xs">N/A</span>
-                      @endif
-                    </td>
-                    <td class="p-1">
-                      @if($file->template)
-                        <span class="text-sm text-gray-900">{{ $file->template->name }}</span>
-                      @else
-                        <span class="text-gray-400 text-xs">N/A</span>
-                      @endif
-                    </td>
-                    <td class="p-1 text-center">
-                      @if($file->file_size)
-                        <span class="text-sm text-gray-900">{{ $file->formatted_file_size }}</span>
-                      @else
-                        <span class="text-gray-400 text-xs">N/A</span>
-                      @endif
-                    </td>
-                    <td class="p-1 text-center">
-                      @if($file->mime_type)
-                        <span class="text-xs text-gray-700">{{ Str::limit($file->mime_type, 20) }}</span>
-                      @else
-                        <span class="text-gray-400 text-xs">N/A</span>
-                      @endif
-                    </td>
-                    <td class="p-1 text-center">
-                      <span class="text-sm text-gray-900">{{ number_format($file->number_of_records ?? 0) }}</span>
-                    </td>
-                    <td class="p-1 text-center">
-                      @if($file->is_protected)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                          Yes
-                        </span>
-                      @else
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                          No
-                        </span>
-                      @endif
-                    </td>
-                    <td class="p-1 text-center">
-                      @if($file->is_deleted)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-800">
-                          Yes
-                        </span>
-                      @else
-                        <span class="text-gray-400 text-xs">No</span>
-                      @endif
-                    </td>
-                    <td class="p-1">
-                      @if($file->uploader)
-                        <div>
-                          <div class="text-sm text-gray-900">{{ $file->uploader->name }}</div>
-                          <div class="text-xs text-gray-500">{{ $file->uploader->email }}</div>
-                        </div>
-                      @else
-                        <span class="text-gray-400 text-xs">N/A</span>
-                      @endif
-                    </td>
-                    <td class="p-1 text-center">
-                      @if($file->uploaded_at)
-                        <span class="text-sm text-gray-900">{{ $file->uploaded_at->format('Y-m-d H:i') }}</span>
-                      @else
-                        <span class="text-gray-400 text-xs">N/A</span>
-                      @endif
-                    </td>
-                    <td class="p-1 text-center">
+                @forelse ($files as $file)
+                  <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif hover:bg-slate-300">
+                    <td class="p-2 font-mono">{{ $file->id }}</td>
+                    <td class="p-2">{{ $file->name ?? $file->original_name ?? '-' }}</td>
+                    <td class="p-2">{{ $file->project->name ?? '-' }}</td>
+                    <td class="p-2">{{ $file->databaseEntity->name ?? '-' }}</td>
+                    <td class="p-2">{{ $file->template->name ?? '-' }}</td>
+                    <td class="p-2 text-right">{{ $file->formatted_file_size ?? '-' }}</td>
+                    <td class="p-2 text-right">{{ $file->main_id_from ? number_format($file->main_id_from, 0, '.', ' ') : '-' }}</td>
+                    <td class="p-2 text-right">{{ $file->main_id_to ? number_format($file->main_id_to, 0, '.', ' ') : '-' }}</td>
+                    <td class="p-2 text-right">{{ number_format($file->number_of_records ?? 0, 0, '.', ' ') }}</td>
+                    <td class="p-2 text-center">{{ $file->is_protected ? 'Yes' : 'No' }}</td>
+                    <td class="p-2 text-center">{{ $file->is_deleted ? 'Yes' : 'No' }}</td>
+                    <td class="p-2">{{ $file->uploader ? $file->uploader->first_name . ' ' . $file->uploader->last_name : '-' }}</td>
+                    <td class="p-2">{{ $file->uploaded_at ? $file->uploaded_at->format('Y-m-d') : '-' }}</td>
+                    <td class="p-2 text-center">
                       <div class="flex justify-center space-x-2">
-                        <a href="{{ route('files.show', $file) }}" class="link-lime-text text-sm px-2 py-1">
-                          View
+                        <a href="{{ route('files.show', $file) }}" class="text-gray-600 hover:text-gray-900" title="View">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
                         </a>
-                        <a href="{{ route('files.edit', $file) }}" class="link-lime-text text-sm px-2 py-1">
-                          Edit
+                        <a href="{{ route('files.edit', $file) }}" class="text-yellow-600 hover:text-yellow-800" title="Edit">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
                         </a>
                         @if($file->file_path && Storage::disk('public')->exists($file->file_path))
-                          <a href="{{ route('files.download', $file) }}" class="btn-download text-xs px-2 py-1">
-                            Download
+                          <a href="{{ route('files.download', $file) }}" class="text-green-600 hover:text-green-800" title="Download">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
                           </a>
-                        @elseif($file->file_path)
-                          <span class="text-xs px-2 py-1 text-red-600 italic">
-                            Not found
-                          </span>
-                        @else
-                          <span class="text-xs px-2 py-1 text-gray-400 italic">
-                            No file
-                          </span>
                         @endif
                       </div>
                     </td>
@@ -197,8 +121,7 @@
                 @empty
                   <tr class="bg-slate-100">
                     <td colspan="14" class="py-6 px-4 text-center text-gray-500">
-                      <p class="text-base">No files found</p>
-                      <p class="text-sm mt-1">Try adjusting your search to find what you're looking for.</p>
+                      No files found.
                     </td>
                   </tr>
                 @endforelse
@@ -220,39 +143,4 @@
       </div>
     </div>
   </div>
-
-  @push('scripts')
-  <script>
-    // Debounced search functionality
-    let searchTimeout;
-    const searchInput = document.getElementById('search');
-    const filterForm = document.getElementById('filterForm');
-
-    if (searchInput) {
-      searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(function() {
-          filterForm.submit();
-        }, 500);
-      });
-    }
-
-    // Sorting functionality
-    function sortBy(column) {
-      const sortField = document.getElementById('sortField');
-      const sortDirection = document.getElementById('sortDirection');
-      const currentSort = sortField.value;
-      const currentDirection = sortDirection.value;
-
-      if (currentSort === column) {
-        sortDirection.value = currentDirection === 'asc' ? 'desc' : 'asc';
-      } else {
-        sortField.value = column;
-        sortDirection.value = 'desc';
-      }
-
-      filterForm.submit();
-    }
-  </script>
-  @endpush
 </x-app-layout>

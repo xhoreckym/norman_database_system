@@ -2,14 +2,14 @@
 
 namespace App\Models\Backend;
 
+use App\Models\DatabaseEntity;
+use App\Models\Empodat\EmpodatMain;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\DB;
-use App\Models\Empodat\EmpodatMain;
-use App\Models\DatabaseEntity;
-use App\Models\User;
 
 class File extends Model
 {
@@ -43,6 +43,19 @@ class File extends Model
         'project_id',
         'is_protected',
         'number_of_records',
+        'doi',
+        'main_id_from',
+        'main_id_to',
+        'analysis_number',
+        'source_id_from',
+        'source_id_to',
+        'source_number',
+        'method_id_from',
+        'method_id_to',
+        'method_number',
+        'list_type',
+        'note',
+        'matrice_dct',
     ];
 
     /**
@@ -60,6 +73,16 @@ class File extends Model
         'is_deleted' => 'boolean',
         'is_protected' => 'boolean',
         'number_of_records' => 'integer',
+        'main_id_from' => 'integer',
+        'main_id_to' => 'integer',
+        'analysis_number' => 'integer',
+        'source_id_from' => 'integer',
+        'source_id_to' => 'integer',
+        'source_number' => 'integer',
+        'method_id_from' => 'integer',
+        'method_id_to' => 'integer',
+        'method_number' => 'integer',
+        'matrice_dct' => 'integer',
     ];
 
     /**
@@ -144,76 +167,80 @@ class File extends Model
 
     /**
      * Get formatted file size.
-     * 
+     *
      * @return string|null
      */
     public function getFormattedFileSizeAttribute()
     {
-        if (!$this->file_size) {
+        if (! $this->file_size) {
             return null;
         }
 
         $bytes = $this->file_size;
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        
+
         for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
             $bytes /= 1024;
         }
-        
-        return round($bytes, 2) . ' ' . $units[$i];
+
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**
      * Get file extension from file path.
-     * 
+     *
      * @return string|null
      */
     public function getFileExtensionAttribute()
     {
-        if (!$this->file_path && !$this->original_name) {
+        if (! $this->file_path && ! $this->original_name) {
             return null;
         }
-        
+
         $fileName = $this->original_name ?: $this->file_path;
+
         return strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
     }
 
     /**
      * Check if file is an image.
-     * 
+     *
      * @return bool
      */
     public function getIsImageAttribute()
     {
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'];
+
         return in_array($this->file_extension, $imageExtensions);
     }
 
     /**
      * Check if file is a document.
-     * 
+     *
      * @return bool
      */
     public function getIsDocumentAttribute()
     {
         $documentExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt'];
+
         return in_array($this->file_extension, $documentExtensions);
     }
 
     /**
      * Check if file is a spreadsheet.
-     * 
+     *
      * @return bool
      */
     public function getIsSpreadsheetAttribute()
     {
         $spreadsheetExtensions = ['xls', 'xlsx', 'csv', 'ods'];
+
         return in_array($this->file_extension, $spreadsheetExtensions);
     }
 
     /**
      * Get file icon class based on file type.
-     * 
+     *
      * @return string
      */
     public function getFileIconAttribute()
@@ -221,15 +248,15 @@ class File extends Model
         if ($this->is_image) {
             return 'fa fa-image';
         }
-        
+
         if ($this->is_document) {
             return 'fa fa-file-text';
         }
-        
+
         if ($this->is_spreadsheet) {
             return 'fa fa-table';
         }
-        
+
         switch ($this->file_extension) {
             case 'pdf':
                 return 'fa fa-file-pdf';
@@ -252,72 +279,74 @@ class File extends Model
 
     /**
      * Soft delete the file by setting is_deleted to true.
-     * 
+     *
      * @return bool
      */
     public function softDelete()
     {
         $this->is_deleted = true;
+
         return $this->save();
     }
 
     /**
      * Restore the file by setting is_deleted to false.
-     * 
+     *
      * @return bool
      */
     public function restore()
     {
         $this->is_deleted = false;
+
         return $this->save();
     }
 
     /**
      * Check if the file exists on disk.
-     * 
+     *
      * @return bool
      */
     public function existsOnDisk()
     {
-        if (!$this->file_path) {
+        if (! $this->file_path) {
             return false;
         }
-        
+
         return \Illuminate\Support\Facades\Storage::disk('public')->exists($this->file_path);
     }
 
     /**
      * Get the full file path.
-     * 
+     *
      * @return string|null
      */
     public function getFullPathAttribute()
     {
-        if (!$this->file_path) {
+        if (! $this->file_path) {
             return null;
         }
-        
-        return storage_path('app/' . $this->file_path);
+
+        return storage_path('app/'.$this->file_path);
     }
 
     /**
      * Get download URL for the file.
-     * 
+     *
      * @return string|null
      */
     public function getDownloadUrlAttribute()
     {
-        if (!$this->file_path) {
+        if (! $this->file_path) {
             return null;
         }
-        
+
         return route('files.download', $this->id);
     }
 
     /**
      * Get the count of empodat records associated with this file.
      * Uses direct pivot table query for better performance.
-     * 
+     *
      * @return int
      */
     public function getEmpodatRecordsCountAttribute()

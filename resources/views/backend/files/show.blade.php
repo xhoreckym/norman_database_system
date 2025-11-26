@@ -272,7 +272,7 @@
                   <div>
                     <span class="text-sm font-medium text-gray-500 block">Uploaded By:</span>
                     @if($file->uploader)
-                      <div class="text-sm text-gray-900">{{ $file->uploader->name }}</div>
+                      <div class="text-sm text-gray-900">{{ $file->uploader->first_name }} {{ $file->uploader->last_name }}</div>
                       <div class="text-xs text-gray-600">{{ $file->uploader->email }}</div>
                     @else
                       <span class="text-sm text-gray-500">Unknown</span>
