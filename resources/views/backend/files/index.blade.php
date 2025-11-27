@@ -84,64 +84,64 @@
 
           <!-- Files Table -->
           <div class="overflow-x-auto">
-            <table class="table-standard w-full text-sm">
-              <thead>
+            <table class="table-standard w-full text-xs">
+              <thead class="sticky top-0 z-10">
                 <tr class="bg-gray-600 text-white">
-                  <th class="p-2 text-left">ID</th>
-                  <th class="p-2 text-left">File Name</th>
-                  <th class="p-2 text-left">Project</th>
-                  <th class="p-2 text-left">Database</th>
-                  <th class="p-2 text-left">Template</th>
-                  <th class="p-2 text-right">Size</th>
-                  <th class="p-2 text-right">Main ID From</th>
-                  <th class="p-2 text-right">Main ID To</th>
-                  <th class="p-2 text-right">Records</th>
-                  <th class="p-2 text-center">Protected</th>
-                  <th class="p-2 text-center">Deleted</th>
-                  <th class="p-2 text-left">Uploaded By</th>
-                  <th class="p-2 text-left">Uploaded At</th>
-                  <th class="p-2 text-center">Actions</th>
+                  <th class="px-1 py-2 text-left whitespace-nowrap">ID</th>
+                  <th class="px-1 py-2 text-left">File Name</th>
+                  <th class="px-1 py-2 text-left">Project</th>
+                  <th class="px-1 py-2 text-left">DB</th>
+                  <th class="px-1 py-2 text-left">Template</th>
+                  <th class="px-1 py-2 text-right whitespace-nowrap">Size</th>
+                  <th class="px-1 py-2 text-right whitespace-nowrap">ID From</th>
+                  <th class="px-1 py-2 text-right whitespace-nowrap">ID To</th>
+                  <th class="px-1 py-2 text-right whitespace-nowrap">Rec.</th>
+                  <th class="px-1 py-2 text-center whitespace-nowrap">Prot.</th>
+                  <th class="px-1 py-2 text-center whitespace-nowrap">Del.</th>
+                  <th class="px-1 py-2 text-left">Uploaded By</th>
+                  <th class="px-1 py-2 text-left whitespace-nowrap">Date</th>
+                  <th class="px-1 py-2 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 @forelse ($files as $file)
                   <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif hover:bg-slate-300">
-                    <td class="p-2 font-mono">{{ $file->id }}</td>
-                    <td class="p-2">{{ $file->original_name ?? $file->name ?? '-' }}</td>
-                    <td class="p-2">{{ $file->project->name ?? '-' }}</td>
-                    <td class="p-2">{{ $file->databaseEntity->name ?? '-' }}</td>
-                    <td class="p-2">{{ $file->template->name ?? '-' }}</td>
-                    <td class="p-2 text-right">{{ $file->formatted_file_size ?? '-' }}</td>
-                    <td class="p-2 text-right">{{ $file->main_id_from ? number_format($file->main_id_from, 0, '.', ' ') : '-' }}</td>
-                    <td class="p-2 text-right">{{ $file->main_id_to ? number_format($file->main_id_to, 0, '.', ' ') : '-' }}</td>
-                    <td class="p-2 text-right">{{ number_format($file->number_of_records ?? 0, 0, '.', ' ') }}</td>
-                    <td class="p-2 text-center">{{ $file->is_protected ? 'Yes' : 'No' }}</td>
-                    <td class="p-2 text-center">
+                    <td class="px-1 py-2 font-mono whitespace-nowrap">{{ $file->id }}</td>
+                    <td class="px-1 py-2 max-w-[200px] break-words">{{ $file->original_name ?? $file->name ?? '-' }}</td>
+                    <td class="px-1 py-2 max-w-[100px] truncate" title="{{ $file->project->name ?? '-' }}">{{ $file->project->name ?? '-' }}</td>
+                    <td class="px-1 py-2 max-w-[100px] break-words">{{ $file->databaseEntity->name ?? '-' }}</td>
+                    <td class="px-1 py-2 max-w-[100px] truncate" title="{{ $file->template->name ?? '-' }}">{{ $file->template->name ?? '-' }}</td>
+                    <td class="px-1 py-2 text-right whitespace-nowrap">{{ $file->formatted_file_size ?? '-' }}</td>
+                    <td class="px-1 py-2 text-right font-mono whitespace-nowrap">{{ $file->main_id_from ? number_format($file->main_id_from, 0, '.', ' ') : '-' }}</td>
+                    <td class="px-1 py-2 text-right font-mono whitespace-nowrap">{{ $file->main_id_to ? number_format($file->main_id_to, 0, '.', ' ') : '-' }}</td>
+                    <td class="px-1 py-2 text-right font-mono whitespace-nowrap">{{ number_format($file->number_of_records ?? 0, 0, '.', ' ') }}</td>
+                    <td class="px-1 py-2 text-center whitespace-nowrap">{{ $file->is_protected ? 'Yes' : 'No' }}</td>
+                    <td class="px-1 py-2 text-center whitespace-nowrap">
                       @if($file->is_deleted)
-                        <span class="px-2 py-1 bg-red-600 text-white text-xs font-medium rounded">Yes</span>
+                        <span class="px-1 py-0.5 bg-red-600 text-white text-xs font-medium rounded">Yes</span>
                       @else
                         No
                       @endif
                     </td>
-                    <td class="p-2">{{ $file->uploader ? $file->uploader->first_name . ' ' . $file->uploader->last_name : '-' }}</td>
-                    <td class="p-2">{{ $file->uploaded_at ? $file->uploaded_at->format('Y-m-d') : '-' }}</td>
-                    <td class="p-2 text-center">
+                    <td class="px-1 py-2 max-w-[100px] truncate" title="{{ $file->uploader ? $file->uploader->first_name . ' ' . $file->uploader->last_name : '-' }}">{{ $file->uploader ? $file->uploader->first_name . ' ' . $file->uploader->last_name : '-' }}</td>
+                    <td class="px-1 py-2 whitespace-nowrap">{{ $file->uploaded_at ? $file->uploaded_at->format('Y-m-d') : '-' }}</td>
+                    <td class="px-1 py-2 text-center">
                       @role(['admin', 'super_admin'])
-                      <div class="flex justify-center space-x-2">
+                      <div class="flex justify-center space-x-1">
                         <a href="{{ route('files.show', $file) }}" class="text-gray-600 hover:text-gray-900" title="View">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
                         </a>
                         <a href="{{ route('files.edit', $file) }}" class="text-yellow-600 hover:text-yellow-800" title="Edit">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </a>
                         @if($file->file_path && Storage::disk('public')->exists($file->file_path))
                           <a href="{{ route('files.download', $file) }}" class="text-green-600 hover:text-green-800" title="Download">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
                           </a>
@@ -150,7 +150,7 @@
                           <form action="{{ route('files.rescan', $file) }}" method="POST" class="inline">
                             @csrf
                             <button type="submit" class="text-purple-600 hover:text-purple-800" title="Rescan">
-                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                               </svg>
                             </button>
