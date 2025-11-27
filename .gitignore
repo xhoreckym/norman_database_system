@@ -4,6 +4,7 @@
 /public/hot
 /public/docs
 /public/storage
+/.scribe
 /storage/*.key
 /vendor
 .env

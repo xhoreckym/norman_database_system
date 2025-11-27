@@ -85,8 +85,10 @@ ssh deployer@145.223.117.219 << 'EOF'
     echo -e "\033[1;37mNavigating to project directory...\033[0m"
     cd /opt/projects/norman_database_system/
 
-    echo -e "\033[1;34mDiscarding local changes to deploy.sh on server...\033[0m"
+    echo -e "\033[1;34mDiscarding local changes to generated files on server...\033[0m"
     git checkout -- deploy.sh 2>/dev/null || true
+    git checkout -- .scribe/ 2>/dev/null || true
+    git checkout -- public/docs/ 2>/dev/null || true
 
     echo -e "\033[1;34mPulling latest changes on server...\033[0m"
     git pull
