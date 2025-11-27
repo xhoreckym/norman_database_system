@@ -762,6 +762,7 @@ Route::prefix('empodat_suspect')->group(function () {
         Route::get('records-by-sample-code', [EmpodatSuspectStatisticsController::class, 'recordsBySampleCode'])->name('empodat_suspect.statistics.recordsBySampleCode');
         Route::get('substances-by-country', [EmpodatSuspectStatisticsController::class, 'substancesByCountry'])->name('empodat_suspect.statistics.substancesByCountry');
         Route::get('records-by-country', [EmpodatSuspectStatisticsController::class, 'recordsByCountry'])->name('empodat_suspect.statistics.recordsByCountry');
+        Route::get('records-by-confidence-interval', [EmpodatSuspectStatisticsController::class, 'recordsByConfidenceInterval'])->name('empodat_suspect.statistics.recordsByConfidenceInterval');
     });
 
 });

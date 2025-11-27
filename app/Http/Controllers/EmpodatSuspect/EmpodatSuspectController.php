@@ -185,6 +185,15 @@ class EmpodatSuspectController extends Controller
             }
         }
 
+        // Confidence level options
+        $confidenceLevelList = [
+            1 => 'IP_max > 0.75 AND <= 1.00',
+            2 => 'IP_max > 0.60 AND <= 0.75',
+            3 => 'IP_max > 0.50 AND <= 0.60',
+            4 => 'IP_max > 0.20 AND <= 0.50',
+            5 => 'IP_max <= 0.20',
+        ];
+
         return view('empodat_suspect.filter', [
             'request' => $request,
             'countryList' => $countryList,
@@ -199,6 +208,7 @@ class EmpodatSuspectController extends Controller
             'dataSourceOrganisationList' => $dataSourceOrganisationList,
             'fileList' => $fileList,
             'showFileFilter' => $showFileFilter,
+            'confidenceLevelList' => $confidenceLevelList,
         ]);
     }
 
@@ -229,6 +239,7 @@ class EmpodatSuspectController extends Controller
                 'dataSourceLaboratorySearch' => [],
                 'dataSourceOrganisationSearch' => [],
                 'fileSearch' => [],
+                'confidenceLevelSearch' => [],
                 'year_from' => null,
                 'year_to' => null,
             ];
@@ -306,6 +317,34 @@ class EmpodatSuspectController extends Controller
                     $q->whereHas('sources', function ($sourceQuery) use ($searchInputs) {
                         $sourceQuery->whereIn('sle_sources.id', $searchInputs['sourceSearch']);
                     });
+                });
+            }
+
+            // Apply confidence level filter (ip_max range) - supports multiple selections
+            if (! empty($searchInputs['confidenceLevelSearch'])) {
+                $empodatSuspects->where(function ($query) use ($searchInputs) {
+                    foreach ($searchInputs['confidenceLevelSearch'] as $index => $level) {
+                        $method = $index === 0 ? 'where' : 'orWhere';
+                        $query->$method(function ($q) use ($level) {
+                            switch ($level) {
+                                case '1': // IP_max > 0.75 AND <= 1.00
+                                    $q->where('ip_max', '>', 0.75)->where('ip_max', '<=', 1.00);
+                                    break;
+                                case '2': // IP_max > 0.60 AND <= 0.75
+                                    $q->where('ip_max', '>', 0.60)->where('ip_max', '<=', 0.75);
+                                    break;
+                                case '3': // IP_max > 0.50 AND <= 0.60
+                                    $q->where('ip_max', '>', 0.50)->where('ip_max', '<=', 0.60);
+                                    break;
+                                case '4': // IP_max > 0.20 AND <= 0.50
+                                    $q->where('ip_max', '>', 0.20)->where('ip_max', '<=', 0.50);
+                                    break;
+                                case '5': // IP_max <= 0.20
+                                    $q->where('ip_max', '<=', 0.20);
+                                    break;
+                            }
+                        });
+                    }
                 });
             }
 
@@ -449,6 +488,24 @@ class EmpodatSuspectController extends Controller
         // File parameters (only for authorized users)
         if (! empty($searchInputs['fileSearch'])) {
             $searchParameters['fileSearch'] = \App\Models\Backend\File::whereIn('id', $searchInputs['fileSearch'])->pluck('name');
+        }
+
+        // Confidence level parameter
+        if (! empty($searchInputs['confidenceLevelSearch'])) {
+            $confidenceLevels = [
+                '1' => 'IP_max > 0.75 AND <= 1.00',
+                '2' => 'IP_max > 0.60 AND <= 0.75',
+                '3' => 'IP_max > 0.50 AND <= 0.60',
+                '4' => 'IP_max > 0.20 AND <= 0.50',
+                '5' => 'IP_max <= 0.20',
+            ];
+            $selectedLevels = [];
+            foreach ($searchInputs['confidenceLevelSearch'] as $level) {
+                if (isset($confidenceLevels[$level])) {
+                    $selectedLevels[] = $confidenceLevels[$level];
+                }
+            }
+            $searchParameters['confidenceLevelSearch'] = collect($selectedLevels);
         }
 
         return $searchParameters;

@@ -232,6 +232,22 @@
               </div>
             </div>
 
+            <div id="searchConfidenceLevel">
+              <div class="bg-gray-100 p-2">
+                <div class="font-bold mb-2">
+                  Confidence Level:
+                </div>
+                <div aria-describedby="confidence-help">
+                  @include('_t.form-apline-multiselect', [
+                    'tag' => 'confidenceLevelSearch',
+                    'list' => $confidenceLevelList,
+                    'active_ids' => isset($request->confidenceLevelSearch) ? $request->confidenceLevelSearch : [],
+                  ])
+                </div>
+                <div id="confidence-help" class="sr-only">Filter results by IP_max confidence level ranges</div>
+              </div>
+            </div>
+
 
 
             {{-- <div id="concentrationIndicatorSearch" class="">

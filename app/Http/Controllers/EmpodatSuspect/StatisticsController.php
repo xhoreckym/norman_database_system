@@ -234,6 +234,74 @@ class StatisticsController extends Controller
             ]
         ]);
 
+        // 6. Number of records per confidence interval (ip_max ranges)
+        $recordsByConfidenceInterval = DB::table('empodat_suspect_main')
+            ->select(
+                DB::raw("CASE
+                    WHEN ip_max > 0.75 AND ip_max <= 1.00 THEN '1'
+                    WHEN ip_max > 0.60 AND ip_max <= 0.75 THEN '2'
+                    WHEN ip_max > 0.50 AND ip_max <= 0.60 THEN '3'
+                    WHEN ip_max > 0.20 AND ip_max <= 0.50 THEN '4'
+                    WHEN ip_max <= 0.20 THEN '5'
+                    ELSE 'unknown'
+                END as confidence_level"),
+                DB::raw('COUNT(*) as record_count')
+            )
+            ->whereNotNull('ip_max')
+            ->groupBy(DB::raw("CASE
+                    WHEN ip_max > 0.75 AND ip_max <= 1.00 THEN '1'
+                    WHEN ip_max > 0.60 AND ip_max <= 0.75 THEN '2'
+                    WHEN ip_max > 0.50 AND ip_max <= 0.60 THEN '3'
+                    WHEN ip_max > 0.20 AND ip_max <= 0.50 THEN '4'
+                    WHEN ip_max <= 0.20 THEN '5'
+                    ELSE 'unknown'
+                END"))
+            ->orderBy('confidence_level')
+            ->get();
+
+        $confidenceLevelLabels = [
+            '1' => 'IP_max > 0.75 AND <= 1.00',
+            '2' => 'IP_max > 0.60 AND <= 0.75',
+            '3' => 'IP_max > 0.50 AND <= 0.60',
+            '4' => 'IP_max > 0.20 AND <= 0.50',
+            '5' => 'IP_max <= 0.20',
+            'unknown' => 'Unknown / NULL',
+        ];
+
+        $confidenceIntervalData = [];
+        $totalWithIpMax = 0;
+        foreach ($recordsByConfidenceInterval as $stat) {
+            $label = $confidenceLevelLabels[$stat->confidence_level] ?? $stat->confidence_level;
+            $confidenceIntervalData[$label] = [
+                'level' => $stat->confidence_level,
+                'count' => $stat->record_count,
+            ];
+            $totalWithIpMax += $stat->record_count;
+        }
+
+        // Also count records with NULL ip_max
+        $nullIpMaxCount = DB::table('empodat_suspect_main')
+            ->whereNull('ip_max')
+            ->count();
+
+        if ($nullIpMaxCount > 0) {
+            $confidenceIntervalData['No IP_max value'] = [
+                'level' => 'null',
+                'count' => $nullIpMaxCount,
+            ];
+        }
+
+        Statistic::create([
+            'database_entity_id' => $empodatSuspectEntity->id,
+            'key' => 'empodat_suspect.records_by_confidence_interval',
+            'meta_data' => [
+                'data' => $confidenceIntervalData,
+                'generated_at' => now()->toISOString(),
+                'total_with_ip_max' => $totalWithIpMax,
+                'total_without_ip_max' => $nullIpMaxCount,
+            ]
+        ]);
+
         return back()->with('success', 'All statistics generated and stored successfully.');
     }
 
@@ -360,6 +428,39 @@ class StatisticsController extends Controller
         return view('empodat_suspect.statistics.records_by_country', [
             'data' => $statisticsRecord->meta_data['data'] ?? [],
             'totalCountries' => $statisticsRecord->meta_data['total_countries'] ?? 0,
+            'generatedAt' => $statisticsRecord->meta_data['generated_at'] ?? null,
+            'message' => null,
+        ]);
+    }
+
+    /**
+     * Display records by confidence interval statistics
+     */
+    public function recordsByConfidenceInterval()
+    {
+        $empodatSuspectEntity = DatabaseEntity::where('code', 'empodat_suspect')->first();
+
+        if (!$empodatSuspectEntity) {
+            return back()->with('error', 'Empodat Suspect database entity not found.');
+        }
+
+        $statisticsRecord = Statistic::where('database_entity_id', $empodatSuspectEntity->id)
+            ->where('key', 'empodat_suspect.records_by_confidence_interval')
+            ->latest('created_at')
+            ->first();
+
+        if (!$statisticsRecord) {
+            return view('empodat_suspect.statistics.records_by_confidence_interval', [
+                'data' => [],
+                'message' => 'No statistics available. Please generate statistics first.',
+                'generatedAt' => null,
+            ]);
+        }
+
+        return view('empodat_suspect.statistics.records_by_confidence_interval', [
+            'data' => $statisticsRecord->meta_data['data'] ?? [],
+            'totalWithIpMax' => $statisticsRecord->meta_data['total_with_ip_max'] ?? 0,
+            'totalWithoutIpMax' => $statisticsRecord->meta_data['total_without_ip_max'] ?? 0,
             'generatedAt' => $statisticsRecord->meta_data['generated_at'] ?? null,
             'message' => null,
         ]);

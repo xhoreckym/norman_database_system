@@ -176,6 +176,45 @@
         </div>
       @endif
 
+      <!-- Records by Confidence Interval -->
+      @if(isset($allStats['empodat_suspect.records_by_confidence_interval']))
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div class="flex justify-between items-start mb-3">
+            <h4 class="font-semibold text-slate-800">Records by Confidence Interval</h4>
+            <a href="{{ route('empodat_suspect.statistics.recordsByConfidenceInterval') }}"
+               class="text-slate-600 hover:text-slate-800 text-xs underline">
+              View Details
+            </a>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between">
+              <span class="text-sm text-slate-600">With IP_max:</span>
+              <span class="font-medium text-slate-900">{{ number_format($allStats['empodat_suspect.records_by_confidence_interval']['total_with_ip_max'], 0, '.', ' ') }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-slate-600">Without IP_max:</span>
+              <span class="font-medium text-slate-900">{{ number_format($allStats['empodat_suspect.records_by_confidence_interval']['total_without_ip_max'], 0, '.', ' ') }}</span>
+            </div>
+            @php
+              $topConfidenceLevel = collect($allStats['empodat_suspect.records_by_confidence_interval']['data'])
+                ->filter(function($item) { return $item['level'] !== 'null'; })
+                ->sortByDesc(function($item) { return $item['count']; })
+                ->first();
+              $topConfidenceLevelKey = collect($allStats['empodat_suspect.records_by_confidence_interval']['data'])
+                ->filter(function($item) { return $item['level'] !== 'null'; })
+                ->sortByDesc(function($item) { return $item['count']; })
+                ->keys()
+                ->first();
+            @endphp
+            @if($topConfidenceLevel)
+              <div class="text-xs text-slate-500 mt-2">
+                Most common: {{ Str::limit($topConfidenceLevelKey, 25) }}<br>{{ number_format($topConfidenceLevel['count'], 0, '.', ' ') }} records
+              </div>
+            @endif
+          </div>
+        </div>
+      @endif
+
     </div>
 
   @else
