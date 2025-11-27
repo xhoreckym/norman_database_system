@@ -95,9 +95,9 @@
                   <th class="px-1 py-2 text-right whitespace-nowrap">Size</th>
                   <th class="px-1 py-2 text-right whitespace-nowrap">ID From</th>
                   <th class="px-1 py-2 text-right whitespace-nowrap">ID To</th>
-                  <th class="px-1 py-2 text-right whitespace-nowrap">Rec.</th>
-                  <th class="px-1 py-2 text-center whitespace-nowrap">Prot.</th>
-                  <th class="px-1 py-2 text-center whitespace-nowrap">Del.</th>
+                  <th class="px-1 py-2 text-right whitespace-nowrap">Records</th>
+                  <th class="px-1 py-2 text-center whitespace-nowrap">Protected</th>
+                  <th class="px-1 py-2 text-center whitespace-nowrap">Deleted</th>
                   <th class="px-1 py-2 text-left">Uploaded By</th>
                   <th class="px-1 py-2 text-left whitespace-nowrap">Date</th>
                   <th class="px-1 py-2 text-center">Actions</th>
