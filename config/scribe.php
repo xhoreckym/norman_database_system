@@ -129,8 +129,9 @@ return [
 
 **Your token looks like this:**
 ```
-1|uQgwNnXHx7QJom31K8dfsdfsd8f7sd98f7sdf
+1|XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
+(a number, pipe character, and 40 random characters)
 
 ---
 
@@ -138,7 +139,7 @@ return [
 
 Copy your **full token** and paste it in the Authorization box:
 ```
-1|uQgwNnXHx7QJom31K8dfsdfsd8f7sd98f7sdf
+1|XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 (Scribe automatically adds "Bearer " prefix)
 
@@ -148,7 +149,7 @@ Copy your **full token** and paste it in the Authorization box:
 
 **curl:**
 ```bash
-curl -H "Authorization: Bearer 1|uQgwNnXHx7QJom31..." \
+curl -H "Authorization: Bearer YOUR_API_TOKEN" \
      "https://www.norman-network.com/nds/api/v1/empodat/country/SK"
 ```
 
@@ -156,7 +157,7 @@ curl -H "Authorization: Bearer 1|uQgwNnXHx7QJom31..." \
 ```python
 import requests
 
-headers = {"Authorization": "Bearer 1|uQgwNnXHx7QJom31..."}
+headers = {"Authorization": "Bearer YOUR_API_TOKEN"}
 response = requests.get(
     "https://www.norman-network.com/nds/api/v1/empodat/country/SK",
     headers=headers
@@ -166,7 +167,7 @@ response = requests.get(
 **JavaScript:**
 ```javascript
 fetch("https://www.norman-network.com/nds/api/v1/empodat/country/SK", {
-    headers: { "Authorization": "Bearer 1|uQgwNnXHx7QJom31..." }
+    headers: { "Authorization": "Bearer YOUR_API_TOKEN" }
 })
 ```
 AUTH,
