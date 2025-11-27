@@ -97,7 +97,10 @@
 
                   <!-- DOI -->
                   <div class="mb-4">
-                    <label for="doi" class="block text-sm font-medium text-gray-700 mb-1">DOI</label>
+                    <label for="doi" class="block text-sm font-medium text-gray-700 mb-1">
+                      DOI
+                      <button type="button" onclick="document.getElementById('doi-info-modal').classList.remove('hidden')" class="ml-2 text-xs text-gray-500 hover:text-gray-700 underline">More info</button>
+                    </label>
                     <input
                       type="text"
                       name="doi"
@@ -608,6 +611,77 @@
               @csrf
             </form>
           @endif
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOI Info Modal -->
+  <div id="doi-info-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <!-- Background overlay -->
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="document.getElementById('doi-info-modal').classList.add('hidden')"></div>
+
+      <!-- Modal panel -->
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-lg font-semibold text-gray-900" id="modal-title">DOI Registration Guide</h3>
+            <button type="button" onclick="document.getElementById('doi-info-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="text-sm text-gray-700">
+            <p class="font-semibold text-gray-800 mb-2">Steps</p>
+            <ol class="list-decimal list-inside space-y-2 mb-4">
+              <li>
+                <span class="font-semibold">DOI:</span> Add "empodat" to the beginning of the DOI<br>
+                <span class="ml-5 text-gray-600">e.g.: 10.60954 | <span class="text-red-600 font-semibold">empodat.</span>xxxx-xxxx</span>
+              </li>
+              <li>
+                <span class="font-semibold">State:</span> <span class="text-red-600 font-semibold">Registered</span> registered with the DOI Resolver
+              </li>
+              <li>
+                <span class="font-semibold">URL:</span><br>
+                <span class="ml-5 text-red-600 font-semibold break-all">https://www.norman-network.com/nds/empodat/datasets/?id=1</span>
+              </li>
+              <li>
+                <span class="font-semibold">Creators:</span> Choose <span class="font-semibold">Unknown</span>.<br>
+                <span class="ml-5"><span class="font-semibold">Name:</span> <span class="text-red-600 font-semibold">???</span></span>
+              </li>
+              <li>
+                <span class="font-semibold">Titles:</span> <span class="text-red-600 font-semibold">SW Seine-Normandy Water Agency 2010 19072016</span>
+              </li>
+              <li>
+                <span class="font-semibold">Titles - Language:</span> <span class="text-red-600 font-semibold">English</span>
+              </li>
+              <li>
+                <span class="font-semibold">Publisher:</span> <span class="text-red-600 font-semibold">Seine-Normandy Water Agency</span>
+              </li>
+              <li>
+                <span class="font-semibold">Publication Year:</span> <span class="text-red-600 font-semibold">2025</span>
+              </li>
+              <li>
+                <span class="font-semibold">Resource Type General:</span> Choose <span class="text-red-600 font-semibold">Dataset</span>
+              </li>
+            </ol>
+
+            <p class="font-semibold text-gray-800 mb-2">After registration</p>
+            <ol class="list-decimal list-inside space-y-2">
+              <li>Copy DOI to box <span class="font-semibold">DOI</span>.</li>
+              <li>Fill in the description of the dataset (if any) in the <span class="font-semibold">Description</span> block.</li>
+              <li>Choose one or more <span class="font-semibold">Tags</span>.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button type="button" onclick="document.getElementById('doi-info-modal').classList.add('hidden')" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:w-auto sm:text-sm">
+            Close
+          </button>
         </div>
       </div>
     </div>

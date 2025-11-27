@@ -126,6 +126,7 @@
                     <td class="p-2">{{ $file->uploader ? $file->uploader->first_name . ' ' . $file->uploader->last_name : '-' }}</td>
                     <td class="p-2">{{ $file->uploaded_at ? $file->uploaded_at->format('Y-m-d') : '-' }}</td>
                     <td class="p-2 text-center">
+                      @role(['admin', 'super_admin'])
                       <div class="flex justify-center space-x-2">
                         <a href="{{ route('files.show', $file) }}" class="text-gray-600 hover:text-gray-900" title="View">
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,6 +157,7 @@
                           </form>
                         @endif
                       </div>
+                      @endrole
                     </td>
                   </tr>
                 @empty
