@@ -83,48 +83,44 @@
           </form>
 
           <!-- Files Table -->
-          <div class="overflow-x-auto">
-            <table class="table-standard w-full text-xs">
-              <thead class="sticky top-0 z-10">
+          <div>
+            <table class="table-standard w-full text-xs table-fixed">
+              <thead>
                 <tr class="bg-gray-600 text-white">
-                  <th class="px-1 py-2 text-left whitespace-nowrap">ID</th>
-                  <th class="px-1 py-2 text-left">File Name</th>
-                  <th class="px-1 py-2 text-left">Project</th>
-                  <th class="px-1 py-2 text-left">DB</th>
-                  <th class="px-1 py-2 text-left">Template</th>
-                  <th class="px-1 py-2 text-right whitespace-nowrap">Size</th>
-                  <th class="px-1 py-2 text-right whitespace-nowrap">ID From</th>
-                  <th class="px-1 py-2 text-right whitespace-nowrap">ID To</th>
-                  <th class="px-1 py-2 text-right whitespace-nowrap">Records</th>
-                  <th class="px-1 py-2 text-center whitespace-nowrap">Protected</th>
-                  <th class="px-1 py-2 text-center whitespace-nowrap">Deleted</th>
-                  <th class="px-1 py-2 text-left">Uploaded By</th>
-                  <th class="px-1 py-2 text-left whitespace-nowrap">Date</th>
-                  <th class="px-1 py-2 text-center">Actions</th>
+                  <th class="px-1 py-1 text-left w-[50px]">ID</th>
+                  <th class="px-1 py-1 text-left">File Name</th>
+                  <th class="px-1 py-1 text-left w-[80px]">Project</th>
+                  <th class="px-1 py-1 text-left w-[70px]">DB</th>
+                  <th class="px-1 py-1 text-right w-[70px] whitespace-nowrap">ID From</th>
+                  <th class="px-1 py-1 text-right w-[70px] whitespace-nowrap">ID To</th>
+                  <th class="px-1 py-1 text-right w-[60px] whitespace-nowrap">Records</th>
+                  <th class="px-1 py-1 text-center w-[55px]">Protected</th>
+                  <th class="px-1 py-1 text-center w-[50px]">Deleted</th>
+                  <th class="px-1 py-1 text-left w-[80px]">Uploaded By</th>
+                  <th class="px-1 py-1 text-left w-[65px]">Date</th>
+                  <th class="px-1 py-1 text-center w-[70px]">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 @forelse ($files as $file)
                   <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif hover:bg-slate-300">
-                    <td class="px-1 py-2 font-mono whitespace-nowrap">{{ $file->id }}</td>
-                    <td class="px-1 py-2 max-w-[200px] break-words">{{ $file->original_name ?? $file->name ?? '-' }}</td>
-                    <td class="px-1 py-2 max-w-[100px] truncate" title="{{ $file->project->name ?? '-' }}">{{ $file->project->name ?? '-' }}</td>
-                    <td class="px-1 py-2 max-w-[100px] break-words">{{ $file->databaseEntity->name ?? '-' }}</td>
-                    <td class="px-1 py-2 max-w-[100px] truncate" title="{{ $file->template->name ?? '-' }}">{{ $file->template->name ?? '-' }}</td>
-                    <td class="px-1 py-2 text-right whitespace-nowrap">{{ $file->formatted_file_size ?? '-' }}</td>
-                    <td class="px-1 py-2 text-right font-mono whitespace-nowrap">{{ $file->main_id_from ? number_format($file->main_id_from, 0, '.', ' ') : '-' }}</td>
-                    <td class="px-1 py-2 text-right font-mono whitespace-nowrap">{{ $file->main_id_to ? number_format($file->main_id_to, 0, '.', ' ') : '-' }}</td>
-                    <td class="px-1 py-2 text-right font-mono whitespace-nowrap">{{ number_format($file->number_of_records ?? 0, 0, '.', ' ') }}</td>
-                    <td class="px-1 py-2 text-center whitespace-nowrap">{{ $file->is_protected ? 'Yes' : 'No' }}</td>
-                    <td class="px-1 py-2 text-center whitespace-nowrap">
+                    <td class="px-1 py-1 font-mono break-all">{{ $file->id }}</td>
+                    <td class="px-1 py-1 break-words">{{ $file->original_name ?? $file->name ?? '-' }} @if($file->formatted_file_size)<span class="text-gray-500">({{ $file->formatted_file_size }})</span>@endif</td>
+                    <td class="px-1 py-1 break-words">{{ $file->project->name ?? '-' }}</td>
+                    <td class="px-1 py-1 break-words">{{ $file->databaseEntity->name ?? '-' }}</td>
+                    <td class="px-1 py-1 text-right font-mono whitespace-nowrap">{{ $file->main_id_from ? number_format($file->main_id_from, 0, '.', ' ') : '-' }}</td>
+                    <td class="px-1 py-1 text-right font-mono whitespace-nowrap">{{ $file->main_id_to ? number_format($file->main_id_to, 0, '.', ' ') : '-' }}</td>
+                    <td class="px-1 py-1 text-right font-mono whitespace-nowrap">{{ number_format($file->number_of_records ?? 0, 0, '.', ' ') }}</td>
+                    <td class="px-1 py-1 text-center">{{ $file->is_protected ? 'Yes' : 'No' }}</td>
+                    <td class="px-1 py-1 text-center">
                       @if($file->is_deleted)
                         <span class="px-1 py-0.5 bg-red-600 text-white text-xs font-medium rounded">Yes</span>
                       @else
                         No
                       @endif
                     </td>
-                    <td class="px-1 py-2 max-w-[100px] truncate" title="{{ $file->uploader ? $file->uploader->first_name . ' ' . $file->uploader->last_name : '-' }}">{{ $file->uploader ? $file->uploader->first_name . ' ' . $file->uploader->last_name : '-' }}</td>
-                    <td class="px-1 py-2 whitespace-nowrap">{{ $file->uploaded_at ? $file->uploaded_at->format('Y-m-d') : '-' }}</td>
+                    <td class="px-1 py-1 break-words">{{ $file->uploader ? $file->uploader->first_name . ' ' . $file->uploader->last_name : '-' }}</td>
+                    <td class="px-1 py-1 break-words">{{ $file->uploaded_at ? $file->uploaded_at->format('Y-m-d') : '-' }}</td>
                     <td class="px-1 py-2 text-center">
                       @role(['admin', 'super_admin'])
                       <div class="flex justify-center space-x-1">
@@ -162,7 +158,7 @@
                   </tr>
                 @empty
                   <tr class="bg-slate-100">
-                    <td colspan="14" class="py-6 px-4 text-center text-gray-500">
+                    <td colspan="12" class="py-6 px-4 text-center text-gray-500">
                       No files found.
                     </td>
                   </tr>
