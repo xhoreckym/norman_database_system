@@ -7,58 +7,274 @@ servers:
   -
     url: 'http://127.0.0.1:8000'
 paths:
-  '/api/v1/substances/show/{substance_id}':
+  '/api/v1/empodat/{search_type}/{search_value}':
     get:
-      summary: ''
-      operationId: getApiV1SubstancesShowSubstance_id
-      description: ''
-      parameters: []
+      summary: 'Search EMPODAT by substance or country'
+      operationId: searchEMPODATBySubstanceOrCountry
+      description: "Retrieve EMPODAT records by searching for a substance (NORMAN ID or InChIKey)\nor by country code. Results are paginated due to potentially large datasets."
+      parameters:
+        -
+          in: query
+          name: page
+          description: 'The page number for pagination.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'The page number for pagination.'
+            example: 1
+            nullable: false
+        -
+          in: query
+          name: per_page
+          description: 'Number of records per page (max 1000, default 100).'
+          example: 100
+          required: false
+          schema:
+            type: integer
+            description: 'Number of records per page (max 1000, default 100).'
+            example: 100
+            nullable: false
       responses:
         200:
-          description: ''
+          description: Success
           content:
             application/json:
               schema:
                 type: object
                 example:
                   data:
-                    code: '00000001'
-                    prefixed_code: NS00000001
+                    -
+                      id: 1
+                      sampling_date_year: 2020
+                      concentration_value: 0.0025
+                      substance:
+                        norman_id: NS00004453
+                        name: Sulfaclozine
+                      station:
+                        name: 'Station A'
+                        country:
+                          code: SK
+                          name: Slovakia
+                      matrix:
+                        name: 'Surface Water'
+                  links:
+                    first: ...
+                    last: ...
+                    prev: null
+                    next: ...
+                  meta:
+                    current_page: 1
+                    last_page: 50
+                    per_page: 100
+                    total: 5000
+                properties:
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        sampling_date_year: 2020
+                        concentration_value: 0.0025
+                        substance:
+                          norman_id: NS00004453
+                          name: Sulfaclozine
+                        station:
+                          name: 'Station A'
+                          country:
+                            code: SK
+                            name: Slovakia
+                        matrix:
+                          name: 'Surface Water'
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        sampling_date_year:
+                          type: integer
+                          example: 2020
+                        concentration_value:
+                          type: number
+                          example: 0.0025
+                        substance:
+                          type: object
+                          properties:
+                            norman_id:
+                              type: string
+                              example: NS00004453
+                            name:
+                              type: string
+                              example: Sulfaclozine
+                        station:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              example: 'Station A'
+                            country:
+                              type: object
+                              properties:
+                                code:
+                                  type: string
+                                  example: SK
+                                name:
+                                  type: string
+                                  example: Slovakia
+                        matrix:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              example: 'Surface Water'
+                  links:
+                    type: object
+                    properties:
+                      first:
+                        type: string
+                        example: ...
+                      last:
+                        type: string
+                        example: ...
+                      prev:
+                        type: string
+                        example: null
+                      next:
+                        type: string
+                        example: ...
+                  meta:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                        example: 1
+                      last_page:
+                        type: integer
+                        example: 50
+                      per_page:
+                        type: integer
+                        example: 100
+                      total:
+                        type: integer
+                        example: 5000
+        404:
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: false
+                  message: 'Substance not found'
+                  search_type: substance
+                  search_value: NS99999999
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Substance not found'
+                  search_type:
+                    type: string
+                    example: substance
+                  search_value:
+                    type: string
+                    example: NS99999999
+        422:
+          description: 'Invalid Format'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: false
+                  message: 'Validation failed'
+                  errors:
+                    search_value:
+                      - 'Substance must be a valid NORMAN ID or InChIKey.'
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Validation failed'
+                  errors:
+                    type: object
+                    properties:
+                      search_value:
+                        type: array
+                        example:
+                          - 'Substance must be a valid NORMAN ID or InChIKey.'
+                        items:
+                          type: string
+      tags:
+        - EMPODAT
+    parameters:
+      -
+        in: path
+        name: search_type
+        description: 'The type of search: "substance" or "country".'
+        example: substance
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: search_value
+        description: 'The search value. For substance: NS code (NS00000214) or InChIKey. For country: 2-letter ISO code (SK, DE).'
+        example: NS00000214
+        required: true
+        schema:
+          type: string
+  '/api/v1/substances/code/{code}':
+    get:
+      summary: 'Get substance by NORMAN ID'
+      operationId: getSubstanceByNORMANID
+      description: "Retrieve a substance using its NORMAN identifier (e.g., NS00004453).\nReturns comprehensive substance data including chemical identifiers,\nmolecular properties, categories, and sources."
+      parameters: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    norman_id: NS00004453
                     name: Sulfaclozine
                     name_dashboard: Sulfaclozine
-                    name_chemspider: Sulfaclozine
                     name_iupac: 4-amino-N-(6-chloropyrazin-2-yl)benzenesulfonamide
                     cas_number: 102-65-8
                     smiles: c1cc(ccc1N)S(=O)(=O)Nc2cncc(n2)Cl
-                    smiles_dashboard: NC1=CC=C(C=C1)S(=O)(=O)NC1=CN=CC(Cl)=N1
-                    stdinchi: 'InChI=1S/C10H9ClN4O2S/c11-9-5-13-6-10(14-9)15-18(16,17)8-3-1-7(12)2-4-8/h1-6H,12H2,(H,14,15)'
+                    stdinchi: InChI=1S/C10H9ClN4O2S/...
                     stdinchikey: QKLPUVXBJHRFQZ-UHFFFAOYSA-N
                     pubchem_cid: '66890'
-                    chemspider_id: '60252'
-                    dtxid: DTXSID60144515
                     molecular_formula: C10H9Cl1N4O2S1
-                    mass_iso: '284.013474'
-                    metadata_synonyms: '{"Synonyms ChemSpider":"N~1~-(6-chloropyrazinyl)sulfanilamide;4-amino-N-(6-chloropyrazin-2-yl)benzenesulfonamide;Sulfaclozine;203-044-0;Sulfachloropyrazine Sodium;Benzenesulfonamide, 4-amino-N-(6-chloro-2-pyrazinyl)-;4-Amino-N-(6-chloro-2-pyrazinyl)benzenesulfonamide;N(sup 1)-(6-Chloropyrazinyl)sulfanilamide;N1-(6-Chlor-2-pyrazinyl)sulfanilamid;Sulfaclozine [INN];Sulfachlorpyrazin;MFCD00868569;UNII:69YP7Z48CW;UNII-69YP7Z48CW;Sulfaclozinum [INN-Latin];Sulfaclozina [INN-Spanish];EINECS 203-044-0;Sulfaclozine sodium;4-azanyl-N-(6-chloranylpyrazin-2-yl)benzenesulfonamide;[(4-aminophenyl)sulfonyl](6-chloropyrazin-2-yl)amine;Sulfachloropyrazine","Reliability of Synonyms ChemSpider":"4;4;4;3;2;1;1;0;0;0;0;0;0;0;0;0;0;0;0;0;0"}'
-                    metadata_cas: '{"CAS_RN Dashboard":"102-65-8","CAS_RN PubChem":"102-65-8;27890-59-1","CAS_RN Cactus":"33303-64-9;27890-59-1;102-65-8","CAS_RN ChemSpider":"27890-59-1;102-65-8","Reliability of CAS_ChemSpider":"5;5"}'
-                    metadata_ms_ready: '{"MS_Ready_SMILES":"c1cc(ccc1N)S(=O)(=O)Nc1cncc(n1)Cl","MS_Ready_StdInChI":"InChI=1S\/C10H9ClN4O2S\/c11-9-5-13-6-10(14-9)15-18(16,17)8-3-1-7(12)2-4-8\/h1-6H,12H2,(H,14,15)","MS_Ready_StdInChIKey":"QKLPUVXBJHRFQZ-UHFFFAOYSA-N"}'
-                    metadata_general: '{"[M+H]+":"285.020750","[M-H]-":"283.006198","Pred_RTI_Positive_ESI":"265.02","Uncertainty_RTI_pos":"Covered by Model","Pred_RTI_Negative_ESI":"199.22","Uncertainty_RTI_neg":"Covered by Model","Tetrahymena_pyriformis_toxicity":"3.62","IGC50_48_hr_ug\/L":"68238.83","Uncertainty_Tetrahymena_pyriformis_toxicity":"outside of Chemical space","Daphnia_toxicity":"3.30","LC50_48_hr_ug\/L":"141254.60","Uncertainty_Daphnia_toxicity":"Covered by Model","Algae_toxicity":"5.41","EC50_72_hr_ug\/L":"1092.36","Uncertainty_Algae_toxicity":"Covered by Model","Pimephales_promelas_toxicity":"3.43","LC50_96_hr_ug\/L":"105021.25","Uncertainty_Pimephales_promelas_toxicity":"Covered by Model","logKow_EPISuite":"0.31","Exp_logKow_EPISuite":"NA","ChemSpider ID based on InChIKey_19032018":"60252","alogp_ChemSpider":"0.81","xlogp_ChemSpider":"NA","Lowest P-PNEC (QSAR) [ug\/L]":"1.09236","Species":"Selenastrum capricornutum","Uncertainty":"Covered by Model","ExposureScore_Water_KEMI":"0.17","HazScore_EcoChronic_KEMI":"0.13","ValidationLevel_KEMI":4,"Prob_of_GC":"0","Prob_RPLC":"1","Pred_Chromatography":"RPLC","Prob_of_both_Ionization_Source":"0","Prob_EI":"0","Prob_ESI":"1","Pred_Ionization_source":"ESI","Prob_both_ESI_mode":"0.928","Prob_plusESI":"0.058","Prob_minusESI":"0.014","Pred_ESI_mode":"Both Polarities","Preferable_Platform_by_decision_Tree":"RPLC_+ESI"}'
+                    monoisotopic_mass: 284.013474
+                    status: active
+                    categories:
+                      -
+                        name: Pharmaceuticals
+                        abbreviation: PHAR
+                    sources:
+                      -
+                        code: S01
+                        name: 'NORMAN SLE'
                 properties:
                   data:
                     type: object
                     properties:
-                      code:
+                      norman_id:
                         type: string
-                        example: '00000001'
-                      prefixed_code:
-                        type: string
-                        example: NS00000001
+                        example: NS00004453
                       name:
                         type: string
                         example: Sulfaclozine
                       name_dashboard:
-                        type: string
-                        example: Sulfaclozine
-                      name_chemspider:
                         type: string
                         example: Sulfaclozine
                       name_iupac:
@@ -70,85 +286,250 @@ paths:
                       smiles:
                         type: string
                         example: c1cc(ccc1N)S(=O)(=O)Nc2cncc(n2)Cl
-                      smiles_dashboard:
-                        type: string
-                        example: NC1=CC=C(C=C1)S(=O)(=O)NC1=CN=CC(Cl)=N1
                       stdinchi:
                         type: string
-                        example: 'InChI=1S/C10H9ClN4O2S/c11-9-5-13-6-10(14-9)15-18(16,17)8-3-1-7(12)2-4-8/h1-6H,12H2,(H,14,15)'
+                        example: InChI=1S/C10H9ClN4O2S/...
                       stdinchikey:
                         type: string
                         example: QKLPUVXBJHRFQZ-UHFFFAOYSA-N
                       pubchem_cid:
                         type: string
                         example: '66890'
-                      chemspider_id:
-                        type: string
-                        example: '60252'
-                      dtxid:
-                        type: string
-                        example: DTXSID60144515
                       molecular_formula:
                         type: string
                         example: C10H9Cl1N4O2S1
-                      mass_iso:
+                      monoisotopic_mass:
+                        type: number
+                        example: 284.013474
+                      status:
                         type: string
-                        example: '284.013474'
-                      metadata_synonyms:
-                        type: string
-                        example: '{"Synonyms ChemSpider":"N~1~-(6-chloropyrazinyl)sulfanilamide;4-amino-N-(6-chloropyrazin-2-yl)benzenesulfonamide;Sulfaclozine;203-044-0;Sulfachloropyrazine Sodium;Benzenesulfonamide, 4-amino-N-(6-chloro-2-pyrazinyl)-;4-Amino-N-(6-chloro-2-pyrazinyl)benzenesulfonamide;N(sup 1)-(6-Chloropyrazinyl)sulfanilamide;N1-(6-Chlor-2-pyrazinyl)sulfanilamid;Sulfaclozine [INN];Sulfachlorpyrazin;MFCD00868569;UNII:69YP7Z48CW;UNII-69YP7Z48CW;Sulfaclozinum [INN-Latin];Sulfaclozina [INN-Spanish];EINECS 203-044-0;Sulfaclozine sodium;4-azanyl-N-(6-chloranylpyrazin-2-yl)benzenesulfonamide;[(4-aminophenyl)sulfonyl](6-chloropyrazin-2-yl)amine;Sulfachloropyrazine","Reliability of Synonyms ChemSpider":"4;4;4;3;2;1;1;0;0;0;0;0;0;0;0;0;0;0;0;0;0"}'
-                      metadata_cas:
-                        type: string
-                        example: '{"CAS_RN Dashboard":"102-65-8","CAS_RN PubChem":"102-65-8;27890-59-1","CAS_RN Cactus":"33303-64-9;27890-59-1;102-65-8","CAS_RN ChemSpider":"27890-59-1;102-65-8","Reliability of CAS_ChemSpider":"5;5"}'
-                      metadata_ms_ready:
-                        type: string
-                        example: '{"MS_Ready_SMILES":"c1cc(ccc1N)S(=O)(=O)Nc1cncc(n1)Cl","MS_Ready_StdInChI":"InChI=1S\/C10H9ClN4O2S\/c11-9-5-13-6-10(14-9)15-18(16,17)8-3-1-7(12)2-4-8\/h1-6H,12H2,(H,14,15)","MS_Ready_StdInChIKey":"QKLPUVXBJHRFQZ-UHFFFAOYSA-N"}'
-                      metadata_general:
-                        type: string
-                        example: '{"[M+H]+":"285.020750","[M-H]-":"283.006198","Pred_RTI_Positive_ESI":"265.02","Uncertainty_RTI_pos":"Covered by Model","Pred_RTI_Negative_ESI":"199.22","Uncertainty_RTI_neg":"Covered by Model","Tetrahymena_pyriformis_toxicity":"3.62","IGC50_48_hr_ug\/L":"68238.83","Uncertainty_Tetrahymena_pyriformis_toxicity":"outside of Chemical space","Daphnia_toxicity":"3.30","LC50_48_hr_ug\/L":"141254.60","Uncertainty_Daphnia_toxicity":"Covered by Model","Algae_toxicity":"5.41","EC50_72_hr_ug\/L":"1092.36","Uncertainty_Algae_toxicity":"Covered by Model","Pimephales_promelas_toxicity":"3.43","LC50_96_hr_ug\/L":"105021.25","Uncertainty_Pimephales_promelas_toxicity":"Covered by Model","logKow_EPISuite":"0.31","Exp_logKow_EPISuite":"NA","ChemSpider ID based on InChIKey_19032018":"60252","alogp_ChemSpider":"0.81","xlogp_ChemSpider":"NA","Lowest P-PNEC (QSAR) [ug\/L]":"1.09236","Species":"Selenastrum capricornutum","Uncertainty":"Covered by Model","ExposureScore_Water_KEMI":"0.17","HazScore_EcoChronic_KEMI":"0.13","ValidationLevel_KEMI":4,"Prob_of_GC":"0","Prob_RPLC":"1","Pred_Chromatography":"RPLC","Prob_of_both_Ionization_Source":"0","Prob_EI":"0","Prob_ESI":"1","Pred_Ionization_source":"ESI","Prob_both_ESI_mode":"0.928","Prob_plusESI":"0.058","Prob_minusESI":"0.014","Pred_ESI_mode":"Both Polarities","Preferable_Platform_by_decision_Tree":"RPLC_+ESI"}'
-      tags:
-        - Endpoints
-      security: []
-    parameters:
-      -
-        in: path
-        name: substance_id
-        description: 'The ID of the substance.'
-        example: 1
-        required: true
-        schema:
-          type: integer
-  /api/v1/substances/index:
-    get:
-      summary: 'Get substances'
-      operationId: getSubstances
-      description: ''
-      parameters: []
-      responses:
-        401:
-          description: ''
+                        example: active
+                      categories:
+                        type: array
+                        example:
+                          -
+                            name: Pharmaceuticals
+                            abbreviation: PHAR
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              example: Pharmaceuticals
+                            abbreviation:
+                              type: string
+                              example: PHAR
+                      sources:
+                        type: array
+                        example:
+                          -
+                            code: S01
+                            name: 'NORMAN SLE'
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                              example: S01
+                            name:
+                              type: string
+                              example: 'NORMAN SLE'
+        404:
+          description: 'Not Found'
           content:
             application/json:
               schema:
                 type: object
                 example:
-                  message: Unauthenticated.
+                  success: false
+                  message: 'Substance not found'
+                  code: NS00004453
                 properties:
+                  success:
+                    type: boolean
+                    example: false
                   message:
                     type: string
-                    example: Unauthenticated.
+                    example: 'Substance not found'
+                  code:
+                    type: string
+                    example: NS00004453
+        422:
+          description: 'Invalid Format'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: false
+                  message: 'Validation failed'
+                  errors:
+                    code:
+                      - 'The code must be in format NS followed by 8 digits (e.g., NS00004453).'
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Validation failed'
+                  errors:
+                    type: object
+                    properties:
+                      code:
+                        type: array
+                        example:
+                          - 'The code must be in format NS followed by 8 digits (e.g., NS00004453).'
+                        items:
+                          type: string
       tags:
-        - Endpoints
+        - Substances
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: 'Must match the regex /^NS\d{8}$/.'
+                  example: NS75491716
+                  nullable: false
+              required:
+                - code
+      security: []
+    parameters:
+      -
+        in: path
+        name: code
+        description: 'The NORMAN substance ID with NS prefix.'
+        example: NS00004453
+        required: true
+        schema:
+          type: string
+  '/api/v1/substances/inchikey/{inchikey}':
+    get:
+      summary: 'Get substance by InChIKey'
+      operationId: getSubstanceByInChIKey
+      description: "Retrieve a substance using its Standard InChIKey identifier.\nThe InChIKey must be in the standard 27-character format (e.g., QKLPUVXBJHRFQZ-UHFFFAOYSA-N)."
+      parameters: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  data:
+                    norman_id: NS00004453
+                    name: Sulfaclozine
+                    stdinchikey: QKLPUVXBJHRFQZ-UHFFFAOYSA-N
+                    status: active
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      norman_id:
+                        type: string
+                        example: NS00004453
+                      name:
+                        type: string
+                        example: Sulfaclozine
+                      stdinchikey:
+                        type: string
+                        example: QKLPUVXBJHRFQZ-UHFFFAOYSA-N
+                      status:
+                        type: string
+                        example: active
+        404:
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: false
+                  message: 'Substance not found'
+                  inchikey: QKLPUVXBJHRFQZ-UHFFFAOYSA-N
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Substance not found'
+                  inchikey:
+                    type: string
+                    example: QKLPUVXBJHRFQZ-UHFFFAOYSA-N
+        422:
+          description: 'Invalid Format'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: false
+                  message: 'Validation failed'
+                  errors:
+                    inchikey:
+                      - 'The InChIKey must be in valid format (e.g., QKLPUVXBJHRFQZ-UHFFFAOYSA-N).'
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Validation failed'
+                  errors:
+                    type: object
+                    properties:
+                      inchikey:
+                        type: array
+                        example:
+                          - 'The InChIKey must be in valid format (e.g., QKLPUVXBJHRFQZ-UHFFFAOYSA-N).'
+                        items:
+                          type: string
+      tags:
+        - Substances
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inchikey:
+                  type: string
+                  description: 'Must match the regex /^[A-Z]{14}-[A-Z]{10}-[A-Z]$/.'
+                  example: EQMDLNGZOPRSWW-XXPMRXFVPO-N
+                  nullable: false
+              required:
+                - inchikey
+      security: []
+    parameters:
+      -
+        in: path
+        name: inchikey
+        description: 'The Standard InChIKey.'
+        example: QKLPUVXBJHRFQZ-UHFFFAOYSA-N
+        required: true
+        schema:
+          type: string
 tags:
   -
-    name: Endpoints
-    description: ''
+    name: EMPODAT
+    description: "\nAPIs for retrieving environmental monitoring data from the EMPODAT database.\nAll endpoints require authentication via Sanctum token."
+  -
+    name: Substances
+    description: "\nAPIs for retrieving substance data from the NORMAN Suspect List Exchange database."
 components:
   securitySchemes:
     default:
       type: http
       scheme: bearer
-      description: 'You can retrieve your token by loggin into a free account in the NORMAN DATABASE SYSTEM enviroment and generate an API token in you dashboard.'
+      description: "**How to get your token:**\n1. Log in to the [NORMAN Database System](https://www.norman-network.com/nds/)\n2. Go to your **Dashboard** → **API Tokens**\n3. Click **Generate New Token**\n4. Copy the token (it will only be shown once!)\n\n**Your token looks like this:**\n```\n1|uQgwNnXHx7QJom31K8dfsdfsd8f7sd98f7sdf\n```\n\n---\n\n### \"Try It Out\" - What to paste in the Authorization field:\n\nCopy your **full token** and paste it in the Authorization box:\n```\n1|uQgwNnXHx7QJom31K8dfsdfsd8f7sd98f7sdf\n```\n(Scribe automatically adds \"Bearer \" prefix)\n\n---\n\n### Code Examples\n\n**curl:**\n```bash\ncurl -H \"Authorization: Bearer 1|uQgwNnXHx7QJom31...\" \\\n     \"https://www.norman-network.com/nds/api/v1/empodat/country/SK\"\n```\n\n**Python:**\n```python\nimport requests\n\nheaders = {\"Authorization\": \"Bearer 1|uQgwNnXHx7QJom31...\"}\nresponse = requests.get(\n    \"https://www.norman-network.com/nds/api/v1/empodat/country/SK\",\n    headers=headers\n)\n```\n\n**JavaScript:**\n```javascript\nfetch(\"https://www.norman-network.com/nds/api/v1/empodat/country/SK\", {\n    headers: { \"Authorization\": \"Bearer 1|uQgwNnXHx7QJom31...\" }\n})\n```"
 security:
   -
     default: []

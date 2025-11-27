@@ -32,9 +32,9 @@
         var useCsrf = Boolean();
         var csrfUrl = "/sanctum/csrf-cookie";
     </script>
-    <script src="../docs/js/tryitout-4.37.1.js"></script>
+    <script src="../docs/js/tryitout-4.40.0.js"></script>
 
-    <script src="../docs/js/theme-default-4.37.1.js"></script>
+    <script src="../docs/js/theme-default-4.40.0.js"></script>
 
 </head>
 
@@ -70,16 +70,26 @@
                     <a href="#authenticating-requests">Authenticating requests</a>
                 </li>
                             </ul>
-                    <ul id="tocify-header-endpoints" class="tocify-header">
-                <li class="tocify-item level-1" data-unique="endpoints">
-                    <a href="#endpoints">Endpoints</a>
+                    <ul id="tocify-header-empodat" class="tocify-header">
+                <li class="tocify-item level-1" data-unique="empodat">
+                    <a href="#empodat">EMPODAT</a>
                 </li>
-                                    <ul id="tocify-subheader-endpoints" class="tocify-subheader">
-                                                    <li class="tocify-item level-2" data-unique="endpoints-GETapi-v1-substances-show--substance_id-">
-                                <a href="#endpoints-GETapi-v1-substances-show--substance_id-">GET api/v1/substances/show/{substance_id}</a>
+                                    <ul id="tocify-subheader-empodat" class="tocify-subheader">
+                                                    <li class="tocify-item level-2" data-unique="empodat-GETapi-v1-empodat--search_type---search_value-">
+                                <a href="#empodat-GETapi-v1-empodat--search_type---search_value-">Search EMPODAT by substance or country</a>
                             </li>
-                                                                                <li class="tocify-item level-2" data-unique="endpoints-GETapi-v1-substances-index">
-                                <a href="#endpoints-GETapi-v1-substances-index">Get substances</a>
+                                                                        </ul>
+                            </ul>
+                    <ul id="tocify-header-substances" class="tocify-header">
+                <li class="tocify-item level-1" data-unique="substances">
+                    <a href="#substances">Substances</a>
+                </li>
+                                    <ul id="tocify-subheader-substances" class="tocify-subheader">
+                                                    <li class="tocify-item level-2" data-unique="substances-GETapi-v1-substances-code--code-">
+                                <a href="#substances-GETapi-v1-substances-code--code-">Get substance by NORMAN ID</a>
+                            </li>
+                                                                                <li class="tocify-item level-2" data-unique="substances-GETapi-v1-substances-inchikey--inchikey-">
+                                <a href="#substances-GETapi-v1-substances-inchikey--inchikey-">Get substance by InChIKey</a>
                             </li>
                                                                         </ul>
                             </ul>
@@ -92,7 +102,7 @@
     </ul>
 
     <ul class="toc-footer" id="last-updated">
-        <li>Last updated: July 27, 2024</li>
+        <li>Last updated: November 27, 2025</li>
     </ul>
 </div>
 
@@ -108,228 +118,80 @@
 You can switch the language used with the tabs at the top right (or from the nav menu at the top left on mobile).</aside>
 
         <h1 id="authenticating-requests">Authenticating requests</h1>
-<p>To authenticate requests, include an <strong><code>Authorization</code></strong> header with the value <strong><code>"Bearer {YOUR_AUTH_KEY}"</code></strong>.</p>
+<p>To authenticate requests, include an <strong><code>Authorization</code></strong> header with the value <strong><code>"Bearer 1|your_token_here"</code></strong>.</p>
 <p>All authenticated endpoints are marked with a <code>requires authentication</code> badge in the documentation below.</p>
-<p>You can retrieve your token by loggin into a free account in the NORMAN DATABASE SYSTEM enviroment and generate an API token in you dashboard.</p>
+<p><strong>How to get your token:</strong></p>
+<ol>
+<li>Log in to the <a href="https://www.norman-network.com/nds/">NORMAN Database System</a></li>
+<li>Go to your <strong>Dashboard</strong> → <strong>API Tokens</strong></li>
+<li>Click <strong>Generate New Token</strong></li>
+<li>Copy the token (it will only be shown once!)</li>
+</ol>
+<p><strong>Your token looks like this:</strong></p>
+<pre><code>1|uQgwNnXHx7QJom31K8dfsdfsd8f7sd98f7sdf</code></pre>
+<hr />
+<h3 id="try-it-out-what-to-paste-in-the-authorization-field">&quot;Try It Out&quot; - What to paste in the Authorization field:</h3>
+<p>Copy your <strong>full token</strong> and paste it in the Authorization box:</p>
+<pre><code>1|uQgwNnXHx7QJom31K8dfsdfsd8f7sd98f7sdf</code></pre>
+<p>(Scribe automatically adds &quot;Bearer &quot; prefix)</p>
+<hr />
+<h3 id="code-examples">Code Examples</h3>
+<p><strong>curl:</strong></p>
+<pre><code class="language-bash">curl -H "Authorization: Bearer 1|uQgwNnXHx7QJom31..." \
+     "https://www.norman-network.com/nds/api/v1/empodat/country/SK"</code></pre>
+<p><strong>Python:</strong></p>
+<pre><code class="language-python">import requests
 
-        <h1 id="endpoints">Endpoints</h1>
+headers = {"Authorization": "Bearer 1|uQgwNnXHx7QJom31..."}
+response = requests.get(
+    "https://www.norman-network.com/nds/api/v1/empodat/country/SK",
+    headers=headers
+)</code></pre>
+<p><strong>JavaScript:</strong></p>
+<pre><code class="language-javascript">fetch("https://www.norman-network.com/nds/api/v1/empodat/country/SK", {
+    headers: { "Authorization": "Bearer 1|uQgwNnXHx7QJom31..." }
+})</code></pre>
 
-    
+        <h1 id="empodat">EMPODAT</h1>
 
-                                <h2 id="endpoints-GETapi-v1-substances-show--substance_id-">GET api/v1/substances/show/{substance_id}</h2>
+    <p>APIs for retrieving environmental monitoring data from the EMPODAT database.
+All endpoints require authentication via Sanctum token.</p>
 
-<p>
-</p>
-
-
-
-<span id="example-requests-GETapi-v1-substances-show--substance_id-">
-<blockquote>Example request:</blockquote>
-
-
-<div class="bash-example">
-    <pre><code class="language-bash">curl --request GET \
-    --get "http://127.0.0.1:8000/api/v1/substances/show/1" \
-    --header "Content-Type: application/json" \
-    --header "Accept: application/json"</code></pre></div>
-
-
-<div class="javascript-example">
-    <pre><code class="language-javascript">const url = new URL(
-    "http://127.0.0.1:8000/api/v1/substances/show/1"
-);
-
-const headers = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-};
-
-fetch(url, {
-    method: "GET",
-    headers,
-}).then(response =&gt; response.json());</code></pre></div>
-
-
-<div class="php-example">
-    <pre><code class="language-php">$client = new \GuzzleHttp\Client();
-$url = 'http://127.0.0.1:8000/api/v1/substances/show/1';
-$response = $client-&gt;get(
-    $url,
-    [
-        'headers' =&gt; [
-            'Content-Type' =&gt; 'application/json',
-            'Accept' =&gt; 'application/json',
-        ],
-    ]
-);
-$body = $response-&gt;getBody();
-print_r(json_decode((string) $body));</code></pre></div>
-
-
-<div class="python-example">
-    <pre><code class="language-python">import requests
-import json
-
-url = 'http://127.0.0.1:8000/api/v1/substances/show/1'
-headers = {
-  'Content-Type': 'application/json',
-  'Accept': 'application/json'
-}
-
-response = requests.request('GET', url, headers=headers)
-response.json()</code></pre></div>
-
-</span>
-
-<span id="example-responses-GETapi-v1-substances-show--substance_id-">
-            <blockquote>
-            <p>Example response (200):</p>
-        </blockquote>
-                <details class="annotation">
-            <summary style="cursor: pointer;">
-                <small onclick="textContent = parentElement.parentElement.open ? 'Show headers' : 'Hide headers'">Show headers</small>
-            </summary>
-            <pre><code class="language-http">cache-control: no-cache, private
-content-type: application/json
-access-control-allow-origin: *
- </code></pre></details>         <pre>
-
-<code class="language-json" style="max-height: 300px;">{
-    &quot;data&quot;: {
-        &quot;code&quot;: &quot;00000001&quot;,
-        &quot;prefixed_code&quot;: &quot;NS00000001&quot;,
-        &quot;name&quot;: &quot;Sulfaclozine&quot;,
-        &quot;name_dashboard&quot;: &quot;Sulfaclozine&quot;,
-        &quot;name_chemspider&quot;: &quot;Sulfaclozine&quot;,
-        &quot;name_iupac&quot;: &quot;4-amino-N-(6-chloropyrazin-2-yl)benzenesulfonamide&quot;,
-        &quot;cas_number&quot;: &quot;102-65-8&quot;,
-        &quot;smiles&quot;: &quot;c1cc(ccc1N)S(=O)(=O)Nc2cncc(n2)Cl&quot;,
-        &quot;smiles_dashboard&quot;: &quot;NC1=CC=C(C=C1)S(=O)(=O)NC1=CN=CC(Cl)=N1&quot;,
-        &quot;stdinchi&quot;: &quot;InChI=1S/C10H9ClN4O2S/c11-9-5-13-6-10(14-9)15-18(16,17)8-3-1-7(12)2-4-8/h1-6H,12H2,(H,14,15)&quot;,
-        &quot;stdinchikey&quot;: &quot;QKLPUVXBJHRFQZ-UHFFFAOYSA-N&quot;,
-        &quot;pubchem_cid&quot;: &quot;66890&quot;,
-        &quot;chemspider_id&quot;: &quot;60252&quot;,
-        &quot;dtxid&quot;: &quot;DTXSID60144515&quot;,
-        &quot;molecular_formula&quot;: &quot;C10H9Cl1N4O2S1&quot;,
-        &quot;mass_iso&quot;: &quot;284.013474&quot;,
-        &quot;metadata_synonyms&quot;: &quot;{\&quot;Synonyms ChemSpider\&quot;:\&quot;N~1~-(6-chloropyrazinyl)sulfanilamide;4-amino-N-(6-chloropyrazin-2-yl)benzenesulfonamide;Sulfaclozine;203-044-0;Sulfachloropyrazine Sodium;Benzenesulfonamide, 4-amino-N-(6-chloro-2-pyrazinyl)-;4-Amino-N-(6-chloro-2-pyrazinyl)benzenesulfonamide;N(sup 1)-(6-Chloropyrazinyl)sulfanilamide;N1-(6-Chlor-2-pyrazinyl)sulfanilamid;Sulfaclozine [INN];Sulfachlorpyrazin;MFCD00868569;UNII:69YP7Z48CW;UNII-69YP7Z48CW;Sulfaclozinum [INN-Latin];Sulfaclozina [INN-Spanish];EINECS 203-044-0;Sulfaclozine sodium;4-azanyl-N-(6-chloranylpyrazin-2-yl)benzenesulfonamide;[(4-aminophenyl)sulfonyl](6-chloropyrazin-2-yl)amine;Sulfachloropyrazine\&quot;,\&quot;Reliability of Synonyms ChemSpider\&quot;:\&quot;4;4;4;3;2;1;1;0;0;0;0;0;0;0;0;0;0;0;0;0;0\&quot;}&quot;,
-        &quot;metadata_cas&quot;: &quot;{\&quot;CAS_RN Dashboard\&quot;:\&quot;102-65-8\&quot;,\&quot;CAS_RN PubChem\&quot;:\&quot;102-65-8;27890-59-1\&quot;,\&quot;CAS_RN Cactus\&quot;:\&quot;33303-64-9;27890-59-1;102-65-8\&quot;,\&quot;CAS_RN ChemSpider\&quot;:\&quot;27890-59-1;102-65-8\&quot;,\&quot;Reliability of CAS_ChemSpider\&quot;:\&quot;5;5\&quot;}&quot;,
-        &quot;metadata_ms_ready&quot;: &quot;{\&quot;MS_Ready_SMILES\&quot;:\&quot;c1cc(ccc1N)S(=O)(=O)Nc1cncc(n1)Cl\&quot;,\&quot;MS_Ready_StdInChI\&quot;:\&quot;InChI=1S\\/C10H9ClN4O2S\\/c11-9-5-13-6-10(14-9)15-18(16,17)8-3-1-7(12)2-4-8\\/h1-6H,12H2,(H,14,15)\&quot;,\&quot;MS_Ready_StdInChIKey\&quot;:\&quot;QKLPUVXBJHRFQZ-UHFFFAOYSA-N\&quot;}&quot;,
-        &quot;metadata_general&quot;: &quot;{\&quot;[M+H]+\&quot;:\&quot;285.020750\&quot;,\&quot;[M-H]-\&quot;:\&quot;283.006198\&quot;,\&quot;Pred_RTI_Positive_ESI\&quot;:\&quot;265.02\&quot;,\&quot;Uncertainty_RTI_pos\&quot;:\&quot;Covered by Model\&quot;,\&quot;Pred_RTI_Negative_ESI\&quot;:\&quot;199.22\&quot;,\&quot;Uncertainty_RTI_neg\&quot;:\&quot;Covered by Model\&quot;,\&quot;Tetrahymena_pyriformis_toxicity\&quot;:\&quot;3.62\&quot;,\&quot;IGC50_48_hr_ug\\/L\&quot;:\&quot;68238.83\&quot;,\&quot;Uncertainty_Tetrahymena_pyriformis_toxicity\&quot;:\&quot;outside of Chemical space\&quot;,\&quot;Daphnia_toxicity\&quot;:\&quot;3.30\&quot;,\&quot;LC50_48_hr_ug\\/L\&quot;:\&quot;141254.60\&quot;,\&quot;Uncertainty_Daphnia_toxicity\&quot;:\&quot;Covered by Model\&quot;,\&quot;Algae_toxicity\&quot;:\&quot;5.41\&quot;,\&quot;EC50_72_hr_ug\\/L\&quot;:\&quot;1092.36\&quot;,\&quot;Uncertainty_Algae_toxicity\&quot;:\&quot;Covered by Model\&quot;,\&quot;Pimephales_promelas_toxicity\&quot;:\&quot;3.43\&quot;,\&quot;LC50_96_hr_ug\\/L\&quot;:\&quot;105021.25\&quot;,\&quot;Uncertainty_Pimephales_promelas_toxicity\&quot;:\&quot;Covered by Model\&quot;,\&quot;logKow_EPISuite\&quot;:\&quot;0.31\&quot;,\&quot;Exp_logKow_EPISuite\&quot;:\&quot;NA\&quot;,\&quot;ChemSpider ID based on InChIKey_19032018\&quot;:\&quot;60252\&quot;,\&quot;alogp_ChemSpider\&quot;:\&quot;0.81\&quot;,\&quot;xlogp_ChemSpider\&quot;:\&quot;NA\&quot;,\&quot;Lowest P-PNEC (QSAR) [ug\\/L]\&quot;:\&quot;1.09236\&quot;,\&quot;Species\&quot;:\&quot;Selenastrum capricornutum\&quot;,\&quot;Uncertainty\&quot;:\&quot;Covered by Model\&quot;,\&quot;ExposureScore_Water_KEMI\&quot;:\&quot;0.17\&quot;,\&quot;HazScore_EcoChronic_KEMI\&quot;:\&quot;0.13\&quot;,\&quot;ValidationLevel_KEMI\&quot;:4,\&quot;Prob_of_GC\&quot;:\&quot;0\&quot;,\&quot;Prob_RPLC\&quot;:\&quot;1\&quot;,\&quot;Pred_Chromatography\&quot;:\&quot;RPLC\&quot;,\&quot;Prob_of_both_Ionization_Source\&quot;:\&quot;0\&quot;,\&quot;Prob_EI\&quot;:\&quot;0\&quot;,\&quot;Prob_ESI\&quot;:\&quot;1\&quot;,\&quot;Pred_Ionization_source\&quot;:\&quot;ESI\&quot;,\&quot;Prob_both_ESI_mode\&quot;:\&quot;0.928\&quot;,\&quot;Prob_plusESI\&quot;:\&quot;0.058\&quot;,\&quot;Prob_minusESI\&quot;:\&quot;0.014\&quot;,\&quot;Pred_ESI_mode\&quot;:\&quot;Both Polarities\&quot;,\&quot;Preferable_Platform_by_decision_Tree\&quot;:\&quot;RPLC_+ESI\&quot;}&quot;
-    }
-}</code>
- </pre>
-    </span>
-<span id="execution-results-GETapi-v1-substances-show--substance_id-" hidden>
-    <blockquote>Received response<span
-                id="execution-response-status-GETapi-v1-substances-show--substance_id-"></span>:
-    </blockquote>
-    <pre class="json"><code id="execution-response-content-GETapi-v1-substances-show--substance_id-"
-      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
-</span>
-<span id="execution-error-GETapi-v1-substances-show--substance_id-" hidden>
-    <blockquote>Request failed with error:</blockquote>
-    <pre><code id="execution-error-message-GETapi-v1-substances-show--substance_id-">
-
-Tip: Check that you&#039;re properly connected to the network.
-If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
-You can check the Dev Tools console for debugging information.</code></pre>
-</span>
-<form id="form-GETapi-v1-substances-show--substance_id-" data-method="GET"
-      data-path="api/v1/substances/show/{substance_id}"
-      data-authed="0"
-      data-hasfiles="0"
-      data-isarraybody="0"
-      autocomplete="off"
-      onsubmit="event.preventDefault(); executeTryOut('GETapi-v1-substances-show--substance_id-', this);">
-    <h3>
-        Request&nbsp;&nbsp;&nbsp;
-                    <button type="button"
-                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-tryout-GETapi-v1-substances-show--substance_id-"
-                    onclick="tryItOut('GETapi-v1-substances-show--substance_id-');">Try it out ⚡
-            </button>
-            <button type="button"
-                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-canceltryout-GETapi-v1-substances-show--substance_id-"
-                    onclick="cancelTryOut('GETapi-v1-substances-show--substance_id-');" hidden>Cancel 🛑
-            </button>&nbsp;&nbsp;
-            <button type="submit"
-                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-executetryout-GETapi-v1-substances-show--substance_id-"
-                    data-initial-text="Send Request 💥"
-                    data-loading-text="⏱ Sending..."
-                    hidden>Send Request 💥
-            </button>
-            </h3>
-            <p>
-            <small class="badge badge-green">GET</small>
-            <b><code>api/v1/substances/show/{substance_id}</code></b>
-        </p>
-                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
-                                <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
-&nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="Content-Type"                data-endpoint="GETapi-v1-substances-show--substance_id-"
-               value="application/json"
-               data-component="header">
-    <br>
-<p>Example: <code>application/json</code></p>
-            </div>
-                                <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
-&nbsp;
- &nbsp;
-                <input type="text" style="display: none"
-                              name="Accept"                data-endpoint="GETapi-v1-substances-show--substance_id-"
-               value="application/json"
-               data-component="header">
-    <br>
-<p>Example: <code>application/json</code></p>
-            </div>
-                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
-                    <div style="padding-left: 28px; clear: unset;">
-                <b style="line-height: 2;"><code>substance_id</code></b>&nbsp;&nbsp;
-<small>integer</small>&nbsp;
- &nbsp;
-                <input type="number" style="display: none"
-               step="any"               name="substance_id"                data-endpoint="GETapi-v1-substances-show--substance_id-"
-               value="1"
-               data-component="url">
-    <br>
-<p>The ID of the substance. Example: <code>1</code></p>
-            </div>
-                    </form>
-
-                    <h2 id="endpoints-GETapi-v1-substances-index">Get substances</h2>
+                                <h2 id="empodat-GETapi-v1-empodat--search_type---search_value-">Search EMPODAT by substance or country</h2>
 
 <p>
 <small class="badge badge-darkred">requires authentication</small>
 </p>
 
+<p>Retrieve EMPODAT records by searching for a substance (NORMAN ID or InChIKey)
+or by country code. Results are paginated due to potentially large datasets.</p>
 
-
-<span id="example-requests-GETapi-v1-substances-index">
+<span id="example-requests-GETapi-v1-empodat--search_type---search_value-">
 <blockquote>Example request:</blockquote>
 
 
 <div class="bash-example">
     <pre><code class="language-bash">curl --request GET \
-    --get "http://127.0.0.1:8000/api/v1/substances/index" \
-    --header "Authorization: Bearer {YOUR_AUTH_KEY}" \
+    --get "http://127.0.0.1:8000/api/v1/empodat/substance/NS00000214?page=1&amp;per_page=100" \
+    --header "Authorization: Bearer 1|your_token_here" \
     --header "Content-Type: application/json" \
     --header "Accept: application/json"</code></pre></div>
 
 
 <div class="javascript-example">
     <pre><code class="language-javascript">const url = new URL(
-    "http://127.0.0.1:8000/api/v1/substances/index"
+    "http://127.0.0.1:8000/api/v1/empodat/substance/NS00000214"
 );
 
+const params = {
+    "page": "1",
+    "per_page": "100",
+};
+Object.keys(params)
+    .forEach(key =&gt; url.searchParams.append(key, params[key]));
+
 const headers = {
-    "Authorization": "Bearer {YOUR_AUTH_KEY}",
+    "Authorization": "Bearer 1|your_token_here",
     "Content-Type": "application/json",
     "Accept": "application/json",
 };
@@ -342,14 +204,18 @@ fetch(url, {
 
 <div class="php-example">
     <pre><code class="language-php">$client = new \GuzzleHttp\Client();
-$url = 'http://127.0.0.1:8000/api/v1/substances/index';
+$url = 'http://127.0.0.1:8000/api/v1/empodat/substance/NS00000214';
 $response = $client-&gt;get(
     $url,
     [
         'headers' =&gt; [
-            'Authorization' =&gt; 'Bearer {YOUR_AUTH_KEY}',
+            'Authorization' =&gt; 'Bearer 1|your_token_here',
             'Content-Type' =&gt; 'application/json',
             'Accept' =&gt; 'application/json',
+        ],
+        'query' =&gt; [
+            'page' =&gt; '1',
+            'per_page' =&gt; '100',
         ],
     ]
 );
@@ -361,73 +227,129 @@ print_r(json_decode((string) $body));</code></pre></div>
     <pre><code class="language-python">import requests
 import json
 
-url = 'http://127.0.0.1:8000/api/v1/substances/index'
+url = 'http://127.0.0.1:8000/api/v1/empodat/substance/NS00000214'
+params = {
+  'page': '1',
+  'per_page': '100',
+}
 headers = {
-  'Authorization': 'Bearer {YOUR_AUTH_KEY}',
+  'Authorization': 'Bearer 1|your_token_here',
   'Content-Type': 'application/json',
   'Accept': 'application/json'
 }
 
-response = requests.request('GET', url, headers=headers)
+response = requests.request('GET', url, headers=headers, params=params)
 response.json()</code></pre></div>
 
 </span>
 
-<span id="example-responses-GETapi-v1-substances-index">
+<span id="example-responses-GETapi-v1-empodat--search_type---search_value-">
             <blockquote>
-            <p>Example response (401):</p>
+            <p>Example response (200, Success):</p>
         </blockquote>
-                <details class="annotation">
-            <summary style="cursor: pointer;">
-                <small onclick="textContent = parentElement.parentElement.open ? 'Show headers' : 'Hide headers'">Show headers</small>
-            </summary>
-            <pre><code class="language-http">cache-control: no-cache, private
-content-type: application/json
-access-control-allow-origin: *
- </code></pre></details>         <pre>
+                <pre>
 
 <code class="language-json" style="max-height: 300px;">{
-    &quot;message&quot;: &quot;Unauthenticated.&quot;
+    &quot;data&quot;: [
+        {
+            &quot;id&quot;: 1,
+            &quot;sampling_date_year&quot;: 2020,
+            &quot;concentration_value&quot;: 0.0025,
+            &quot;substance&quot;: {
+                &quot;norman_id&quot;: &quot;NS00004453&quot;,
+                &quot;name&quot;: &quot;Sulfaclozine&quot;
+            },
+            &quot;station&quot;: {
+                &quot;name&quot;: &quot;Station A&quot;,
+                &quot;country&quot;: {
+                    &quot;code&quot;: &quot;SK&quot;,
+                    &quot;name&quot;: &quot;Slovakia&quot;
+                }
+            },
+            &quot;matrix&quot;: {
+                &quot;name&quot;: &quot;Surface Water&quot;
+            }
+        }
+    ],
+    &quot;links&quot;: {
+        &quot;first&quot;: &quot;...&quot;,
+        &quot;last&quot;: &quot;...&quot;,
+        &quot;prev&quot;: null,
+        &quot;next&quot;: &quot;...&quot;
+    },
+    &quot;meta&quot;: {
+        &quot;current_page&quot;: 1,
+        &quot;last_page&quot;: 50,
+        &quot;per_page&quot;: 100,
+        &quot;total&quot;: 5000
+    }
+}</code>
+ </pre>
+            <blockquote>
+            <p>Example response (404, Not Found):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: false,
+    &quot;message&quot;: &quot;Substance not found&quot;,
+    &quot;search_type&quot;: &quot;substance&quot;,
+    &quot;search_value&quot;: &quot;NS99999999&quot;
+}</code>
+ </pre>
+            <blockquote>
+            <p>Example response (422, Invalid Format):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: false,
+    &quot;message&quot;: &quot;Validation failed&quot;,
+    &quot;errors&quot;: {
+        &quot;search_value&quot;: [
+            &quot;Substance must be a valid NORMAN ID or InChIKey.&quot;
+        ]
+    }
 }</code>
  </pre>
     </span>
-<span id="execution-results-GETapi-v1-substances-index" hidden>
+<span id="execution-results-GETapi-v1-empodat--search_type---search_value-" hidden>
     <blockquote>Received response<span
-                id="execution-response-status-GETapi-v1-substances-index"></span>:
+                id="execution-response-status-GETapi-v1-empodat--search_type---search_value-"></span>:
     </blockquote>
-    <pre class="json"><code id="execution-response-content-GETapi-v1-substances-index"
+    <pre class="json"><code id="execution-response-content-GETapi-v1-empodat--search_type---search_value-"
       data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
 </span>
-<span id="execution-error-GETapi-v1-substances-index" hidden>
+<span id="execution-error-GETapi-v1-empodat--search_type---search_value-" hidden>
     <blockquote>Request failed with error:</blockquote>
-    <pre><code id="execution-error-message-GETapi-v1-substances-index">
+    <pre><code id="execution-error-message-GETapi-v1-empodat--search_type---search_value-">
 
 Tip: Check that you&#039;re properly connected to the network.
 If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
 You can check the Dev Tools console for debugging information.</code></pre>
 </span>
-<form id="form-GETapi-v1-substances-index" data-method="GET"
-      data-path="api/v1/substances/index"
+<form id="form-GETapi-v1-empodat--search_type---search_value-" data-method="GET"
+      data-path="api/v1/empodat/{search_type}/{search_value}"
       data-authed="1"
       data-hasfiles="0"
       data-isarraybody="0"
       autocomplete="off"
-      onsubmit="event.preventDefault(); executeTryOut('GETapi-v1-substances-index', this);">
+      onsubmit="event.preventDefault(); executeTryOut('GETapi-v1-empodat--search_type---search_value-', this);">
     <h3>
         Request&nbsp;&nbsp;&nbsp;
                     <button type="button"
                     style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-tryout-GETapi-v1-substances-index"
-                    onclick="tryItOut('GETapi-v1-substances-index');">Try it out ⚡
+                    id="btn-tryout-GETapi-v1-empodat--search_type---search_value-"
+                    onclick="tryItOut('GETapi-v1-empodat--search_type---search_value-');">Try it out ⚡
             </button>
             <button type="button"
                     style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-canceltryout-GETapi-v1-substances-index"
-                    onclick="cancelTryOut('GETapi-v1-substances-index');" hidden>Cancel 🛑
+                    id="btn-canceltryout-GETapi-v1-empodat--search_type---search_value-"
+                    onclick="cancelTryOut('GETapi-v1-empodat--search_type---search_value-');" hidden>Cancel 🛑
             </button>&nbsp;&nbsp;
             <button type="submit"
                     style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
-                    id="btn-executetryout-GETapi-v1-substances-index"
+                    id="btn-executetryout-GETapi-v1-empodat--search_type---search_value-"
                     data-initial-text="Send Request 💥"
                     data-loading-text="⏱ Sending..."
                     hidden>Send Request 💥
@@ -435,7 +357,7 @@ You can check the Dev Tools console for debugging information.</code></pre>
             </h3>
             <p>
             <small class="badge badge-green">GET</small>
-            <b><code>api/v1/substances/index</code></b>
+            <b><code>api/v1/empodat/{search_type}/{search_value}</code></b>
         </p>
                 <h4 class="fancy-heading-panel"><b>Headers</b></h4>
                                 <div style="padding-left: 28px; clear: unset;">
@@ -443,18 +365,18 @@ You can check the Dev Tools console for debugging information.</code></pre>
 &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="Authorization" class="auth-value"               data-endpoint="GETapi-v1-substances-index"
-               value="Bearer {YOUR_AUTH_KEY}"
+                              name="Authorization" class="auth-value"               data-endpoint="GETapi-v1-empodat--search_type---search_value-"
+               value="Bearer 1|your_token_here"
                data-component="header">
     <br>
-<p>Example: <code>Bearer {YOUR_AUTH_KEY}</code></p>
+<p>Example: <code>Bearer 1|your_token_here</code></p>
             </div>
                                 <div style="padding-left: 28px; clear: unset;">
                 <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
 &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="Content-Type"                data-endpoint="GETapi-v1-substances-index"
+                              name="Content-Type"                data-endpoint="GETapi-v1-empodat--search_type---search_value-"
                value="application/json"
                data-component="header">
     <br>
@@ -465,13 +387,520 @@ You can check the Dev Tools console for debugging information.</code></pre>
 &nbsp;
  &nbsp;
                 <input type="text" style="display: none"
-                              name="Accept"                data-endpoint="GETapi-v1-substances-index"
+                              name="Accept"                data-endpoint="GETapi-v1-empodat--search_type---search_value-"
                value="application/json"
                data-component="header">
     <br>
 <p>Example: <code>application/json</code></p>
             </div>
-                        </form>
+                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
+                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>search_type</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="search_type"                data-endpoint="GETapi-v1-empodat--search_type---search_value-"
+               value="substance"
+               data-component="url">
+    <br>
+<p>The type of search: &quot;substance&quot; or &quot;country&quot;. Example: <code>substance</code></p>
+            </div>
+                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>search_value</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="search_value"                data-endpoint="GETapi-v1-empodat--search_type---search_value-"
+               value="NS00000214"
+               data-component="url">
+    <br>
+<p>The search value. For substance: NS code (NS00000214) or InChIKey. For country: 2-letter ISO code (SK, DE). Example: <code>NS00000214</code></p>
+            </div>
+                        <h4 class="fancy-heading-panel"><b>Query Parameters</b></h4>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>page</code></b>&nbsp;&nbsp;
+<small>integer</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="page"                data-endpoint="GETapi-v1-empodat--search_type---search_value-"
+               value="1"
+               data-component="query">
+    <br>
+<p>The page number for pagination. Example: <code>1</code></p>
+            </div>
+                                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>per_page</code></b>&nbsp;&nbsp;
+<small>integer</small>&nbsp;
+<i>optional</i> &nbsp;
+                <input type="number" style="display: none"
+               step="any"               name="per_page"                data-endpoint="GETapi-v1-empodat--search_type---search_value-"
+               value="100"
+               data-component="query">
+    <br>
+<p>Number of records per page (max 1000, default 100). Example: <code>100</code></p>
+            </div>
+                </form>
+
+                <h1 id="substances">Substances</h1>
+
+    <p>APIs for retrieving substance data from the NORMAN Suspect List Exchange database.</p>
+
+                                <h2 id="substances-GETapi-v1-substances-code--code-">Get substance by NORMAN ID</h2>
+
+<p>
+</p>
+
+<p>Retrieve a substance using its NORMAN identifier (e.g., NS00004453).
+Returns comprehensive substance data including chemical identifiers,
+molecular properties, categories, and sources.</p>
+
+<span id="example-requests-GETapi-v1-substances-code--code-">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request GET \
+    --get "http://127.0.0.1:8000/api/v1/substances/code/NS00004453" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json" \
+    --data "{
+    \"code\": \"NS75491716\"
+}"
+</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://127.0.0.1:8000/api/v1/substances/code/NS00004453"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+let body = {
+    "code": "NS75491716"
+};
+
+fetch(url, {
+    method: "GET",
+    headers,
+    body: JSON.stringify(body),
+}).then(response =&gt; response.json());</code></pre></div>
+
+
+<div class="php-example">
+    <pre><code class="language-php">$client = new \GuzzleHttp\Client();
+$url = 'http://127.0.0.1:8000/api/v1/substances/code/NS00004453';
+$response = $client-&gt;get(
+    $url,
+    [
+        'headers' =&gt; [
+            'Content-Type' =&gt; 'application/json',
+            'Accept' =&gt; 'application/json',
+        ],
+        'json' =&gt; [
+            'code' =&gt; 'NS75491716',
+        ],
+    ]
+);
+$body = $response-&gt;getBody();
+print_r(json_decode((string) $body));</code></pre></div>
+
+
+<div class="python-example">
+    <pre><code class="language-python">import requests
+import json
+
+url = 'http://127.0.0.1:8000/api/v1/substances/code/NS00004453'
+payload = {
+    "code": "NS75491716"
+}
+headers = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json'
+}
+
+response = requests.request('GET', url, headers=headers, json=payload)
+response.json()</code></pre></div>
+
+</span>
+
+<span id="example-responses-GETapi-v1-substances-code--code-">
+            <blockquote>
+            <p>Example response (200, Success):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;data&quot;: {
+        &quot;norman_id&quot;: &quot;NS00004453&quot;,
+        &quot;name&quot;: &quot;Sulfaclozine&quot;,
+        &quot;name_dashboard&quot;: &quot;Sulfaclozine&quot;,
+        &quot;name_iupac&quot;: &quot;4-amino-N-(6-chloropyrazin-2-yl)benzenesulfonamide&quot;,
+        &quot;cas_number&quot;: &quot;102-65-8&quot;,
+        &quot;smiles&quot;: &quot;c1cc(ccc1N)S(=O)(=O)Nc2cncc(n2)Cl&quot;,
+        &quot;stdinchi&quot;: &quot;InChI=1S/C10H9ClN4O2S/...&quot;,
+        &quot;stdinchikey&quot;: &quot;QKLPUVXBJHRFQZ-UHFFFAOYSA-N&quot;,
+        &quot;pubchem_cid&quot;: &quot;66890&quot;,
+        &quot;molecular_formula&quot;: &quot;C10H9Cl1N4O2S1&quot;,
+        &quot;monoisotopic_mass&quot;: 284.013474,
+        &quot;status&quot;: &quot;active&quot;,
+        &quot;categories&quot;: [
+            {
+                &quot;name&quot;: &quot;Pharmaceuticals&quot;,
+                &quot;abbreviation&quot;: &quot;PHAR&quot;
+            }
+        ],
+        &quot;sources&quot;: [
+            {
+                &quot;code&quot;: &quot;S01&quot;,
+                &quot;name&quot;: &quot;NORMAN SLE&quot;
+            }
+        ]
+    }
+}</code>
+ </pre>
+            <blockquote>
+            <p>Example response (404, Not Found):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: false,
+    &quot;message&quot;: &quot;Substance not found&quot;,
+    &quot;code&quot;: &quot;NS00004453&quot;
+}</code>
+ </pre>
+            <blockquote>
+            <p>Example response (422, Invalid Format):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: false,
+    &quot;message&quot;: &quot;Validation failed&quot;,
+    &quot;errors&quot;: {
+        &quot;code&quot;: [
+            &quot;The code must be in format NS followed by 8 digits (e.g., NS00004453).&quot;
+        ]
+    }
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-GETapi-v1-substances-code--code-" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-GETapi-v1-substances-code--code-"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-GETapi-v1-substances-code--code-"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-GETapi-v1-substances-code--code-" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-GETapi-v1-substances-code--code-">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-GETapi-v1-substances-code--code-" data-method="GET"
+      data-path="api/v1/substances/code/{code}"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('GETapi-v1-substances-code--code-', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-GETapi-v1-substances-code--code-"
+                    onclick="tryItOut('GETapi-v1-substances-code--code-');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-GETapi-v1-substances-code--code-"
+                    onclick="cancelTryOut('GETapi-v1-substances-code--code-');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-GETapi-v1-substances-code--code-"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-green">GET</small>
+            <b><code>api/v1/substances/code/{code}</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="GETapi-v1-substances-code--code-"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="GETapi-v1-substances-code--code-"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
+                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>code</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="code"                data-endpoint="GETapi-v1-substances-code--code-"
+               value="NS00004453"
+               data-component="url">
+    <br>
+<p>The NORMAN substance ID with NS prefix. Example: <code>NS00004453</code></p>
+            </div>
+                            <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
+        <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>code</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="code"                data-endpoint="GETapi-v1-substances-code--code-"
+               value="NS75491716"
+               data-component="body">
+    <br>
+<p>Must match the regex /^NS\d{8}$/. Example: <code>NS75491716</code></p>
+        </div>
+        </form>
+
+                    <h2 id="substances-GETapi-v1-substances-inchikey--inchikey-">Get substance by InChIKey</h2>
+
+<p>
+</p>
+
+<p>Retrieve a substance using its Standard InChIKey identifier.
+The InChIKey must be in the standard 27-character format (e.g., QKLPUVXBJHRFQZ-UHFFFAOYSA-N).</p>
+
+<span id="example-requests-GETapi-v1-substances-inchikey--inchikey-">
+<blockquote>Example request:</blockquote>
+
+
+<div class="bash-example">
+    <pre><code class="language-bash">curl --request GET \
+    --get "http://127.0.0.1:8000/api/v1/substances/inchikey/QKLPUVXBJHRFQZ-UHFFFAOYSA-N" \
+    --header "Content-Type: application/json" \
+    --header "Accept: application/json" \
+    --data "{
+    \"inchikey\": \"EQMDLNGZOPRSWW-XXPMRXFVPO-N\"
+}"
+</code></pre></div>
+
+
+<div class="javascript-example">
+    <pre><code class="language-javascript">const url = new URL(
+    "http://127.0.0.1:8000/api/v1/substances/inchikey/QKLPUVXBJHRFQZ-UHFFFAOYSA-N"
+);
+
+const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+};
+
+let body = {
+    "inchikey": "EQMDLNGZOPRSWW-XXPMRXFVPO-N"
+};
+
+fetch(url, {
+    method: "GET",
+    headers,
+    body: JSON.stringify(body),
+}).then(response =&gt; response.json());</code></pre></div>
+
+
+<div class="php-example">
+    <pre><code class="language-php">$client = new \GuzzleHttp\Client();
+$url = 'http://127.0.0.1:8000/api/v1/substances/inchikey/QKLPUVXBJHRFQZ-UHFFFAOYSA-N';
+$response = $client-&gt;get(
+    $url,
+    [
+        'headers' =&gt; [
+            'Content-Type' =&gt; 'application/json',
+            'Accept' =&gt; 'application/json',
+        ],
+        'json' =&gt; [
+            'inchikey' =&gt; 'EQMDLNGZOPRSWW-XXPMRXFVPO-N',
+        ],
+    ]
+);
+$body = $response-&gt;getBody();
+print_r(json_decode((string) $body));</code></pre></div>
+
+
+<div class="python-example">
+    <pre><code class="language-python">import requests
+import json
+
+url = 'http://127.0.0.1:8000/api/v1/substances/inchikey/QKLPUVXBJHRFQZ-UHFFFAOYSA-N'
+payload = {
+    "inchikey": "EQMDLNGZOPRSWW-XXPMRXFVPO-N"
+}
+headers = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json'
+}
+
+response = requests.request('GET', url, headers=headers, json=payload)
+response.json()</code></pre></div>
+
+</span>
+
+<span id="example-responses-GETapi-v1-substances-inchikey--inchikey-">
+            <blockquote>
+            <p>Example response (200, Success):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;data&quot;: {
+        &quot;norman_id&quot;: &quot;NS00004453&quot;,
+        &quot;name&quot;: &quot;Sulfaclozine&quot;,
+        &quot;stdinchikey&quot;: &quot;QKLPUVXBJHRFQZ-UHFFFAOYSA-N&quot;,
+        &quot;status&quot;: &quot;active&quot;
+    }
+}</code>
+ </pre>
+            <blockquote>
+            <p>Example response (404, Not Found):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: false,
+    &quot;message&quot;: &quot;Substance not found&quot;,
+    &quot;inchikey&quot;: &quot;QKLPUVXBJHRFQZ-UHFFFAOYSA-N&quot;
+}</code>
+ </pre>
+            <blockquote>
+            <p>Example response (422, Invalid Format):</p>
+        </blockquote>
+                <pre>
+
+<code class="language-json" style="max-height: 300px;">{
+    &quot;success&quot;: false,
+    &quot;message&quot;: &quot;Validation failed&quot;,
+    &quot;errors&quot;: {
+        &quot;inchikey&quot;: [
+            &quot;The InChIKey must be in valid format (e.g., QKLPUVXBJHRFQZ-UHFFFAOYSA-N).&quot;
+        ]
+    }
+}</code>
+ </pre>
+    </span>
+<span id="execution-results-GETapi-v1-substances-inchikey--inchikey-" hidden>
+    <blockquote>Received response<span
+                id="execution-response-status-GETapi-v1-substances-inchikey--inchikey-"></span>:
+    </blockquote>
+    <pre class="json"><code id="execution-response-content-GETapi-v1-substances-inchikey--inchikey-"
+      data-empty-response-text="<Empty response>" style="max-height: 400px;"></code></pre>
+</span>
+<span id="execution-error-GETapi-v1-substances-inchikey--inchikey-" hidden>
+    <blockquote>Request failed with error:</blockquote>
+    <pre><code id="execution-error-message-GETapi-v1-substances-inchikey--inchikey-">
+
+Tip: Check that you&#039;re properly connected to the network.
+If you&#039;re a maintainer of ths API, verify that your API is running and you&#039;ve enabled CORS.
+You can check the Dev Tools console for debugging information.</code></pre>
+</span>
+<form id="form-GETapi-v1-substances-inchikey--inchikey-" data-method="GET"
+      data-path="api/v1/substances/inchikey/{inchikey}"
+      data-authed="0"
+      data-hasfiles="0"
+      data-isarraybody="0"
+      autocomplete="off"
+      onsubmit="event.preventDefault(); executeTryOut('GETapi-v1-substances-inchikey--inchikey-', this);">
+    <h3>
+        Request&nbsp;&nbsp;&nbsp;
+                    <button type="button"
+                    style="background-color: #8fbcd4; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-tryout-GETapi-v1-substances-inchikey--inchikey-"
+                    onclick="tryItOut('GETapi-v1-substances-inchikey--inchikey-');">Try it out ⚡
+            </button>
+            <button type="button"
+                    style="background-color: #c97a7e; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-canceltryout-GETapi-v1-substances-inchikey--inchikey-"
+                    onclick="cancelTryOut('GETapi-v1-substances-inchikey--inchikey-');" hidden>Cancel 🛑
+            </button>&nbsp;&nbsp;
+            <button type="submit"
+                    style="background-color: #6ac174; padding: 5px 10px; border-radius: 5px; border-width: thin;"
+                    id="btn-executetryout-GETapi-v1-substances-inchikey--inchikey-"
+                    data-initial-text="Send Request 💥"
+                    data-loading-text="⏱ Sending..."
+                    hidden>Send Request 💥
+            </button>
+            </h3>
+            <p>
+            <small class="badge badge-green">GET</small>
+            <b><code>api/v1/substances/inchikey/{inchikey}</code></b>
+        </p>
+                <h4 class="fancy-heading-panel"><b>Headers</b></h4>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Content-Type</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Content-Type"                data-endpoint="GETapi-v1-substances-inchikey--inchikey-"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                                <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>Accept</code></b>&nbsp;&nbsp;
+&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="Accept"                data-endpoint="GETapi-v1-substances-inchikey--inchikey-"
+               value="application/json"
+               data-component="header">
+    <br>
+<p>Example: <code>application/json</code></p>
+            </div>
+                        <h4 class="fancy-heading-panel"><b>URL Parameters</b></h4>
+                    <div style="padding-left: 28px; clear: unset;">
+                <b style="line-height: 2;"><code>inchikey</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="inchikey"                data-endpoint="GETapi-v1-substances-inchikey--inchikey-"
+               value="QKLPUVXBJHRFQZ-UHFFFAOYSA-N"
+               data-component="url">
+    <br>
+<p>The Standard InChIKey. Example: <code>QKLPUVXBJHRFQZ-UHFFFAOYSA-N</code></p>
+            </div>
+                            <h4 class="fancy-heading-panel"><b>Body Parameters</b></h4>
+        <div style=" padding-left: 28px;  clear: unset;">
+            <b style="line-height: 2;"><code>inchikey</code></b>&nbsp;&nbsp;
+<small>string</small>&nbsp;
+ &nbsp;
+                <input type="text" style="display: none"
+                              name="inchikey"                data-endpoint="GETapi-v1-substances-inchikey--inchikey-"
+               value="EQMDLNGZOPRSWW-XXPMRXFVPO-N"
+               data-component="body">
+    <br>
+<p>Must match the regex /^[A-Z]{14}-[A-Z]{10}-[A-Z]$/. Example: <code>EQMDLNGZOPRSWW-XXPMRXFVPO-N</code></p>
+        </div>
+        </form>
 
             
 

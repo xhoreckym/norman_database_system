@@ -109,7 +109,7 @@ return [
         'in' => 'bearer',
 
         // The name of the auth parameter (eg token, key, apiKey) or header (eg Authorization, Api-Key).
-        'name' => 'token',
+        'name' => 'Authorization',
 
         // The value of the parameter to be used by Scribe to authenticate response calls.
         // This will NOT be included in the generated documentation. If empty, Scribe will use a random value.
@@ -117,10 +117,59 @@ return [
 
         // Placeholder your users will see for the auth parameter in the example requests.
         // Set this to null if you want Scribe to use a random value as placeholder instead.
-        'placeholder' => '{YOUR_AUTH_KEY}',
+        'placeholder' => '1|your_token_here',
 
         // Any extra authentication-related info for your users. Markdown and HTML are supported.
-        'extra_info' => 'You can retrieve your token by loggin into a free account in the NORMAN DATABASE SYSTEM enviroment and generate an API token in you dashboard.',
+        'extra_info' => <<<'AUTH'
+**How to get your token:**
+1. Log in to the [NORMAN Database System](https://www.norman-network.com/nds/)
+2. Go to your **Dashboard** → **API Tokens**
+3. Click **Generate New Token**
+4. Copy the token (it will only be shown once!)
+
+**Your token looks like this:**
+```
+1|uQgwNnXHx7QJom31K8dfsdfsd8f7sd98f7sdf
+```
+
+---
+
+### "Try It Out" - What to paste in the Authorization field:
+
+Copy your **full token** and paste it in the Authorization box:
+```
+1|uQgwNnXHx7QJom31K8dfsdfsd8f7sd98f7sdf
+```
+(Scribe automatically adds "Bearer " prefix)
+
+---
+
+### Code Examples
+
+**curl:**
+```bash
+curl -H "Authorization: Bearer 1|uQgwNnXHx7QJom31..." \
+     "https://www.norman-network.com/nds/api/v1/empodat/country/SK"
+```
+
+**Python:**
+```python
+import requests
+
+headers = {"Authorization": "Bearer 1|uQgwNnXHx7QJom31..."}
+response = requests.get(
+    "https://www.norman-network.com/nds/api/v1/empodat/country/SK",
+    headers=headers
+)
+```
+
+**JavaScript:**
+```javascript
+fetch("https://www.norman-network.com/nds/api/v1/empodat/country/SK", {
+    headers: { "Authorization": "Bearer 1|uQgwNnXHx7QJom31..." }
+})
+```
+AUTH,
     ],
 
     // Text to place in the "Introduction" section, right after the `description`. Markdown and HTML are supported.
@@ -246,8 +295,8 @@ INTRO
             [
                 Strategies\Responses\ResponseCalls::class,
                 [
-                    'only' => ['GET *'],
-                    // Disable debug mode when generating response calls to avoid error stack traces in responses
+                    // Disable response calls - we use @response tags in docblocks instead
+                    'only' => [],
                     'config' => [
                         'app.debug' => false,
                     ],

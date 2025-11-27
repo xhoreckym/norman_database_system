@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\v1;
 
 use Illuminate\Http\Request;
@@ -14,10 +16,8 @@ class SubstanceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [ 
-            // 'id' => $this->id,
-            'code' => $this->code,
-            'prefixed_code' => $this->prefixed_code,
+        return [
+            'norman_id' => $this->prefixed_code,
             'name' => $this->name,
             'name_dashboard' => $this->name_dashboard,
             'name_chemspider' => $this->name_chemspider,
@@ -31,11 +31,28 @@ class SubstanceResource extends JsonResource
             'chemspider_id' => $this->chemspider_id,
             'dtxid' => $this->dtxid,
             'molecular_formula' => $this->molecular_formula,
-            'mass_iso' => $this->mass_iso,
-            'metadata_synonyms' => $this->metadata_synonyms,
-            'metadata_cas' => $this->metadata_cas,
-            'metadata_ms_ready' => $this->metadata_ms_ready,
-            'metadata_general' => $this->metadata_general,
-        ]; 
+            'monoisotopic_mass' => $this->mass_iso,
+            'average_mass' => $this->average_mass,
+            'status' => $this->status,
+            'external_links' => $this->external_links,
+            'categories' => $this->whenLoaded('categories', fn () => $this->categories->map(fn ($cat) => [
+                'name' => $cat->name,
+                'abbreviation' => $cat->abbreviation,
+            ])),
+            'sources' => $this->whenLoaded('sources', fn () => $this->sources->map(fn ($source) => [
+                'code' => $source->code,
+                'name' => $source->sanitized_name,
+            ])),
+            'metadata' => [
+                'synonyms' => $this->metadata_synonyms,
+                'cas_alternatives' => $this->metadata_cas,
+                'ms_ready' => $this->metadata_ms_ready,
+                'general' => $this->metadata_general,
+            ],
+            'canonical' => $this->when($this->canonical_id !== null, fn () => [
+                'norman_id' => $this->canonical?->prefixed_code,
+                'message' => 'This substance has been merged. Use the canonical norman_id instead.',
+            ]),
+        ];
     }
 }

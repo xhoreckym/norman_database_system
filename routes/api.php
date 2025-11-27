@@ -1,27 +1,32 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\User;
+use App\Http\Controllers\Api\v1\EmpodatController;
+use App\Http\Controllers\Api\v1\SubstanceController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserApiController;
 
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| API v1 - NORMAN Database System
+|
+| Pattern: /api/v1/{module}/{parameter}/{value}
+|
+*/
 
 Route::prefix('v1')->group(function () {
-    Route::get('substances/show/{substance}', [\App\Http\Controllers\Api\v1\SubstanceController::class, 'show']); 
-    Route::get('substances/index', [\App\Http\Controllers\Api\v1\SubstanceController::class, 'index'])->middleware('auth:sanctum');; 
-});     
+    // Substances (public)
+    Route::prefix('substances')->group(function () {
+        Route::get('code/{code}', [SubstanceController::class, 'getByCode']);
+        Route::get('inchikey/{inchikey}', [SubstanceController::class, 'getByInchikey']);
+    });
 
-Route::middleware('auth:sanctum')->get('/users', [UserApiController::class, 'index']);
-
-
-Route::get('/users-test', function() {
-    return response()->json([
-        'success' => true,
-        'data' => [
-            ['id' => 1, 'first_name' => 'Test', 'last_name' => 'User', 'email' => 'test@example.com']
-        ]
-    ]);
+    // EMPODAT (authenticated)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::prefix('empodat')->group(function () {
+            Route::get('{search_type}/{search_value}', [EmpodatController::class, 'search'])
+                ->where('search_type', 'substance|country');
+        });
+    });
 });
