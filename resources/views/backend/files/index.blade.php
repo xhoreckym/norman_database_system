@@ -91,9 +91,9 @@
                   <th class="px-1 py-1 text-left">File Name</th>
                   <th class="px-1 py-1 text-left w-[80px]">Project</th>
                   <th class="px-1 py-1 text-left w-[70px]">DB</th>
-                  <th class="px-1 py-1 text-right w-[70px] whitespace-nowrap">ID From</th>
-                  <th class="px-1 py-1 text-right w-[70px] whitespace-nowrap">ID To</th>
-                  <th class="px-1 py-1 text-right w-[60px] whitespace-nowrap">Records</th>
+                  <th class="px-1 py-1 text-right w-[85px] whitespace-nowrap">ID From</th>
+                  <th class="px-1 py-1 text-right w-[85px] whitespace-nowrap">ID To</th>
+                  <th class="px-1 py-1 text-right w-[85px] whitespace-nowrap">Records</th>
                   <th class="px-1 py-1 text-center w-[55px]">Protected</th>
                   <th class="px-1 py-1 text-center w-[50px]">Deleted</th>
                   <th class="px-1 py-1 text-left w-[80px]">Uploaded By</th>
