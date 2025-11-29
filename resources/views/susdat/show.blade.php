@@ -18,15 +18,15 @@
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Substance Information at Glance</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">NORMAN Code</h3>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">NORMAN SusDat ID</h3>
                 <p class="text-sm text-teal-800 font-mono">{{ $substance->prefixed_code ?? 'N/A' }}</p>
               </div>
               <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Substance</h3>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">Name</h3>
                 <p class="text-sm text-teal-800 font-mono">{{ $substance->name ?? 'N/A' }}</p>
               </div>
               <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">CAS Number</h3>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">CAS_RN</h3>
                 <p class="text-sm text-teal-800 font-mono">{{ $substance->cas_number ?? 'N/A' }}</p>
               </div>
               <div>
@@ -34,60 +34,24 @@
                 <p class="text-sm text-teal-800 font-mono">{{ $substance->stdinchikey ?? 'N/A' }}</p>
               </div>
               <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">SMILES</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $substance->smiles ?? 'N/A' }}</p>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">DTXSID</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->dtxid ?? 'N/A' }}</p>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">PubChem_CID</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->pubchem_cid ?? 'N/A' }}</p>
               </div>
               <div>
                 <h3 class="text-sm font-medium text-gray-800 mb-1">Molecular Formula</h3>
                 <p class="text-sm text-teal-800 font-mono">{{ $substance->molecular_formula ?? 'N/A' }}</p>
               </div>
               <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Isotopic Mass</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $substance->mass_iso ?? 'N/A' }}</p>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">SMILES</h3>
+                <p class="text-sm text-teal-800 font-mono break-all">{{ $substance->smiles ?? 'N/A' }}</p>
               </div>
               <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Average Mass</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $substance->average_mass ?? 'N/A' }}</p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">PubChem CID</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $substance->pubchem_cid ?? 'N/A' }}</p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">DTXID</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $substance->dtxid ?? 'N/A' }}</p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">ChemSpider ID</h3>
-                <p class="text-sm text-teal-800 font-mono">{{ $substance->chemspider_id ?? 'N/A' }}</p>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Categories</h3>
-                <div class="text-sm text-teal-800">
-                  @if ($substance->categories && $substance->categories->count() > 0)
-                    @foreach ($substance->categories as $category)
-                      <span class="inline-block bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded mr-1 mb-1">
-                        {{ $category->name }}
-                      </span>
-                    @endforeach
-                  @else
-                    <span class="text-gray-500">N/A</span>
-                  @endif
-                </div>
-              </div>
-              <div>
-                <h3 class="text-sm font-medium text-gray-800 mb-1">Sources</h3>
-                <div class="text-sm text-teal-800">
-                  @if ($substance->sources && $substance->sources->count() > 0)
-                    @foreach ($substance->sources as $source)
-                      <span class="inline-block bg-slate-100 text-slate-800 text-xs px-2 py-1 rounded mr-1 mb-1">
-                        {{ $source->code }} - {{ $source->name }}
-                      </span>
-                    @endforeach
-                  @else
-                    <span class="text-gray-500">N/A</span>
-                  @endif
-                </div>
+                <h3 class="text-sm font-medium text-gray-800 mb-1">Monoisotopic Mass</h3>
+                <p class="text-sm text-teal-800 font-mono">{{ $substance->mass_iso ? number_format((float)$substance->mass_iso, 4, '.', ' ') : 'N/A' }}</p>
               </div>
             </div>
           </div>
@@ -106,6 +70,9 @@
 
             <table class="table-auto w-full border-separate border-spacing-1 text-xs">
               @foreach ($substance->toArray() as $key => $value)
+                @if ($key === 'metadata_general')
+                  @continue
+                @endif
                 <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
                   <td class="p-1 font-bold">{{ $key }}</td>
                   @if (substr($key, 0, 8) == 'metadata')

@@ -101,7 +101,7 @@
                       <p class="text-sm text-teal-800 font-mono">{{ $substance->stdinchikey ?? 'N/A' }}</p>
                     </div>
                     <div>
-                      <h3 class="text-sm font-medium text-gray-800 mb-1">NORMAN Code</h3>
+                      <h3 class="text-sm font-medium text-gray-800 mb-1">NORMAN SusDat ID</h3>
                       <p class="text-sm text-teal-800 font-mono">{{ $substance->prefixed_code ?? 'N/A' }}</p>
                     </div>
                   </div>

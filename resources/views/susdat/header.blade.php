@@ -1,6 +1,6 @@
 <div class="px-4 sm:px-6 lg:px-8">
   <span class="mr-12 font-bold text-lime-700">
-    Suspect Substance Database
+    Substance Database
   </span>
 
   <x-nav-link-header :href="route('substances.search.filter')" :active="request()->routeIs('substances.search.filter')">

@@ -52,6 +52,17 @@
 - Jobs for long-running tasks
 - Events for decoupled actions
 
+## Memory issues:
+- debugbar must be disabled in local developments for exports to CSV
+- 
+```php
+// Disable debugbar and query log to prevent memory issues
+    if (app()->bound('debugbar')) {
+        app('debugbar')->disable();
+    }
+    DB::disableQueryLog();
+```
+
 ## File Organization
 ```
 app/

@@ -55,7 +55,7 @@
           @endif
           
           {{-- Search/Filter Section --}}
-          @if(isset($request))
+          @if($request->input('searchCategory') == 1 || $request->input('searchSource') == 1 || $request->input('searchSubstance') == 1)
             <div class="mb-6">
               <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <form action="{{route('substances.search.search')}}" method="GET">
@@ -149,14 +149,67 @@
                 </form>
               </div>
             </div>
+          @else
+            {{-- Ordering and Download for List of All Substances (no active search) --}}
+            <div class="mb-6">
+              <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <form action="{{route('substances.index')}}" method="GET">
+                  <div class="flex flex-wrap gap-4 items-end">
+                    {{-- Ordering Controls --}}
+                    <div class="flex gap-3">
+                      <div class="min-w-48">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                          Order by:
+                        </label>
+                        @include('_t.form-select', [
+                          'tag' => 'order_by_column',
+                          'list' => $columns,
+                          'label' => 'Column',
+                          'space' => 'filter'
+                        ])
+                      </div>
+
+                      <div class="min-w-24">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                          Direction:
+                        </label>
+                        @include('_t.form-select', [
+                          'tag' => 'order_by_direction',
+                          'list' => $orderByDirection,
+                          'label' => 'Direction',
+                          'space' => 'filter'
+                        ])
+                      </div>
+                    </div>
+
+                    {{-- Action Buttons --}}
+                    <div class="flex gap-2">
+                      <button type="submit" class="btn-submit flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+                        </svg>
+                        <span>Apply Filter</span>
+                      </button>
+
+                      @if(isset($query_log_id) && Auth::check())
+                        <a href="{{ route('susdat.csv.start', ['query_log_id' => $query_log_id]) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                          </svg>
+                          Download CSV
+                        </a>
+                      @endif
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
           @endif
-          
+
           {{-- Results Section --}}
           <div id="displaySubstancesDiv">
             @include('susdat.display-substances', [
               'show' => [
-                'substances' => true, 
-                'sources' => true, 
                 'duplicates' => false
               ]
             ])
