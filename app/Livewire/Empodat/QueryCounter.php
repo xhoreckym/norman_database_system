@@ -55,6 +55,13 @@ class QueryCounter extends Component
             } 
             // 2b. Otherwise, run a fresh COUNT query
             else {
+                // Extend execution time and disable memory-consuming features
+                set_time_limit(600);
+                if (app()->bound('debugbar')) {
+                    app('debugbar')->disable();
+                }
+                DB::disableQueryLog();
+
                 $countQuery = "SELECT COUNT(*) as count FROM ({$this->sqlQuery}) as subquery";
                 $this->countResult = DB::select($countQuery)[0]->count;
                 $executionTimeKey  = 'countExecutionTime';

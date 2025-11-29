@@ -188,11 +188,11 @@
     <div class="bg-stone-50 border border-stone-200 rounded-lg p-6">
       <h3 class="text-lg font-semibold text-stone-800 mb-4">Key Insights</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        @if(isset($allStats['country_year']) && isset($allStats['substance']))
+        @if(isset($allStats['country_year']) && isset($allStats['substance']) && ($allStats['country_year']['total_countries'] ?? 0) > 0)
           <div class="flex items-start space-x-2">
             <div class="w-2 h-2 bg-stone-500 rounded-full mt-2"></div>
             <div>
-              <strong>Data Density:</strong> 
+              <strong>Data Density:</strong>
               {{ round($totalRecords / $allStats['country_year']['total_countries']) }} records per country on average
             </div>
           </div>
