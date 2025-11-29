@@ -460,14 +460,19 @@ class EmpodatController extends Controller
         }
         $countryList = $this->sortDropdownList($countryList);
 
-        $matrices = SearchMatrix::with('matrix')->get();
+        $matrices = SearchMatrix::join('list_matrices', 'empodat_search_matrices.matrix_id', '=', 'list_matrices.id')
+            ->orderBy('list_matrices.name')
+            ->select('empodat_search_matrices.*')
+            ->with('matrix')
+            ->get();
         $matrixList = [];
         foreach ($matrices as $s) {
-            $matrixList[$s->matrix_id] = $s->matrix->name;
+            if ($s->matrix) {
+                $matrixList[$s->matrix_id] = $s->matrix->name;
+            }
         }
-        $matrixList = $this->sortDropdownList($matrixList);
 
-        $sources = SuspectListExchangeSource::select('id', 'code', 'name')->get()->keyBy('id');
+        $sources = SuspectListExchangeSource::where('show', 1)->whereNotNull('order')->orderBy('order', 'asc')->get();
         $sourceList = [];
         foreach ($sources as $s) {
             // Filter to ensure only letters and numbers are allowed

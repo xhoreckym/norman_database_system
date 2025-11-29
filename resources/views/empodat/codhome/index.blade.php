@@ -25,7 +25,7 @@
           <!-- Bulleted List -->
           <ul class="list-disc list-inside text-gray-700 mb-4">
             <li>
-              <strong>The Chemistry module</strong> for monitoring/occurrence data on emerging substances which are already known to be present in the environment but which are not yet included in routine monitoring programmes.
+              The EMPODAT Database comprises monitoring/occurrence data on emerging substances, with focus on those which are already known to be present in the environment but which are not yet included in routine monitoring programmes.
             </li>
           </ul>
           
@@ -49,12 +49,12 @@
           
           <!-- Instructions -->
           <p class="text-gray-700 leading-relaxed mb-4">
-            For information and conditions for the inclusion of your data in the NORMAN Database System, please contact <strong>Dr. Jaroslav SLOBODNIK</strong>.
+            For information and conditions for the inclusion of your data in the NORMAN Database System, see NORMAN Database System Data Policy.
           </p>
           <p class="text-gray-700 leading-relaxed mb-4">
             To include data into the NORMAN Database, DATA COLLECTION TEMPLATES (DCT) in Excel were developed for each matrix. These DCTs can be downloaded at 
-            <a href="https://www.norman-network.com/nds/empodat/downloadDCT.php" class="link-lime-text">
-              https://www.norman-network.com/nds/empodat/downloadDCT.php
+            <a href="{{ route('empodat.templates', ['code' => 'empodat']) }}" class="link-lime-text">
+              Download DCT Templates
             </a>.
           </p>
           
@@ -62,10 +62,10 @@
           <p class="text-gray-700 leading-relaxed mb-4">
             The completed DCTs should be sent to the NORMAN Database development team: 
             <a href="mailto:norman@ei.sk" class="link-lime-text">norman@ei.sk</a> with a copy to 
-            <a href="mailto:slobodnik@ei.sk" class="link-lime-text">slobodnik@ei.sk</a>, for further processing and upload to the web-database.
+            <a href="mailto:oswaldova@ei.sk" class="link-lime-text">oswaldova@ei.sk</a>, for further processing and upload to the web-database.
           </p>
           <p class="text-gray-700 leading-relaxed">
-            Large datasets, available in other than Excel format, can be uploaded as well, after communication with the NORMAN team – to check the structure of data, availability of obligatory information, and to agree on the optimal way of the data transfer.
+            Large datasets, available in other than Excel format, can be uploaded as well, after communication with the NORMAN Database Development team – to check the structure of data, availability of obligatory information, and to agree on the optimal way of the data transfer.
           </p>
         </div>
         

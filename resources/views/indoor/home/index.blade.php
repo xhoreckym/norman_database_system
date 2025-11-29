@@ -35,7 +35,7 @@
             The completed DCT should be sent to the NORMAN Database development team: norman@ei.sk with copy to slobodnik@ei.sk, for further processing and upload to the web-database.
           </p>
           <p class="text-gray-700 leading-relaxed mb-4">
-            Large datasets, available in other then excel format can be uploaded as well, after communication with the NORMAN team – to check the structure of data, availability of obligatory information and to agree on the optimal way of the data transfer.
+            Large datasets, available in other then excel format can be uploaded as well, after communication with the NORMAN Database Development team – to check the structure of data, availability of obligatory information and to agree on the optimal way of the data transfer.
           </p>
           
           

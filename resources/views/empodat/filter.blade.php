@@ -148,7 +148,7 @@
                   
                   <div class="w-full mt-4 lg:mt-0">
                     <div class="font-bold mb-2">
-                      Ecosystem:
+                      Ecosystems/matrices:
                     </div>
                     <div aria-describedby="matrix-help">
                       @include('_t.form-apline-multiselect', [
