@@ -280,7 +280,7 @@
                       </div>
                     </div>
                     <!-- Text -->
-                    <span>Type of data source:</span>
+                    <span>Type of Data Source:</span>
                   </div>
                   <div aria-describedby="type-sources-help">
                     @include('_t.form-apline-multiselect', [
@@ -352,7 +352,7 @@
                       </div>
                     </div>
                     <!-- Text -->
-                    <span>Analytical method:</span>
+                    <span>Analytical Method:</span>
                   </div>
                   <div aria-describedby="analytical-method-help">
                     @include('_t.form-apline-multiselect', [
@@ -360,7 +360,7 @@
                       'active_ids' => isset($request->analyticalMethodSearch) ? $request->analyticalMethodSearch : [],
                     ])
                   </div>
-                  <div id="analytical-method-help" class="sr-only">Select analytical methods - this may slow down search performance</div>
+                  <div id="analytical-method-help" class="sr-only">Select Analytical Methods - this may slow down search performance</div>
                 </div>
               </div>
             </div>
@@ -377,7 +377,7 @@
                       'active_ids' => isset($request->qualityAnalyticalMethodsSearch) ? $request->qualityAnalyticalMethodsSearch : [],
                     ])
                   </div>
-                  <div id="quality-help" class="sr-only">Select quality information categories for analytical methods</div>
+                  <div id="quality-help" class="sr-only">Select quality information categories for Analytical Methods</div>
                 </div>
               </div>
             </div>

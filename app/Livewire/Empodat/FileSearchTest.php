@@ -36,7 +36,6 @@ class FileSearchTest extends Component
                     $query->where('name', 'ilike', '%' . $searchTerm . '%')
                           ->orWhere('original_name', 'ilike', '%' . $searchTerm . '%');
                 })
-                ->limit(20)
                 ->get();
 
             $resultsAvailable = true;

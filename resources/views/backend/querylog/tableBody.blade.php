@@ -21,7 +21,7 @@
                             'requestKey' => 'categoriesSearch',
                             'dataList' => $categories,
                         ],
-                        'Type of data source' => [
+                        'Type of Data Source' => [
                             'requestKey' => 'typeDataSourcesSearch',
                             'dataList' => $typeDataSources,
                         ],
@@ -37,7 +37,7 @@
                             'requestKey' => 'dataSourceLaboratorySearch',
                             'dataList' => $dataSourceLaboratories,
                         ],
-                        'Analytical method' => [
+                        'Analytical Method' => [
                             'requestKey' => 'analyticalMethodSearch',
                             'dataList' => $analyticalMethods,
                         ],

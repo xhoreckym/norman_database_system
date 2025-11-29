@@ -67,7 +67,7 @@
   <div class="mt-2">
     <span class="text-gray-600 text-xs">
       <i class="fas fa-info-circle mr-1"></i>
-      Search is limited to 20 files. Type at least 3 characters. You can paste full filenames.
+      Type at least 3 characters to search. You can paste full filenames.
     </span>
     @if(strlen($search) > 2)
       <span class="ml-2 text-blue-600 text-xs">

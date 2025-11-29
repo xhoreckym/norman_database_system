@@ -1,7 +1,7 @@
 @extends('empodat.statistics.layout')
 
 @section('page-title', 'Quality Statistics')
-@section('page-subtitle', 'Data quality based on analytical method ratings')
+@section('page-subtitle', 'Data quality based on Analytical Method ratings')
 
 @section('main-content')
   @if(isset($generatedAt))
