@@ -411,8 +411,12 @@ class EmpodatMain extends Model
 
     /**
      * Scope to filter records based on user permissions and file protection status
-     * Non-admin users can only see records with unprotected files
-     * Admin, super_admin, and empodat roles can see all records
+     *
+     * Protection rules:
+     * 1. If files.is_deleted = true, only super_admin can see the data
+     * 2. If files.is_protected = true, only logged-in admins (admin, super_admin, empodat roles)
+     *    OR users assigned to the file's project can see the data
+     * 3. Unprotected, non-deleted files are visible to everyone
      */
     public function scopeByUserPermissions($query, $user = null)
     {
@@ -421,29 +425,55 @@ class EmpodatMain extends Model
             $user = auth()->user();
         }
 
-        // If user is not authenticated, show only unprotected files
+        // Join with files table for filtering
+        $query = $query->join('files', 'empodat_main.file_id', '=', 'files.id')
+            ->select('empodat_main.*')
+            ->distinct();
+
+        // If user is not authenticated, show only unprotected AND non-deleted files
         if (is_null($user)) {
-            return $query->join('files', 'empodat_main.file_id', '=', 'files.id')
-                ->whereRaw('files.is_protected = false')
-                ->select('empodat_main.*')
-                ->distinct();
+            return $query->where('files.is_protected', false)
+                ->where(function ($q) {
+                    $q->where('files.is_deleted', false)
+                        ->orWhereNull('files.is_deleted');
+                });
         }
 
-        // Check if user has admin-level permissions
-        $hasAdminAccess = $user->hasRole('admin')
-                       || $user->hasRole('super_admin')
-                       || $user->hasRole('empodat');
-
-        // If user has admin access, show all records
-        if ($hasAdminAccess) {
+        // Check if user is super_admin (can see everything, including deleted)
+        if ($user->hasRole('super_admin')) {
             return $query;
         }
 
-        // For regular authenticated users, show only unprotected files
-        return $query->join('files', 'empodat_main.file_id', '=', 'files.id')
-            ->whereRaw('files.is_protected = false')
-            ->select('empodat_main.*')
-            ->distinct();
+        // Check if user has admin-level permissions (admin, empodat roles)
+        $hasAdminAccess = $user->hasRole('admin') || $user->hasRole('empodat');
+
+        // Admins can see all non-deleted files (both protected and unprotected)
+        if ($hasAdminAccess) {
+            return $query->where(function ($q) {
+                $q->where('files.is_deleted', false)
+                    ->orWhereNull('files.is_deleted');
+            });
+        }
+
+        // For regular authenticated users:
+        // - Can see unprotected, non-deleted files
+        // - Can see protected, non-deleted files if they are assigned to the file's project
+        $userId = $user->id;
+
+        return $query->where(function ($q) {
+            $q->where('files.is_deleted', false)
+                ->orWhereNull('files.is_deleted');
+        })->where(function ($q) use ($userId) {
+            // Either the file is not protected
+            $q->where('files.is_protected', false)
+                // OR the user is assigned to the file's project
+                ->orWhereExists(function ($subQuery) use ($userId) {
+                    $subQuery->select(\Illuminate\Support\Facades\DB::raw(1))
+                        ->from('project_user')
+                        ->whereColumn('project_user.project_id', 'files.project_id')
+                        ->where('project_user.user_id', $userId);
+                });
+        });
     }
 
     /**
