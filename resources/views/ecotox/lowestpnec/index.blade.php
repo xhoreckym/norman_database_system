@@ -131,7 +131,7 @@
                   <th class="py-2 px-1 text-center text-xs">Marine biota (fish) [µg/kg ww]</th>
                   <th class="py-2 px-1 text-center text-xs">Biota (mollusc) [µg/kg ww]</th>
                   <th class="py-2 px-1 text-center text-xs">Marine biota (mollusc) [µg/kg ww]</th>
-                  <th class="py-2 px-1 text-center text-xs">Biota (WFD) [µg/kg ww]</th>
+                  {{-- <th class="py-2 px-1 text-center text-xs">Biota (WFD) [µg/kg ww]</th> --}}
                   <th class="py-2 px-1 text-center cursor-pointer" @click="sortBy('lowest_exp_pred')">
                     <div class="flex items-center justify-center">
                       <span>Type</span>
@@ -185,9 +185,9 @@
                     <td class="p-1 text-center text-xs">
                       <span class="font-medium" x-text="pnec.lowest_pnec_value_7 || ''"></span>
                     </td>
-                    <td class="p-1 text-center text-xs">
+                    {{-- <td class="p-1 text-center text-xs">
                       <span class="font-medium" x-text="pnec.lowest_pnec_value_8 || ''"></span>
-                    </td>
+                    </td> --}}
                     <td class="p-1 text-center">
                       <span class="px-2 py-1 rounded text-xs font-medium" 
                         :class="pnec.lowest_exp_pred == 1 ? 'bg-green-100 text-green-800' : 'bg-stone-100 text-stone-800'"

@@ -1,6 +1,6 @@
 <div class="px-4 sm:px-6 lg:px-8">
   <span class="mr-12 font-bold text-lime-700">
-    Ecotox
+    Ecotoxicology Database
   </span>
 
   <x-nav-link-header :href="route('ecotoxhome.index')" :active="request()->is('*home*')">

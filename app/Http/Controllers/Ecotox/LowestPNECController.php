@@ -132,6 +132,7 @@ class LowestPNECController extends Controller
         // Find the related LowestPNECMain record if exists
         $lowestPnecMain = LowestPNECMain::with(['substance', 'editor'])
             ->where('sus_id', $sus_id)
+            ->orderby('lowest_active', 'desc')
             ->first();
         
         // Look up PNEC3 record if we have the base_id
