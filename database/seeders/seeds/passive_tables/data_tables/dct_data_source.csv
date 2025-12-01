@@ -1,0 +1,3 @@
+id,org_name,org_city,org_country,org_lab1_name,org_lab1_city,org_lab1_country,org_lab2_name,org_lab2_city,org_lab2_country,org_family_name,org_first_name,org_email
+"1","Research Centre for Toxic Compounds in the Environment","Brno","Czech Republic","Research Centre for Toxic Compounds in the Environment","Brno","Czech Republic",NULL,NULL,NULL,"Vrana","Branislav","vrana@recetox.muni.cz"
+"2","Norwegian Environment Agency","","Norway","","","",NULL,NULL,NULL,"","",""

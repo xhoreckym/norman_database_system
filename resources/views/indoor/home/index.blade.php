@@ -16,7 +16,7 @@
           
           <!-- Description -->
           <p class="text-gray-700 leading-relaxed mb-4">
-            Indoor Environment Database is a database of geo-referenced monitoring on emerging substances coming from different types of indoor environment samples. The main purpose of using the database is to address the crucial issue of chemicals present in the indoor environment across Europe and beyond. Toxic chemicals may accumulate in indoor spaces without our awareness, leading to chronic exposure. Interconnection of this database with other NORMAN database modules has a significant role in unraveling the complexities of indoor exposure and its link to potential health risks.
+            Indoor Environment Database is a database of geo-referenced monitoring on emerging substances coming from different types of indoor environment samples. The main purpose of using the database is to address the crucial issue of chemicals present in the indoor environment across Europe and beyond. Toxic chemicals may accumulate in indoor spaces without our awareness, leading to chronic exposure. Interconnection of this database with other NORMAN Database System modules has a significant role in unraveling the complexities of indoor exposure and its link to potential health risks.
           </p>
           
           <!-- Subheading -->
@@ -32,10 +32,10 @@
             To include data into the NORMAN Database System, DATA COLLECTION TEMPLATE (DCT) in excel was developed for the indoor environment samples. This DCT can be downloaded at <a href="https://www.norman-network.com/nds/indoor/downloadDCT.php" class="link-lime-text">https://www.norman-network.com/nds/indoor/downloadDCT.php</a>.
           </p>
           <p class="text-gray-700 leading-relaxed mb-4">
-            The completed DCT should be sent to the NORMAN Database development team: norman@ei.sk with copy to slobodnik@ei.sk, for further processing and upload to the web-database.
+            The completed DCT should be sent to the NORMAN Database System development team: norman@ei.sk with copy to slobodnik@ei.sk, for further processing and upload to the web-database.
           </p>
           <p class="text-gray-700 leading-relaxed mb-4">
-            Large datasets, available in other then excel format can be uploaded as well, after communication with the NORMAN Database Development team – to check the structure of data, availability of obligatory information and to agree on the optimal way of the data transfer.
+            Large datasets, available in other then excel format can be uploaded as well, after communication with the NORMAN Database System Development team – to check the structure of data, availability of obligatory information and to agree on the optimal way of the data transfer.
           </p>
           
           

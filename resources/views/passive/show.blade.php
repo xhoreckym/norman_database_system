@@ -77,7 +77,7 @@
               @if ($passive->organisation)
                 <div>
                   <h3 class="text-sm font-medium text-gray-800 mb-1">Organisation</h3>
-                  <p class="text-sm text-teal-800 font-mono">{{ $passive->organisation->name }}</p>
+                  <p class="text-sm text-teal-800 font-mono">{{ $passive->organisation->org_name }}</p>
                 </div>
               @endif
             </div>
@@ -88,7 +88,7 @@
             <table class="table-auto w-full border-separate border-spacing-1 text-xs mt-4" style="table-layout: fixed;">
               @php
                 $rowIndex = 0;
-                $excludedKeys = ['country', 'matrix', 'substance', 'organisation', 'created_at', 'updated_at'];
+                $excludedKeys = ['country', 'matrix', 'substance', 'organisation', 'analytical_method', 'created_at', 'updated_at'];
               @endphp
 
               @foreach ($passive->toArray() as $key => $value)
@@ -103,7 +103,7 @@
                 @endif
 
                 {{-- Skip null values and empty arrays --}}
-                @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && $value === ''))
+                @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && trim($value) === ''))
                   @continue
                 @endif
 
@@ -230,12 +230,39 @@
                   @if (in_array($key, ['id', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && trim($value) === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
                     <td class="p-1 font-bold" style="width: 20%;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
                     <td class="p-1" style="width: 80%;">
+                      @if (is_array($value))
+                        {{ json_encode($value) }}
+                      @else
+                        {{ $value }}
+                      @endif
+                    </td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endforeach
+              @endif
+
+              {{-- Analytical Method Information --}}
+              @if ($passive->analyticalMethod)
+                <tr class="bg-amber-600 text-white">
+                  <td colspan="2" class="p-2 font-bold text-center">Analytical Method</td>
+                </tr>
+                @php $rowIndex = 0; @endphp
+                @foreach ($passive->analyticalMethod->toArray() as $key => $value)
+                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
+                    @continue
+                  @endif
+                  @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && trim($value) === ''))
+                    @continue
+                  @endif
+                  <tr class="@if ($rowIndex % 2 === 0) bg-amber-50 @else bg-amber-100 @endif">
+                    <td class="p-1 font-bold text-amber-900" style="width: 20%;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
+                    <td class="p-1 text-amber-800" style="width: 80%;">
                       @if (is_array($value))
                         {{ json_encode($value) }}
                       @else

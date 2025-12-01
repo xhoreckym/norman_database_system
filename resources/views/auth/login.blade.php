@@ -1,7 +1,7 @@
 <x-guest-layout>
     <!-- Registration Information -->
     <div class="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
-        <h3 class="text-lg font-semibold text-gray-800 mb-3">Welcome to Norman Database System</h3>
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Welcome to NORMAN Database System</h3>
         <div class="space-y-2 text-sm text-gray-700">
             <p><strong>Registration is free!</strong> We recommend registering for a more tailored experience, however data in the database is free to access without registration.</p>
             <p><strong>Legacy Users:</strong> All users from the legacy system from <a href="https://www.norman-network.com/nds/" class="link-lime-text" target="_blank">https://www.norman-network.com/nds/</a> were transferred, however a new password needs to be generated. Please use the "Forgot password" link below to obtain instructions for your new password.</p>

@@ -52,7 +52,7 @@
             For information and conditions for the inclusion of your data in the NORMAN Database System, see NORMAN Database System Data Policy.
           </p>
           <p class="text-gray-700 leading-relaxed mb-4">
-            To include data into the NORMAN Database, DATA COLLECTION TEMPLATES (DCT) in Excel were developed for each matrix. These DCTs can be downloaded at 
+            To include data into the NORMAN Database System, DATA COLLECTION TEMPLATES (DCT) in Excel were developed for each matrix. These DCTs can be downloaded at 
             <a href="{{ route('empodat.templates', ['code' => 'empodat']) }}" class="link-lime-text">
               Download DCT Templates
             </a>.
@@ -60,12 +60,12 @@
           
           <!-- Contact Information -->
           <p class="text-gray-700 leading-relaxed mb-4">
-            The completed DCTs should be sent to the NORMAN Database development team: 
+            The completed DCTs should be sent to the NORMAN Database System development team: 
             <a href="mailto:norman@ei.sk" class="link-lime-text">norman@ei.sk</a> with a copy to 
             <a href="mailto:oswaldova@ei.sk" class="link-lime-text">oswaldova@ei.sk</a>, for further processing and upload to the web-database.
           </p>
           <p class="text-gray-700 leading-relaxed">
-            Large datasets, available in other than Excel format, can be uploaded as well, after communication with the NORMAN Database Development team – to check the structure of data, availability of obligatory information, and to agree on the optimal way of the data transfer.
+            Large datasets, available in other than Excel format, can be uploaded as well, after communication with the NORMAN Database System Development team – to check the structure of data, availability of obligatory information, and to agree on the optimal way of the data transfer.
           </p>
         </div>
         

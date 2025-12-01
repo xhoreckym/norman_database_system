@@ -149,7 +149,7 @@ class PassiveSamplingMain extends Model
      */
     public function country()
     {
-        return $this->belongsTo(PassiveDataCountry::class, 'country_id', 'id');
+        return $this->belongsTo(PassiveDataCountry::class, 'country_id', 'abbreviation');
     }
 
     /**
@@ -210,7 +210,15 @@ class PassiveSamplingMain extends Model
      */
     public function organisation()
     {
-        return $this->belongsTo(\App\Models\List\DataSourceOrganisation::class, 'org_id', 'id');
+        return $this->belongsTo(PassiveDataSource::class, 'org_id', 'id');
+    }
+
+    /**
+     * Get the analytical method record associated with the passive sampling record.
+     */
+    public function analyticalMethod()
+    {
+        return $this->belongsTo(PassiveAnalyticalMethod::class, 'am_id', 'id');
     }
 
     /**

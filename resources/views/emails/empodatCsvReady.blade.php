@@ -71,7 +71,7 @@
     <!-- Footer / Signature -->
     <p style="margin-bottom: 0; border-top: 1px solid #eee; padding-top: 20px;">
       Thank you,<br>
-      <strong>NORMAN Database Team</strong>
+      <strong>NORMAN Database System Team</strong>
     </p>
   </div>
 </body>

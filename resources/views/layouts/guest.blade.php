@@ -27,7 +27,7 @@
                     <img src="{{ asset('images/norman-logo.png') }}" alt="logo" class="block h-20 w-auto fill-current text-gray-800 d-flex justify-content-center">
                 </a>    
             </div>
-            <span class="text-gray-900 font-bold text-3xl">Norman Database System</span>
+            <span class="text-gray-900 font-bold text-3xl">NORMAN Database System</span>
             <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
                 {{ $slot }}
             </div>

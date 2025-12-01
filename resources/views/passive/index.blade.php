@@ -140,7 +140,7 @@
                   </td>
                   <td class="p-1 text-center">
                     @if ($e->org_id)
-                      {{ $e->organisation->name ?? 'Org ID: ' . $e->org_id }}
+                      {{ $e->organisation->org_name ?? 'Org ID: ' . $e->org_id }}
                     @else
                       <span class="text-gray-400">N/A</span>
                     @endif

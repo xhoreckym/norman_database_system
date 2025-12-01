@@ -52,6 +52,7 @@ class PassiveController extends Controller
             'matrix',
             'substance',
             'organisation',
+            'analyticalMethod',
         ])->findOrFail($search);
 
         return view('passive.show', compact('passive', 'request'));
@@ -419,7 +420,7 @@ class PassiveController extends Controller
             $record->substance->name ?? 'N/A',
             $record->country->name ?? 'N/A',
             $record->matrix ? $record->matrix->name : ($record->matrix_other ?? 'N/A'),
-            $record->organisation->name ?? 'N/A',
+            $record->organisation->org_name ?? 'N/A',
             $record->station_name ?? 'N/A',
             $record->sample_code ?? 'N/A',
             $record->date_sampling_start_year ? 

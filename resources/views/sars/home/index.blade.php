@@ -21,7 +21,7 @@
             This voluntary initiative - developed as an opportunity for researchers to contribute to international efforts to tackle the Covid19 pandemic - is open to all and self-funded (i.e. at laboratories own cost).
           </p>
           <p class="text-gray-700 leading-relaxed mb-4">
-            Results submitted using the reporting template will be stored within the NORMAN database system (open access).
+            Results submitted using the reporting template will be stored within the NORMAN Database System (open access).
           </p>
           <p class="text-gray-700 leading-relaxed mb-4">
             The SC2S database is designed to allow:
