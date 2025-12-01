@@ -70,7 +70,6 @@ class EmpodatController extends Controller
     {
         //
     }
-    
 
     /**
      * Display the specified resource.
@@ -842,7 +841,17 @@ class EmpodatController extends Controller
         $empodatsCount = $this->getDatabaseEntityCount($databaseKey);
         $now = now();
         $bindings = $query->getBindings();
-        $sql = vsprintf(str_replace('?', "'%s'", $query->toSql()), $bindings);
+
+        // Convert boolean values to PostgreSQL-compatible strings before interpolation
+        $formattedBindings = array_map(function ($binding) {
+            if (is_bool($binding)) {
+                return $binding ? 'true' : 'false';
+            }
+
+            return $binding;
+        }, $bindings);
+
+        $sql = vsprintf(str_replace('?', "'%s'", $query->toSql()), $formattedBindings);
         $queryHash = hash('sha256', $sql);
 
         // Check for existing query with same hash
