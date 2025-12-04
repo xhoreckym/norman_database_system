@@ -9,6 +9,7 @@ use App\Models\Backend\QueryLog;
 use App\Models\DatabaseEntity;
 use App\Models\Empodat\SearchCountries;
 use App\Models\Empodat\SearchMatrix;
+use App\Models\EmpodatSuspect\EmpodatSuspectDataSource;
 use App\Models\EmpodatSuspect\EmpodatSuspectMain;
 use App\Models\List\AnalyticalMethod;
 use App\Models\List\ConcentrationIndicator;
@@ -608,6 +609,17 @@ class EmpodatSuspectController extends Controller
             'file',
         ])->findOrFail($id);
 
+        // Get data source information via file_id
+        $dataSource = null;
+        if ($record->file_id) {
+            $dataSource = EmpodatSuspectDataSource::with([
+                'sourceData',
+                'monitoringType',
+                'organisation.country',
+                'laboratory.country',
+            ])->where('file_id', $record->file_id)->first();
+        }
+
         // Get matrix metadata from pre-computed MVs
         // NOTE: We pick only the FIRST matching record per matrix type
         // because one station can have many empodat_main records
@@ -646,6 +658,7 @@ class EmpodatSuspectController extends Controller
         return view('empodat_suspect.show', [
             'record' => $record,
             'matrixMetadata' => $matrixMetadata,
+            'dataSource' => $dataSource,
         ]);
     }
 

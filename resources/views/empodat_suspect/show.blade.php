@@ -248,6 +248,56 @@
                 @endif
               @endif
 
+              {{-- Add data source information --}}
+              @if ($dataSource)
+                <tr class="bg-amber-600 text-white">
+                  <td colspan="2" class="p-2 font-bold text-center">Data Source</td>
+                </tr>
+                @if ($dataSource->sourceData)
+                  <tr class="bg-amber-50">
+                    <td class="p-1 font-bold text-amber-900" style="width: 20%; min-width: 120px;">Type of Data Source</td>
+                    <td class="p-1 text-amber-800" style="width: 80%;">{{ $dataSource->sourceData->name }}</td>
+                  </tr>
+                @endif
+                @if ($dataSource->monitoringType)
+                  <tr class="bg-amber-100">
+                    <td class="p-1 font-bold text-amber-900" style="width: 20%; min-width: 120px;">Type of Monitoring</td>
+                    <td class="p-1 text-amber-800" style="width: 80%;">{{ $dataSource->monitoringType->name }}</td>
+                  </tr>
+                @endif
+                @if ($dataSource->organisation)
+                  <tr class="bg-amber-50">
+                    <td class="p-1 font-bold text-amber-900" style="width: 20%; min-width: 120px;">Organisation</td>
+                    <td class="p-1 text-amber-800" style="width: 80%;">
+                      {{ $dataSource->organisation->name }}
+                      @if ($dataSource->organisation->acronym)
+                        ({{ $dataSource->organisation->acronym }})
+                      @endif
+                      @if ($dataSource->organisation->city)
+                        , {{ $dataSource->organisation->city }}
+                      @endif
+                      @if ($dataSource->organisation->country)
+                        , {{ $dataSource->organisation->country->name }}
+                      @endif
+                    </td>
+                  </tr>
+                @endif
+                @if ($dataSource->laboratory)
+                  <tr class="bg-amber-100">
+                    <td class="p-1 font-bold text-amber-900" style="width: 20%; min-width: 120px;">Laboratory</td>
+                    <td class="p-1 text-amber-800" style="width: 80%;">
+                      {{ $dataSource->laboratory->name }}
+                      @if ($dataSource->laboratory->city)
+                        , {{ $dataSource->laboratory->city }}
+                      @endif
+                      @if ($dataSource->laboratory->country)
+                        , {{ $dataSource->laboratory->country->name }}
+                      @endif
+                    </td>
+                  </tr>
+                @endif
+              @endif
+
               {{-- Add matrix metadata --}}
               @if (!empty($matrixMetadata))
                 @foreach ($matrixMetadata as $matrixType => $matrixData)
