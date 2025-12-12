@@ -204,7 +204,7 @@ class PassiveDisplayConfigSeeder extends Seeder
                 'display_order' => 60,
                 'columns' => [
                     ['column_name' => 'name', 'display_label' => 'NORMAN Substance Name', 'is_glance' => true],
-                    ['column_name' => 'code', 'display_label' => 'NORMAN Substance ID', 'css_class' => 'font-mono', 'link_route' => 'substances.show', 'link_param' => 'id'],
+                    ['column_name' => 'code', 'display_label' => 'NORMAN Substance ID', 'css_class' => 'font-mono', 'link_route' => 'substances.show', 'link_param' => 'substance'],
                     ['column_name' => 'stdinchikey', 'display_label' => 'StdInChIKey', 'css_class' => 'font-mono'],
                     ['column_name' => 'cas_number', 'display_label' => 'CAS No.', 'css_class' => 'font-mono'],
                 ],

@@ -27,252 +27,147 @@
           <div class="mb-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Passive Sampling Record at Glance</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              @if ($passive->id)
-                <div>
-                  <h3 class="text-sm font-medium text-gray-800 mb-1">Record ID</h3>
-                  <p class="text-sm text-teal-800 font-mono">{{ $passive->id }}</p>
-                </div>
-              @endif
-              @if ($passive->substance)
-                <div>
-                  <h3 class="text-sm font-medium text-gray-800 mb-1">Substance</h3>
-                  <p class="text-sm text-teal-800 font-mono">{{ $passive->substance->name }}</p>
-                </div>
-              @endif
-              @if ($passive->concentration_value)
-                <div>
-                  <h3 class="text-sm font-medium text-gray-800 mb-1">Concentration</h3>
-                  <p class="text-sm text-teal-800 font-mono">{{ number_format($passive->concentration_value, 4) }} {{ $passive->unit }}</p>
-                </div>
-              @endif
-              @if ($passive->matrix)
-                <div>
-                  <h3 class="text-sm font-medium text-gray-800 mb-1">Matrix</h3>
-                  <p class="text-sm text-teal-800 font-mono">{{ $passive->matrix->name }}</p>
-                </div>
-              @elseif ($passive->matrix_other)
-                <div>
-                  <h3 class="text-sm font-medium text-gray-800 mb-1">Matrix</h3>
-                  <p class="text-sm text-teal-800 font-mono">{{ $passive->matrix_other }}</p>
-                </div>
-              @endif
-              @if ($passive->country)
-                <div>
-                  <h3 class="text-sm font-medium text-gray-800 mb-1">Country</h3>
-                  <p class="text-sm text-teal-800 font-mono">{{ $passive->country->name }}</p>
-                </div>
-              @endif
-              @if ($passive->sampling_start_date)
-                <div>
-                  <h3 class="text-sm font-medium text-gray-800 mb-1">Sampling Date</h3>
-                  <p class="text-sm text-teal-800 font-mono">{{ $passive->sampling_start_date }}</p>
-                </div>
-              @endif
-              @if ($passive->station_name)
-                <div>
-                  <h3 class="text-sm font-medium text-gray-800 mb-1">Station Name</h3>
-                  <p class="text-sm text-teal-800 font-mono">{{ $passive->station_name }}</p>
-                </div>
-              @endif
-              @if ($passive->organisation)
-                <div>
-                  <h3 class="text-sm font-medium text-gray-800 mb-1">Organisation</h3>
-                  <p class="text-sm text-teal-800 font-mono">{{ $passive->organisation->org_name }}</p>
-                </div>
-              @endif
+              @foreach ($glanceColumns as $column)
+                @php
+                  $section = $column->section;
+                  $relationship = $section->relationship;
+                  $source = $relationship ? $passive->{$relationship} : $passive;
+                  $value = $source?->{$column->column_name};
+                @endphp
+
+                @if (!is_null($value) && $value !== '')
+                  <div>
+                    <h3 class="text-sm font-medium text-gray-800 mb-1">{{ $column->effective_label }}</h3>
+                    <p class="text-sm text-teal-800 {{ $column->css_class }}">
+                      @if ($column->format_type === 'number' && is_numeric($value))
+                        {{ number_format((float) $value, $column->format_options['decimals'] ?? 2, '.', ' ') }}
+                      @elseif ($column->format_type === 'date' && $value)
+                        {{ $value instanceof \DateTimeInterface ? $value->format('d.m.Y') : $value }}
+                      @else
+                        {{ $value }}
+                      @endif
+                    </p>
+                  </div>
+                @endif
+              @endforeach
             </div>
           </div>
 
-          {{-- Complete Record Details --}}
+          {{-- Full Record Details --}}
           <div class="w-full overflow-x-auto">
             <table class="table-auto w-full border-separate border-spacing-1 text-xs mt-4" style="table-layout: fixed;">
-              @php
-                $rowIndex = 0;
-                $excludedKeys = ['country', 'matrix', 'substance', 'organisation', 'analytical_method', 'created_at', 'updated_at'];
-              @endphp
 
-              @foreach ($passive->toArray() as $key => $value)
-                {{-- Skip relationships and system fields --}}
-                @if (in_array($key, $excludedKeys))
-                  @continue
-                @endif
+              @foreach ($sections as $section)
+                @php
+                  $relationship = $section->relationship;
+                  $source = $relationship ? $passive->{$relationship} : $passive;
 
-                {{-- Skip ID fields except the main record ID --}}
-                @if (str_ends_with($key, '_id') && $key !== 'id')
-                  @continue
-                @endif
+                  // Skip section if relationship is null (no related data)
+                  if ($relationship && !$source) {
+                      continue;
+                  }
 
-                {{-- Skip null values and empty arrays --}}
-                @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && trim($value) === ''))
-                  @continue
-                @endif
+                  // Filter columns that have non-null values
+                  $visibleColumns = $section->columns->filter(function ($column) use ($source) {
+                      $value = $source?->{$column->column_name};
+                      return !is_null($value) && $value !== '' && (!is_array($value) || !empty($value));
+                  });
 
-                <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
-                  <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
-                  <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">
-                    @if (is_array($value))
-                      {{ json_encode($value) }}
-                    @else
-                      {{ $value }}
-                    @endif
-                  </td>
-                </tr>
-                @php $rowIndex++; @endphp
+                  // Skip section if no columns have values
+                  if ($visibleColumns->isEmpty()) {
+                      continue;
+                  }
+
+                  $headerBgClass = $section->effective_header_bg_class;
+                  $headerTextClass = $section->effective_header_text_class;
+                  $rowEvenClass = $section->effective_row_even_class;
+                  $rowOddClass = $section->effective_row_odd_class;
+                @endphp
+
+                {{-- Section Header --}}
+                <tbody>
+                  <tr class="{{ $headerBgClass }} {{ $headerTextClass }}">
+                    <td colspan="2" class="p-2 font-bold text-center">
+                      {{ $section->effective_name }}
+                      @if ($section->is_collapsible)
+                        <button type="button" class="ml-2 text-sm" onclick="toggleSection('section-{{ $section->id }}')">
+                          <i class="fas fa-chevron-down"></i>
+                        </button>
+                      @endif
+                    </td>
+                  </tr>
+                </tbody>
+
+                {{-- Section Content --}}
+                <tbody id="section-{{ $section->id }}" @if ($section->is_collapsed_default) style="display: none;" @endif>
+                  @php $rowIndex = 0; @endphp
+
+                  {{-- Special handling for location section with map --}}
+                  @if ($section->code === 'location' && $passive->latitude_decimal && $passive->longitude_decimal)
+                    <tr class="bg-emerald-100">
+                      <td class="p-1 font-bold" style="width: 20%; min-width: 120px;">Coordinates</td>
+                      <td class="p-1" style="width: 80%;">
+                        <a href="https://www.google.com/maps?q={{ $passive->latitude_decimal }},{{ $passive->longitude_decimal }}"
+                           target="_blank"
+                           class="text-teal-700 hover:text-teal-900 hover:underline">
+                          {{ $passive->latitude_decimal }}, {{ $passive->longitude_decimal }}
+                          <i class="fas fa-external-link-alt text-xs ml-1"></i>
+                        </a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" class="p-0">
+                        <div id="station-map" class="w-full h-64 rounded-b-lg border border-gray-300"></div>
+                      </td>
+                    </tr>
+                    @php $rowIndex = 2; @endphp
+                  @endif
+
+                  @foreach ($visibleColumns as $column)
+                    @php
+                      $value = $source?->{$column->column_name};
+
+                      // Skip coordinates if already shown with map
+                      if ($section->code === 'location' && in_array($column->column_name, ['latitude_decimal', 'longitude_decimal'])) {
+                          continue;
+                      }
+                    @endphp
+
+                    <tr class="{{ $rowIndex % 2 === 0 ? $rowEvenClass : $rowOddClass }}">
+                      <td class="p-1 font-bold {{ $section->effective_row_text_class }}" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">
+                        {{ $column->effective_label }}
+                      </td>
+                      <td class="p-1 {{ $section->effective_row_text_class }} {{ $column->css_class }}" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">
+                        @if ($column->link_route && $source?->id)
+                          <a href="{{ route($column->link_route, [$column->link_param => $source->id]) }}"
+                             target="_blank"
+                             class="text-teal-700 hover:text-teal-900 hover:underline">
+                            @if ($column->column_name === 'code')
+                              NS{{ $value }}
+                            @else
+                              {{ $value }}
+                            @endif
+                            <i class="fas fa-external-link-alt text-xs ml-1"></i>
+                          </a>
+                        @elseif ($column->format_type === 'number' && is_numeric($value))
+                          {{ number_format((float) $value, $column->format_options['decimals'] ?? 2, '.', ' ') }}
+                        @elseif ($column->format_type === 'date' && $value)
+                          {{ $value instanceof \DateTimeInterface ? $value->format('d.m.Y') : $value }}
+                        @elseif ($column->format_type === 'datetime' && $value)
+                          {{ $value instanceof \DateTimeInterface ? $value->format('d.m.Y H:i:s') : $value }}
+                        @elseif ($column->format_type === 'boolean')
+                          {{ $value ? ($column->format_options['true_label'] ?? 'Yes') : ($column->format_options['false_label'] ?? 'No') }}
+                        @elseif (is_array($value))
+                          {{ json_encode($value) }}
+                        @else
+                          {{ $value }}
+                        @endif
+                      </td>
+                    </tr>
+                    @php $rowIndex++; @endphp
+                  @endforeach
+                </tbody>
               @endforeach
-
-              {{-- Location/Station Information --}}
-              @if ($passive->latitude_decimal && $passive->longitude_decimal)
-                <tr class="bg-gray-300">
-                  <td colspan="2" class="p-2 font-bold text-center">Location Information</td>
-                </tr>
-
-                <tr class="bg-emerald-100">
-                  <td class="p-1 font-bold" style="width: 20%; min-width: 120px;">Coordinates</td>
-                  <td class="p-1" style="width: 80%;">
-                    <a href="https://www.google.com/maps?q={{ $passive->latitude_decimal }},{{ $passive->longitude_decimal }}"
-                       target="_blank"
-                       class="text-teal-700 hover:text-teal-900 hover:underline">
-                      {{ $passive->latitude_decimal }}, {{ $passive->longitude_decimal }}
-                      <i class="fas fa-external-link-alt text-xs ml-1"></i>
-                    </a>
-                  </td>
-                </tr>
-                <tr>
-                  <td colspan="2" class="p-0">
-                    <div id="station-map" class="w-full h-64 rounded-b-lg border border-gray-300"></div>
-                  </td>
-                </tr>
-              @endif
-
-              {{-- Substance Information --}}
-              @if ($passive->substance)
-                <tr class="bg-teal-600 text-white">
-                  <td colspan="2" class="p-2 font-bold text-center">Substance</td>
-                </tr>
-                <tr class="bg-teal-50">
-                  <td class="p-1 font-bold text-teal-900" style="width: 20%;">Name</td>
-                  <td class="p-1 text-teal-800" style="width: 80%;">{{ $passive->substance->name }}</td>
-                </tr>
-                <tr class="bg-teal-100">
-                  <td class="p-1 font-bold text-teal-900" style="width: 20%;">NORMAN SusDat ID</td>
-                  <td class="p-1 text-teal-800" style="width: 80%;">
-                    <a href="{{ route('substances.show', $passive->substance->id) }}"
-                       target="_blank"
-                       class="text-teal-700 hover:text-teal-900 hover:underline font-mono">
-                      NS{{ $passive->substance->code }}
-                      <i class="fas fa-external-link-alt text-xs ml-1"></i>
-                    </a>
-                  </td>
-                </tr>
-              @endif
-
-              {{-- Matrix Information --}}
-              @if ($passive->matrix)
-                <tr class="bg-teal-600 text-white">
-                  <td colspan="2" class="p-2 font-bold text-center">Matrix</td>
-                </tr>
-                @php $rowIndex = 0; @endphp
-                @foreach ($passive->matrix->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
-                    @continue
-                  @endif
-                  @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && $value === ''))
-                    @continue
-                  @endif
-                  <tr class="@if ($rowIndex % 2 === 0) bg-teal-50 @else bg-teal-100 @endif">
-                    <td class="p-1 font-bold text-teal-900" style="width: 20%;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
-                    <td class="p-1 text-teal-800" style="width: 80%;">
-                      @if (is_array($value))
-                        {{ json_encode($value) }}
-                      @else
-                        {{ $value }}
-                      @endif
-                    </td>
-                  </tr>
-                  @php $rowIndex++; @endphp
-                @endforeach
-              @endif
-
-              {{-- Country Information --}}
-              @if ($passive->country)
-                <tr class="bg-gray-300">
-                  <td colspan="2" class="p-2 font-bold text-center">Country</td>
-                </tr>
-                @php $rowIndex = 0; @endphp
-                @foreach ($passive->country->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
-                    @continue
-                  @endif
-                  @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && $value === ''))
-                    @continue
-                  @endif
-                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
-                    <td class="p-1 font-bold" style="width: 20%;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
-                    <td class="p-1" style="width: 80%;">
-                      @if (is_array($value))
-                        {{ json_encode($value) }}
-                      @else
-                        {{ $value }}
-                      @endif
-                    </td>
-                  </tr>
-                  @php $rowIndex++; @endphp
-                @endforeach
-              @endif
-
-              {{-- Organisation Information --}}
-              @if ($passive->organisation)
-                <tr class="bg-gray-300">
-                  <td colspan="2" class="p-2 font-bold text-center">Organisation</td>
-                </tr>
-                @php $rowIndex = 0; @endphp
-                @foreach ($passive->organisation->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
-                    @continue
-                  @endif
-                  @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && trim($value) === ''))
-                    @continue
-                  @endif
-                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
-                    <td class="p-1 font-bold" style="width: 20%;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
-                    <td class="p-1" style="width: 80%;">
-                      @if (is_array($value))
-                        {{ json_encode($value) }}
-                      @else
-                        {{ $value }}
-                      @endif
-                    </td>
-                  </tr>
-                  @php $rowIndex++; @endphp
-                @endforeach
-              @endif
-
-              {{-- Analytical Method Information --}}
-              @if ($passive->analyticalMethod)
-                <tr class="bg-amber-600 text-white">
-                  <td colspan="2" class="p-2 font-bold text-center">Analytical Method</td>
-                </tr>
-                @php $rowIndex = 0; @endphp
-                @foreach ($passive->analyticalMethod->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
-                    @continue
-                  @endif
-                  @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && trim($value) === ''))
-                    @continue
-                  @endif
-                  <tr class="@if ($rowIndex % 2 === 0) bg-amber-50 @else bg-amber-100 @endif">
-                    <td class="p-1 font-bold text-amber-900" style="width: 20%;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
-                    <td class="p-1 text-amber-800" style="width: 80%;">
-                      @if (is_array($value))
-                        {{ json_encode($value) }}
-                      @else
-                        {{ $value }}
-                      @endif
-                    </td>
-                  </tr>
-                  @php $rowIndex++; @endphp
-                @endforeach
-              @endif
 
             </table>
           </div>
@@ -280,6 +175,18 @@
       </div>
     </div>
   </div>
+
+  {{-- Collapsible section toggle script --}}
+  <script>
+    function toggleSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      if (section.style.display === 'none') {
+        section.style.display = '';
+      } else {
+        section.style.display = 'none';
+      }
+    }
+  </script>
 
   {{-- Initialize Leaflet map if coordinates are available --}}
   @if ($passive->latitude_decimal && $passive->longitude_decimal)
