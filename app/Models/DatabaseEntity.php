@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Backend\DisplaySection;
+use App\Models\Backend\File;
+use App\Models\Backend\Template;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Backend\Template;
-use App\Models\Backend\File;
 
 class DatabaseEntity extends Model
 {
@@ -86,6 +87,14 @@ class DatabaseEntity extends Model
     public function children()
     {
         return $this->hasMany(DatabaseEntity::class, 'parent_id');
+    }
+
+    /**
+     * Get the display sections for this database entity.
+     */
+    public function displaySections(): HasMany
+    {
+        return $this->hasMany(DisplaySection::class, 'database_entity_id');
     }
 
     /**

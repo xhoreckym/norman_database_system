@@ -5,6 +5,8 @@ use App\Http\Controllers\ARBG\BacteriaController;
 use App\Http\Controllers\ARBG\BacteriaStatisticsController;
 use App\Http\Controllers\ARBG\GeneController;
 use App\Http\Controllers\ARBG\GeneStatisticsController;
+use App\Http\Controllers\Backend\Display\DisplayColumnController;
+use App\Http\Controllers\Backend\Display\DisplaySectionController;
 use App\Http\Controllers\Backend\FileController;
 use App\Http\Controllers\Backend\GeneralController;
 use App\Http\Controllers\Backend\NotificationController;
@@ -142,6 +144,24 @@ Route::prefix('backend')->middleware('auth')->group(function () {
         Route::get('{station}/edit', [StationController::class, 'edit'])->name('backend.empodat.stations.edit');
         Route::put('{station}', [StationController::class, 'update'])->name('backend.empodat.stations.update');
         Route::delete('{station}', [StationController::class, 'destroy'])->name('backend.empodat.stations.destroy');
+    });
+
+    // Display Configuration Management (super_admin and admin only)
+    Route::prefix('display')->middleware('role:super_admin|admin')->group(function () {
+        // Module overview
+        Route::get('/', [DisplaySectionController::class, 'index'])->name('backend.display.index');
+
+        // Sections for a module
+        Route::get('{module}/sections', [DisplaySectionController::class, 'sections'])->name('backend.display.sections');
+        Route::get('sections/{section}/edit', [DisplaySectionController::class, 'edit'])->name('backend.display.sections.edit');
+        Route::put('sections/{section}', [DisplaySectionController::class, 'update'])->name('backend.display.sections.update');
+        Route::post('{module}/sections/reorder', [DisplaySectionController::class, 'reorder'])->name('backend.display.sections.reorder');
+
+        // Columns for a section
+        Route::get('sections/{section}/columns', [DisplayColumnController::class, 'index'])->name('backend.display.columns.index');
+        Route::get('columns/{column}/edit', [DisplayColumnController::class, 'edit'])->name('backend.display.columns.edit');
+        Route::put('columns/{column}', [DisplayColumnController::class, 'update'])->name('backend.display.columns.update');
+        Route::post('sections/{section}/columns/reorder', [DisplayColumnController::class, 'reorder'])->name('backend.display.columns.reorder');
     });
 });
 
