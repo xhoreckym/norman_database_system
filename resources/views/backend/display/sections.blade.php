@@ -32,85 +32,78 @@
           @if($sections->count() > 0)
             <form method="POST" action="{{ route('backend.display.sections.reorder', $entity->code) }}" id="reorder-form">
               @csrf
-              <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                  <thead class="bg-gray-50">
-                    <tr>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10"></th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Section</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Relationship</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Columns</th>
-                      <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Visible</th>
-                      <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Collapsible</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Style Preview</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <table class="w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-2 py-2 w-8"></th>
+                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Section</th>
+                    <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase w-16">Columns</th>
+                    <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase w-14">Visible</th>
+                    <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase w-20">Collapsed</th>
+                    <th class="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase">Style</th>
+                    <th class="px-2 py-2 w-12"></th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="sortable-sections">
+                  @foreach($sections as $section)
+                    <tr data-id="{{ $section->id }}">
+                      <td class="px-2 py-2 cursor-move text-gray-400">
+                        <i class="fas fa-grip-vertical"></i>
+                        <input type="hidden" name="order[]" value="{{ $section->id }}">
+                      </td>
+                      <td class="px-2 py-2">
+                        <div class="font-medium text-gray-900">{{ $section->effective_name }}</div>
+                        <div class="text-xs text-gray-400">
+                          <span class="font-mono">{{ $section->code }}</span>
+                          @if($section->sectionType)
+                            · {{ Str::limit($section->sectionType->default_name, 15) }}
+                          @endif
+                          @if($section->relationship)
+                            · <span class="font-mono">{{ Str::limit($section->relationship, 15) }}</span>
+                          @endif
+                        </div>
+                      </td>
+                      <td class="px-2 py-2 text-center">
+                        <a href="{{ route('backend.display.columns.index', $section->id) }}"
+                           class="text-lime-600 hover:text-lime-800 hover:underline">
+                          {{ $section->columns->count() }} columns
+                        </a>
+                      </td>
+                      <td class="px-2 py-2 text-center">
+                        @if($section->is_visible)
+                          <span class="text-green-600"><i class="fas fa-eye"></i></span>
+                        @else
+                          <span class="text-gray-300"><i class="fas fa-eye-slash"></i></span>
+                        @endif
+                      </td>
+                      <td class="px-2 py-2 text-center">
+                        @if($section->is_collapsible)
+                          @if($section->is_collapsed_default)
+                            <span class="text-amber-500"><i class="fas fa-compress-alt"></i></span>
+                          @else
+                            <span class="text-gray-400"><i class="fas fa-expand-alt"></i></span>
+                          @endif
+                        @else
+                          <span class="text-gray-300">-</span>
+                        @endif
+                      </td>
+                      <td class="px-2 py-2">
+                        <div class="flex items-center gap-1">
+                          <span class="px-1.5 py-0.5 text-xs rounded {{ $section->effective_header_bg_class }} {{ $section->effective_header_text_class }}">Header</span>
+                          <span class="px-1.5 py-0.5 text-xs rounded {{ $section->effective_row_even_class }} {{ $section->effective_row_text_class }}">Even</span>
+                          <span class="px-1.5 py-0.5 text-xs rounded {{ $section->effective_row_odd_class }} {{ $section->effective_row_text_class }}">Odd</span>
+                        </div>
+                      </td>
+                      <td class="px-2 py-2">
+                        <a href="{{ route('backend.display.sections.edit', $section->id) }}"
+                           class="text-slate-600 hover:text-slate-900">
+                          Edit
+                        </a>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody class="bg-white divide-y divide-gray-200" id="sortable-sections">
-                    @foreach($sections as $section)
-                      <tr data-id="{{ $section->id }}">
-                        <td class="px-4 py-4 cursor-move text-gray-400">
-                          <i class="fas fa-grip-vertical"></i>
-                          <input type="hidden" name="order[]" value="{{ $section->id }}">
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap">
-                          <div class="text-sm font-medium text-gray-900">{{ $section->effective_name }}</div>
-                          <div class="text-xs text-gray-500 font-mono">{{ $section->code }}</div>
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {{ $section->sectionType?->default_name ?? 'Custom' }}
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                          {{ $section->relationship ?? '(main record)' }}
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm">
-                          <a href="{{ route('backend.display.columns.index', $section->id) }}"
-                             class="text-teal-600 hover:text-teal-900">
-                            {{ $section->columns->count() }} columns
-                          </a>
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-center">
-                          @if($section->is_visible)
-                            <span class="text-green-600"><i class="fas fa-check"></i></span>
-                          @else
-                            <span class="text-red-600"><i class="fas fa-times"></i></span>
-                          @endif
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-center">
-                          @if($section->is_collapsible)
-                            <span class="text-green-600"><i class="fas fa-check"></i></span>
-                            @if($section->is_collapsed_default)
-                              <span class="text-xs text-gray-500">(collapsed)</span>
-                            @endif
-                          @else
-                            <span class="text-gray-400">-</span>
-                          @endif
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap">
-                          <div class="flex items-center space-x-1">
-                            <span class="px-2 py-1 text-xs rounded {{ $section->effective_header_bg_class }} {{ $section->effective_header_text_class }}">
-                              Header
-                            </span>
-                            <span class="px-2 py-1 text-xs rounded {{ $section->effective_row_even_class }} {{ $section->effective_row_text_class }}">
-                              Even
-                            </span>
-                            <span class="px-2 py-1 text-xs rounded {{ $section->effective_row_odd_class }} {{ $section->effective_row_text_class }}">
-                              Odd
-                            </span>
-                          </div>
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                          <a href="{{ route('backend.display.sections.edit', $section->id) }}"
-                             class="text-slate-600 hover:text-slate-900">
-                            Edit
-                          </a>
-                        </td>
-                      </tr>
-                    @endforeach
-                  </tbody>
-                </table>
-              </div>
+                  @endforeach
+                </tbody>
+              </table>
 
               <div class="mt-4">
                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-slate-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-slate-700">

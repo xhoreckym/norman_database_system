@@ -96,7 +96,7 @@ class DisplaySectionController extends Controller
         $section->update($validated);
 
         return redirect()
-            ->route('backend.display.sections', $section->databaseEntity->code)
+            ->route('backend.display.sections.edit', $section->id)
             ->with('success', 'Section updated successfully.');
     }
 

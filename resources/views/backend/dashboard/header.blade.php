@@ -38,4 +38,10 @@
     Notifications
   </x-nav-link-header>
   @endrole
+
+  @role('super_admin|admin')
+  <x-nav-link-header :href="route('backend.display.index')" :active="request()->routeIs('backend.display.*')">
+    Display Config
+  </x-nav-link-header>
+  @endrole
 </div>

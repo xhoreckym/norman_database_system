@@ -34,6 +34,11 @@ class DisplayColumnController extends Controller
     {
         $column->load(['section.databaseEntity', 'section.sectionType']);
 
+        // Get all sections from the same module for reassignment
+        $sections = DisplaySection::where('database_entity_id', $column->section->database_entity_id)
+            ->orderBy('display_order')
+            ->get();
+
         $formatTypes = [
             'text' => 'Text (default)',
             'number' => 'Number',
@@ -45,7 +50,7 @@ class DisplayColumnController extends Controller
             'link' => 'Link',
         ];
 
-        return view('backend.display.column-edit', compact('column', 'formatTypes'));
+        return view('backend.display.column-edit', compact('column', 'formatTypes', 'sections'));
     }
 
     /**
@@ -54,6 +59,7 @@ class DisplayColumnController extends Controller
     public function update(Request $request, DisplayColumn $column): RedirectResponse
     {
         $validated = $request->validate([
+            'display_section_id' => 'required|exists:display_sections,id',
             'display_label' => 'nullable|string|max:500',
             'display_order' => 'required|integer|min:0',
             'is_visible' => 'boolean',
@@ -87,7 +93,7 @@ class DisplayColumnController extends Controller
         $column->update($validated);
 
         return redirect()
-            ->route('backend.display.columns.index', $column->display_section_id)
+            ->route('backend.display.columns.edit', $column->id)
             ->with('success', 'Column updated successfully.');
     }
 
