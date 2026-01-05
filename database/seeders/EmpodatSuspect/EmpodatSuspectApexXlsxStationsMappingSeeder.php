@@ -22,10 +22,11 @@ class EmpodatSuspectApexXlsxStationsMappingSeeder extends Seeder
         // DB::table($target_table_name)->truncate();
 
         $now = Carbon::now();
-        $path = base_path() . '/database/seeders/seeds/empodat_suspect/apex_data_headers.csv';
+        $path = base_path().'/database/seeders/seeds/empodat_suspect/apex_data_headers.csv';
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             $this->command->error("CSV file not found: {$path}");
+
             return;
         }
 
@@ -35,7 +36,7 @@ class EmpodatSuspectApexXlsxStationsMappingSeeder extends Seeder
         $p = [];
         $rowCount = 0;
 
-        foreach($rows as $r) {
+        foreach ($rows as $r) {
             // Get the first (and only) column value
             $xlsxName = reset($r);
 
@@ -59,14 +60,15 @@ class EmpodatSuspectApexXlsxStationsMappingSeeder extends Seeder
 
             if ($exists) {
                 $this->command->info("Skipping duplicate: {$cleanedValue}");
+
                 continue;
             }
 
             $p[] = [
-                'xlsx_name'   => $cleanedValue,
-                'file_id'     => 10007,
-                'created_at'  => $now,
-                'updated_at'  => $now,
+                'xlsx_name' => $cleanedValue,
+                'file_id' => 10007,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
             $rowCount++;
         }
@@ -77,12 +79,13 @@ class EmpodatSuspectApexXlsxStationsMappingSeeder extends Seeder
         $count = ceil(count($p) / $chunkSize);
 
         if (empty($p)) {
-            $this->command->warn("No new records to insert. All stations already exist.");
+            $this->command->warn('No new records to insert. All stations already exist.');
+
             return;
         }
 
-        foreach($chunks as $c){
-            $this->command->info("Processing chunk " . ($k + 1) . "/{$count}");
+        foreach ($chunks as $c) {
+            $this->command->info('Processing chunk '.($k + 1)."/{$count}");
             DB::table($target_table_name)->insert($c);
             $k++;
         }
@@ -93,7 +96,7 @@ class EmpodatSuspectApexXlsxStationsMappingSeeder extends Seeder
     /**
      * Clean and trim the value, return null if empty
      *
-     * @param mixed $value
+     * @param  mixed  $value
      * @return string|null
      */
     protected function cleanValue($value)

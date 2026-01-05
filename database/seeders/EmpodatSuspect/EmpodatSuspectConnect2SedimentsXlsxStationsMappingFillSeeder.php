@@ -94,7 +94,7 @@ WHERE m.id = subquery.mapping_id;
         $affectedRows2 = DB::update($updateQuery2);
         $this->command->info("Successfully updated {$affectedRows2} DnieperII rows.");
 
-        $this->command->info("Total updated: " . ($affectedRows1 + $affectedRows2) . " rows.");
+        $this->command->info('Total updated: '.($affectedRows1 + $affectedRows2).' rows.');
     }
 }
 // php artisan db:seed --class=Database\\Seeders\\EmpodatSuspect\\EmpodatSuspectConnect2SedimentsXlsxStationsMappingFillSeeder

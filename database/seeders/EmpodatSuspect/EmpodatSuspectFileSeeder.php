@@ -2,10 +2,10 @@
 
 namespace Database\Seeders\EmpodatSuspect;
 
-use Carbon\Carbon;
 use App\Models\Backend\File;
-use Illuminate\Database\Seeder;
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
 
 class EmpodatSuspectFileSeeder extends Seeder
 {

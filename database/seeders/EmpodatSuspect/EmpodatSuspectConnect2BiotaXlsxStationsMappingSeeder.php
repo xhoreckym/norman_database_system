@@ -22,10 +22,11 @@ class EmpodatSuspectConnect2BiotaXlsxStationsMappingSeeder extends Seeder
         // DB::table($target_table_name)->truncate();
 
         $now = Carbon::now();
-        $path = base_path() . '/database/seeders/seeds/empodat_suspect/headers_OK_CONNECT 2_suspect screening results_ng g wet weight_1192 - BIOTA.csv';
+        $path = base_path().'/database/seeders/seeds/empodat_suspect/headers_OK_CONNECT 2_suspect screening results_ng g wet weight_1192 - BIOTA.csv';
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             $this->command->error("CSV file not found: {$path}");
+
             return;
         }
 
@@ -35,7 +36,7 @@ class EmpodatSuspectConnect2BiotaXlsxStationsMappingSeeder extends Seeder
         $p = [];
         $rowCount = 0;
 
-        foreach($rows as $r) {
+        foreach ($rows as $r) {
             // Get the first (and only) column value
             $xlsxName = reset($r);
 
@@ -59,20 +60,22 @@ class EmpodatSuspectConnect2BiotaXlsxStationsMappingSeeder extends Seeder
 
             if ($exists) {
                 $this->command->info("Skipping duplicate: {$cleanedValue}");
+
                 continue;
             }
 
             $p[] = [
-                'xlsx_name'   => $cleanedValue,
-                'file_id'     => 10004,
-                'created_at'  => $now,
-                'updated_at'  => $now,
+                'xlsx_name' => $cleanedValue,
+                'file_id' => 10004,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
             $rowCount++;
         }
 
         if (empty($p)) {
-            $this->command->warn("No new records to insert. All stations already exist.");
+            $this->command->warn('No new records to insert. All stations already exist.');
+
             return;
         }
 
@@ -81,8 +84,8 @@ class EmpodatSuspectConnect2BiotaXlsxStationsMappingSeeder extends Seeder
         $k = 0;
         $count = ceil(count($p) / $chunkSize);
 
-        foreach($chunks as $c){
-            $this->command->info("Processing chunk " . ($k + 1) . "/{$count}");
+        foreach ($chunks as $c) {
+            $this->command->info('Processing chunk '.($k + 1)."/{$count}");
             DB::table($target_table_name)->insert($c);
             $k++;
         }
@@ -93,7 +96,7 @@ class EmpodatSuspectConnect2BiotaXlsxStationsMappingSeeder extends Seeder
     /**
      * Clean and trim the value, return null if empty
      *
-     * @param mixed $value
+     * @param  mixed  $value
      * @return string|null
      */
     protected function cleanValue($value)

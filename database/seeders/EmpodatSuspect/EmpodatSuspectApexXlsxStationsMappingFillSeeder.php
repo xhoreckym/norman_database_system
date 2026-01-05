@@ -72,7 +72,7 @@ class EmpodatSuspectApexXlsxStationsMappingFillSeeder extends Seeder
 
         $results = DB::select($investigationQuery);
 
-        $this->command->info(sprintf("Found %d xlsx_name entries to process", count($results)));
+        $this->command->info(sprintf('Found %d xlsx_name entries to process', count($results)));
         $this->command->newLine();
 
         // Display results in a readable format
@@ -81,10 +81,10 @@ class EmpodatSuspectApexXlsxStationsMappingFillSeeder extends Seeder
             $this->command->info("  XLSX Name: {$result->xlsx_name}");
             $this->command->info("  Constructed Pattern: {$result->constructed_pattern}");
             $this->command->info("  Station Count: {$result->station_count}");
-            $this->command->info("  First Station ID: " . ($result->first_station_id ?? 'NULL'));
-            $this->command->info("  All Station IDs: " . ($result->all_station_ids ?? 'NULL'));
-            $this->command->info("  Matching Codes: " . ($result->matching_codes ?? 'NULL'));
-            $this->command->info("  Matching Names: " . ($result->matching_names ?? 'NULL'));
+            $this->command->info('  First Station ID: '.($result->first_station_id ?? 'NULL'));
+            $this->command->info('  All Station IDs: '.($result->all_station_ids ?? 'NULL'));
+            $this->command->info('  Matching Codes: '.($result->matching_codes ?? 'NULL'));
+            $this->command->info('  Matching Names: '.($result->matching_names ?? 'NULL'));
             $this->command->newLine();
         }
 
@@ -145,9 +145,9 @@ WHERE m.id = subquery.mapping_id;
 
         // Summary statistics
         $totalMappings = count($results);
-        $withMatches = collect($results)->filter(fn($r) => $r->station_count > 0)->count();
-        $withoutMatches = collect($results)->filter(fn($r) => $r->station_count == 0)->count();
-        $multipleMatches = collect($results)->filter(fn($r) => $r->station_count > 1)->count();
+        $withMatches = collect($results)->filter(fn ($r) => $r->station_count > 0)->count();
+        $withoutMatches = collect($results)->filter(fn ($r) => $r->station_count == 0)->count();
+        $multipleMatches = collect($results)->filter(fn ($r) => $r->station_count > 1)->count();
 
         $this->command->info("Total xlsx_name entries: {$totalMappings}");
         $this->command->info("Entries with matches: {$withMatches}");
@@ -156,7 +156,7 @@ WHERE m.id = subquery.mapping_id;
 
         if ($withoutMatches > 0) {
             $this->command->newLine();
-            $this->command->warn("Entries without matches:");
+            $this->command->warn('Entries without matches:');
             foreach ($results as $result) {
                 if ($result->station_count == 0) {
                     $this->command->line("  - {$result->xlsx_name} (extracted number: {$result->extracted_number})");

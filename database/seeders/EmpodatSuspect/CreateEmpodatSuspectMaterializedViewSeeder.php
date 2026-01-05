@@ -33,9 +33,9 @@ class CreateEmpodatSuspectMaterializedViewSeeder extends Seeder
             $this->command->info('✓ Empodat Suspect Materialized View is ready!');
 
         } catch (\Exception $e) {
-            $this->command->error('✗ Failed to create/refresh materialized view: ' . $e->getMessage());
-            Log::error('Empodat Suspect MV Seeder failed: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+            $this->command->error('✗ Failed to create/refresh materialized view: '.$e->getMessage());
+            Log::error('Empodat Suspect MV Seeder failed: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
             ]);
             throw $e;
         }
@@ -80,7 +80,7 @@ class CreateEmpodatSuspectMaterializedViewSeeder extends Seeder
 
         // Create the materialized view
         $this->command->info('  → Creating materialized view...');
-        DB::statement("
+        DB::statement('
             CREATE MATERIALIZED VIEW empodat_suspect_station_filters AS
             SELECT DISTINCT
                 -- Primary key: station_id is the core linking field
@@ -127,7 +127,7 @@ class CreateEmpodatSuspectMaterializedViewSeeder extends Seeder
                 em.concentration_indicator_id,
                 em.data_source_id,
                 em.method_id
-        ");
+        ');
 
         // Create indexes
         $this->command->info('  → Creating indexes...');
@@ -184,6 +184,6 @@ class CreateEmpodatSuspectMaterializedViewSeeder extends Seeder
             )
         ');
 
-        $this->command->info('  → ' . (count($indexes) + 2) . ' indexes created!');
+        $this->command->info('  → '.(count($indexes) + 2).' indexes created!');
     }
 }

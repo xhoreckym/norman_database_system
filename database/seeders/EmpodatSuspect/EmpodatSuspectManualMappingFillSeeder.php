@@ -25,7 +25,7 @@ class EmpodatSuspectManualMappingFillSeeder extends Seeder
 
         $csvPath = database_path('seeders/seeds/empodat_suspect/EMPODAT_SUSPECT-mapping-JS-20251115.csv');
 
-        if (!file_exists($csvPath)) {
+        if (! file_exists($csvPath)) {
             $this->command->error("CSV file not found: {$csvPath}");
 
             return;
@@ -101,14 +101,14 @@ class EmpodatSuspectManualMappingFillSeeder extends Seeder
 
         $this->command->info("Successfully updated {$updatedCount} rows.");
 
-        if (!empty($notFoundStations)) {
-            $this->command->warn('Stations not found for short_sample_codes: ' . implode(', ', $notFoundStations));
+        if (! empty($notFoundStations)) {
+            $this->command->warn('Stations not found for short_sample_codes: '.implode(', ', $notFoundStations));
         }
 
-        if (!empty($notFoundMappings)) {
-            $this->command->warn('Mapping records not found for xlsx_names: ' . implode(', ', array_slice($notFoundMappings, 0, 10)));
+        if (! empty($notFoundMappings)) {
+            $this->command->warn('Mapping records not found for xlsx_names: '.implode(', ', array_slice($notFoundMappings, 0, 10)));
             if (count($notFoundMappings) > 10) {
-                $this->command->warn('... and ' . (count($notFoundMappings) - 10) . ' more');
+                $this->command->warn('... and '.(count($notFoundMappings) - 10).' more');
             }
         }
     }

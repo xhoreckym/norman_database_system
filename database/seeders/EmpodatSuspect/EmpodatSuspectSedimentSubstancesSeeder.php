@@ -2,11 +2,10 @@
 
 namespace Database\Seeders\EmpodatSuspect;
 
-use Carbon\Carbon;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Spatie\SimpleExcel\SimpleExcelReader;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class EmpodatSuspectSedimentSubstancesSeeder extends Seeder
 {
@@ -25,10 +24,11 @@ class EmpodatSuspectSedimentSubstancesSeeder extends Seeder
         ini_set('memory_limit', '2G');
         ini_set('max_execution_time', '7200');
 
-        $path = base_path() . '/database/seeders/seeds/empodat_suspect/OK_CONNECT 1_suspect screening results_ng g dry weight_1192 - SEDIMENT.xlsx';
+        $path = base_path().'/database/seeders/seeds/empodat_suspect/OK_CONNECT 1_suspect screening results_ng g dry weight_1192 - SEDIMENT.xlsx';
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             $this->command->error("Excel file not found: {$path}");
+
             return;
         }
 
@@ -56,14 +56,15 @@ class EmpodatSuspectSedimentSubstancesSeeder extends Seeder
                     // Skip if either field is empty
                     if (empty($normanId) || empty($name)) {
                         $skippedRows++;
+
                         continue;
                     }
 
                     // Create unique key
-                    $key = $normanId . '|' . $name;
+                    $key = $normanId.'|'.$name;
 
                     // Add to unique substances array
-                    if (!isset($substances[$key])) {
+                    if (! isset($substances[$key])) {
                         $substances[$key] = [
                             'norman_id' => $normanId,
                             'name' => $name,
@@ -75,7 +76,7 @@ class EmpodatSuspectSedimentSubstancesSeeder extends Seeder
 
                     // Progress update every 100 rows
                     if ($rowCount % 100 === 0) {
-                        $this->command->info("Processed {$rowCount} rows, found " . count($substances) . " unique substances...");
+                        $this->command->info("Processed {$rowCount} rows, found ".count($substances).' unique substances...');
 
                         // Force garbage collection periodically
                         if ($rowCount % 1000 === 0) {
@@ -85,8 +86,8 @@ class EmpodatSuspectSedimentSubstancesSeeder extends Seeder
                 }
 
                 // Insert unique substances
-                if (!empty($substances)) {
-                    $this->command->info("Inserting " . count($substances) . " unique substances...");
+                if (! empty($substances)) {
+                    $this->command->info('Inserting '.count($substances).' unique substances...');
 
                     $batch = [];
                     $batchSize = 500;
@@ -99,12 +100,12 @@ class EmpodatSuspectSedimentSubstancesSeeder extends Seeder
                             DB::table('empodat_suspect_substances')->insert($batch);
                             $inserted += count($batch);
                             $batch = [];
-                            $this->command->info("Inserted {$inserted} / " . count($substances) . " substances...");
+                            $this->command->info("Inserted {$inserted} / ".count($substances).' substances...');
                         }
                     }
 
                     // Insert remaining
-                    if (!empty($batch)) {
+                    if (! empty($batch)) {
                         DB::table('empodat_suspect_substances')->insert($batch);
                         $inserted += count($batch);
                     }
@@ -117,7 +118,7 @@ class EmpodatSuspectSedimentSubstancesSeeder extends Seeder
                 $totalTime = round(microtime(true) - $startTime, 2);
                 $this->command->info("Completed in {$totalTime}s");
                 $this->command->info("Total rows processed: {$rowCount}");
-                $this->command->info("Unique substances: " . count($substances));
+                $this->command->info('Unique substances: '.count($substances));
 
                 if ($skippedRows > 0) {
                     $this->command->warn("Skipped {$skippedRows} rows (empty NORMAN_ID or Name)");
@@ -131,7 +132,7 @@ class EmpodatSuspectSedimentSubstancesSeeder extends Seeder
             }
 
         } catch (\Exception $e) {
-            $this->command->error("Failed to read Excel file: " . $e->getMessage());
+            $this->command->error('Failed to read Excel file: '.$e->getMessage());
             throw $e;
         }
     }
