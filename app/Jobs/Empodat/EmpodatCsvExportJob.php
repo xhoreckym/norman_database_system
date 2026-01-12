@@ -3,11 +3,14 @@
 namespace App\Jobs\Empodat;
 
 use App\Jobs\AbstractCsvExportJob;
+use App\Mail\Empodat\CsvExportReady;
+use App\Models\Backend\ExportDownload;
 use App\Models\Backend\QueryLog;
+use App\Models\Empodat\EmpodatMain;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Mail\Empodat\CsvExportReady;
-use App\Models\Empodat\EmpodatMain;
+use Illuminate\Support\Facades\Storage;
 
 class EmpodatCsvExportJob extends AbstractCsvExportJob
 {
@@ -20,6 +23,7 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
      * Optimized batch sizes for efficient processing of 95M rows
      */
     protected $initialBatchSize = 1000;
+
     protected $maxBatchSize = 5000;
 
     /**
@@ -31,7 +35,13 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
      * Job timeout
      */
     public $timeout = 10800; // 3 hours
-    
+
+    /**
+     * Threshold for using PostgreSQL COPY (rows count)
+     * Above this, use COPY TO STDOUT for memory efficiency
+     */
+    protected int $copyThreshold = 100000;
+
     /**
      * Get the database key for this module
      */
@@ -39,7 +49,7 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     {
         return 'empodat';
     }
-    
+
     /**
      * Get the storage directory for exports
      */
@@ -47,7 +57,7 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     {
         return 'exports/empodat';
     }
-    
+
     /**
      * Get CSV headers
      */
@@ -118,10 +128,10 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
             'No Export',
             'List ID',
 
-            'Export Date'
+            'Export Date',
         ];
     }
-    
+
     /**
      * Get the mail class for notifications
      */
@@ -129,7 +139,7 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     {
         return CsvExportReady::class;
     }
-    
+
     /**
      * Build the base query for this module
      */
@@ -137,11 +147,10 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     {
         return EmpodatMain::query();
     }
-    
+
     /**
-     * 
      * Apply filters from the query log to the base query using optimized JOINs
-     * 
+     *
      * This method reconstructs the query filters using the same optimized approach
      * as the main search functionality
      */
@@ -149,90 +158,92 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     {
         // Parse the content JSON to get the original request parameters
         $content = json_decode($queryLog->content, true);
-        
-        if (!is_array($content)) {
+
+        if (! is_array($content)) {
             Log::warning("Invalid query log content for ID {$queryLog->id}");
+
             return $baseQuery;
         }
-        
+
         $request = $content['request'] ?? [];
-        
-        if (!is_array($request)) {
+
+        if (! is_array($request)) {
             Log::warning("Invalid request data in query log ID {$queryLog->id}");
+
             return $baseQuery;
         }
-        
+
         // Handle ID range filters (most common case)
-        if (!empty($request['id_from']) || !empty($request['id_to'])) {
-            if (!empty($request['id_from']) && !empty($request['id_to'])) {
+        if (! empty($request['id_from']) || ! empty($request['id_to'])) {
+            if (! empty($request['id_from']) && ! empty($request['id_to'])) {
                 $baseQuery->whereBetween('empodat_main.id', [$request['id_from'], $request['id_to']]);
-            } elseif (!empty($request['id_from'])) {
+            } elseif (! empty($request['id_from'])) {
                 $baseQuery->where('empodat_main.id', '>=', $request['id_from']);
-            } elseif (!empty($request['id_to'])) {
+            } elseif (! empty($request['id_to'])) {
                 $baseQuery->where('empodat_main.id', '<=', $request['id_to']);
             }
         }
-        
+
         // Use optimized scope methods with JOINs instead of whereHas
-        if (!empty($request['countrySearch']) && is_array($request['countrySearch'])) {
+        if (! empty($request['countrySearch']) && is_array($request['countrySearch'])) {
             $baseQuery->byCountries($request['countrySearch']);
         }
-        
-        if (!empty($request['matrixSearch']) && is_array($request['matrixSearch'])) {
+
+        if (! empty($request['matrixSearch']) && is_array($request['matrixSearch'])) {
             $baseQuery->byMatrices($request['matrixSearch']);
         }
-        
-        if (!empty($request['substances']) && is_array($request['substances'])) {
+
+        if (! empty($request['substances']) && is_array($request['substances'])) {
             $baseQuery->bySubstances($request['substances']);
         }
-        
-        if (!empty($request['normanRelevantOnly']) && $request['normanRelevantOnly']) {
+
+        if (! empty($request['normanRelevantOnly']) && $request['normanRelevantOnly']) {
             $baseQuery->normanRelevant();
         }
-        
-        if (!empty($request['concentrationIndicatorSearch']) && is_array($request['concentrationIndicatorSearch'])) {
+
+        if (! empty($request['concentrationIndicatorSearch']) && is_array($request['concentrationIndicatorSearch'])) {
             $baseQuery->byConcentrationIndicators($request['concentrationIndicatorSearch']);
         }
-        
-        if (!empty($request['year_from']) || !empty($request['year_to'])) {
+
+        if (! empty($request['year_from']) || ! empty($request['year_to'])) {
             $baseQuery->byYearRange($request['year_from'], $request['year_to']);
         }
-        
-        if (!empty($request['categoriesSearch']) && is_array($request['categoriesSearch'])) {
+
+        if (! empty($request['categoriesSearch']) && is_array($request['categoriesSearch'])) {
             $baseQuery->byCategories($request['categoriesSearch']);
         }
-        
-        if (!empty($request['sourceSearch']) && is_array($request['sourceSearch'])) {
+
+        if (! empty($request['sourceSearch']) && is_array($request['sourceSearch'])) {
             $baseQuery->bySources($request['sourceSearch']);
         }
-        
-        if ((!empty($request['typeDataSourcesSearch']) && is_array($request['typeDataSourcesSearch'])) || 
-            (!empty($request['dataSourceLaboratorySearch']) && is_array($request['dataSourceLaboratorySearch'])) || 
-            (!empty($request['dataSourceOrganisationSearch']) && is_array($request['dataSourceOrganisationSearch']))) {
+
+        if ((! empty($request['typeDataSourcesSearch']) && is_array($request['typeDataSourcesSearch'])) ||
+            (! empty($request['dataSourceLaboratorySearch']) && is_array($request['dataSourceLaboratorySearch'])) ||
+            (! empty($request['dataSourceOrganisationSearch']) && is_array($request['dataSourceOrganisationSearch']))) {
             $baseQuery->byDataSourceFilters(
                 $request['typeDataSourcesSearch'] ?? [],
                 $request['dataSourceLaboratorySearch'] ?? [],
                 $request['dataSourceOrganisationSearch'] ?? []
             );
         }
-        
-        if (!empty($request['analyticalMethodSearch']) && is_array($request['analyticalMethodSearch'])) {
+
+        if (! empty($request['analyticalMethodSearch']) && is_array($request['analyticalMethodSearch'])) {
             $baseQuery->byAnalyticalMethods($request['analyticalMethodSearch']);
         }
-        
-        if (!empty($request['qualityAnalyticalMethodsSearch']) && is_array($request['qualityAnalyticalMethodsSearch'])) {
+
+        if (! empty($request['qualityAnalyticalMethodsSearch']) && is_array($request['qualityAnalyticalMethodsSearch'])) {
             // Get the quality ratings collection like in the main search
             $ratings = \App\Models\List\QualityEmpodatAnalyticalMethods::whereIn('id', $request['qualityAnalyticalMethodsSearch'])->get();
             $baseQuery->byQualityRatings($ratings);
         }
-        
-        if (!empty($request['fileSearch']) && is_array($request['fileSearch'])) {
+
+        if (! empty($request['fileSearch']) && is_array($request['fileSearch'])) {
             $baseQuery->byFiles($request['fileSearch']);
         }
-        
+
         return $baseQuery;
     }
-    
+
     /**
      * Override ID extraction to handle column ambiguity with JOINs
      */
@@ -240,11 +251,11 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     {
         $baseQuery = $this->buildBaseQuery();
         $filteredQuery = $this->applyQueryFilters($baseQuery, $queryLog);
-        
+
         // Explicitly select empodat_main.id to avoid ambiguity
         $filteredQuery->select('empodat_main.id')
             ->orderBy('empodat_main.id');
-        
+
         // Use chunking for memory efficiency
         $ids = [];
         $filteredQuery->chunk(1000, function ($records) use (&$ids) {
@@ -252,32 +263,32 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
                 $ids[] = $record->id;
             }
         });
-        
+
         // Return generator for memory efficiency
         foreach ($ids as $id) {
             yield $id;
         }
     }
-    
+
     /**
-     * Override chunked ID extraction to handle column ambiguity  
+     * Override chunked ID extraction to handle column ambiguity
      */
     protected function extractIdsChunked(QueryLog $queryLog)
     {
         $baseQuery = $this->buildBaseQuery();
         $filteredQuery = $this->applyQueryFilters($baseQuery, $queryLog);
-        
+
         // Explicitly select empodat_main.id to avoid ambiguity
         $ids = $filteredQuery->select('empodat_main.id')
-                           ->orderBy('empodat_main.id')
-                           ->pluck('empodat_main.id')
-                           ->toArray();
-        
+            ->orderBy('empodat_main.id')
+            ->pluck('empodat_main.id')
+            ->toArray();
+
         foreach ($ids as $id) {
             yield $id;
         }
     }
-    
+
     /**
      * Get records for a batch of IDs with all necessary relationships
      * Optimized to avoid JOIN conflicts with filtered queries
@@ -364,7 +375,7 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
             ->orderBy('empodat_main.id')
             ->cursor(); // Use cursor for memory efficiency with larger datasets
     }
-    
+
     /**
      * Override batch size optimization for Empodat's specific needs
      */
@@ -372,7 +383,7 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     {
         parent::optimizeBatchSize($lastBatch);
     }
-    
+
     /**
      * Format a single record for CSV output
      */
@@ -443,7 +454,328 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
             $record->noexport ?? '',
             $record->list_id ?? '',
 
-            $exportDate
+            $exportDate,
         ];
+    }
+
+    /**
+     * Export using PostgreSQL COPY for large datasets
+     * This method streams data directly from PostgreSQL to a CSV file
+     * with minimal PHP memory usage.
+     *
+     * @return int Number of records exported
+     */
+    public function exportWithPostgresCopy(QueryLog $queryLog, string $filePath): int
+    {
+        $exportDate = Carbon::now()->format('Y-m-d H:i:s');
+
+        // Build the COPY query with all JOINs and the export date
+        $copyQuery = $this->buildCopyQuery($queryLog, $exportDate);
+
+        Log::info('Starting PostgreSQL COPY export', [
+            'query_log_id' => $queryLog->id,
+            'file_path' => $filePath,
+        ]);
+
+        // Execute the COPY command using psql
+        $rowCount = $this->executePsqlCopy($copyQuery, $filePath);
+
+        Log::info('PostgreSQL COPY export completed', [
+            'query_log_id' => $queryLog->id,
+            'rows_exported' => $rowCount,
+        ]);
+
+        return $rowCount;
+    }
+
+    /**
+     * Build the SQL query for PostgreSQL COPY export
+     * Combines the filter conditions with full data JOINs
+     */
+    protected function buildCopyQuery(QueryLog $queryLog, string $exportDate): string
+    {
+        // Get the stored raw query to extract WHERE conditions
+        $storedQuery = $queryLog->query;
+
+        // Extract WHERE clause from stored query
+        $whereClause = '';
+        if (preg_match('/WHERE\s+(.+?)(?:ORDER BY|GROUP BY|LIMIT|$)/is', $storedQuery, $matches)) {
+            $whereClause = 'WHERE '.trim($matches[1]);
+        }
+
+        // Build the full SELECT with all JOINs for CSV export
+        // Using exact column order matching getHeaders()
+        $selectColumns = "
+            empodat_main.id,
+            empodat_main.station_id,
+            empodat_stations.name as station_name,
+            empodat_main.country_id,
+            list_countries.name as country_name,
+            list_countries.code as country_code,
+            empodat_main.file_id,
+            empodat_main.matrix_id,
+            list_matrices.name as matrix_name,
+            list_matrices.unit as concentration_unit,
+            empodat_main.substance_id,
+            susdat_substances.name as substance_name,
+            susdat_substances.cas_number,
+            empodat_main.sampling_date_year,
+            empodat_main.concentration_indicator_id,
+            empodat_main.concentration_value,
+            empodat_main.method_id,
+            empodat_main.data_source_id,
+            empodat_stations.latitude,
+            empodat_stations.longitude,
+            empodat_minor.dpc_id,
+            empodat_minor.altitude,
+            empodat_minor.matrix_other,
+            empodat_minor.compound,
+            empodat_minor.dcod_id,
+            empodat_minor.unit_extra,
+            empodat_minor.tier,
+            empodat_minor.sampling_technique,
+            empodat_minor.sampling_date,
+            empodat_minor.sampling_date_t,
+            empodat_minor.sampling_date1_y,
+            empodat_minor.sampling_date1_m,
+            empodat_minor.sampling_date1_d,
+            empodat_minor.sampling_date1_t,
+            empodat_minor.sampling_date1,
+            empodat_minor.analysis_date_y,
+            empodat_minor.analysis_date_m,
+            empodat_minor.analysis_date_d,
+            empodat_minor.sampling_duration_day,
+            empodat_minor.sampling_duration_hour,
+            empodat_minor.description,
+            empodat_minor.remark,
+            empodat_minor.remark_add,
+            empodat_minor.show_date,
+            empodat_minor.dtod_id,
+            empodat_minor.dtod_other,
+            empodat_minor.agg_uncertainty,
+            empodat_minor.dmm_id,
+            empodat_minor.agg_max,
+            empodat_minor.agg_min,
+            empodat_minor.agg_number,
+            empodat_minor.agg_deviation,
+            empodat_minor.dtl_id,
+            empodat_minor.dtl_other,
+            empodat_minor.dst_id,
+            empodat_minor.dst_other,
+            empodat_minor.dtos_id,
+            empodat_minor.dplu_id,
+            empodat_minor.noexport,
+            empodat_minor.list_id,
+            '{$exportDate}'::text as export_date
+        ";
+
+        $joins = '
+            FROM empodat_main
+            LEFT JOIN empodat_minor ON empodat_main.id = empodat_minor.id
+            LEFT JOIN empodat_stations ON empodat_main.station_id = empodat_stations.id
+            LEFT JOIN list_countries ON empodat_main.country_id = list_countries.id
+            LEFT JOIN list_matrices ON empodat_main.matrix_id = list_matrices.id
+            LEFT JOIN susdat_substances ON empodat_main.substance_id = susdat_substances.id
+        ';
+
+        // Build the complete query
+        $query = "SELECT {$selectColumns} {$joins} {$whereClause} ORDER BY empodat_main.id";
+
+        return $query;
+    }
+
+    /**
+     * Execute psql COPY command and stream output to file
+     *
+     * @return int Number of rows exported
+     */
+    protected function executePsqlCopy(string $query, string $filePath): int
+    {
+        // Get database connection details from config
+        $host = config('database.connections.pgsql.host');
+        $port = config('database.connections.pgsql.port');
+        $database = config('database.connections.pgsql.database');
+        $username = config('database.connections.pgsql.username');
+        $password = config('database.connections.pgsql.password');
+
+        // Escape single quotes in the query for psql -c
+        $escapedQuery = str_replace("'", "''", $query);
+
+        // Build the psql command with COPY TO STDOUT
+        // Using \copy which is client-side and writes to local file
+        $copyCommand = "\\copy ({$query}) TO STDOUT WITH (FORMAT CSV, HEADER true, ENCODING 'UTF8')";
+
+        // Build the full psql command
+        $command = sprintf(
+            'PGPASSWORD=%s psql -h %s -p %s -U %s -d %s -c %s > %s 2>&1',
+            escapeshellarg($password),
+            escapeshellarg($host),
+            escapeshellarg($port),
+            escapeshellarg($username),
+            escapeshellarg($database),
+            escapeshellarg($copyCommand),
+            escapeshellarg($filePath)
+        );
+
+        Log::debug('Executing psql COPY command', [
+            'host' => $host,
+            'database' => $database,
+            'output_file' => $filePath,
+        ]);
+
+        // Execute the command
+        $output = [];
+        $returnCode = 0;
+        exec($command, $output, $returnCode);
+
+        if ($returnCode !== 0) {
+            $errorMessage = implode("\n", $output);
+            Log::error('psql COPY command failed', [
+                'return_code' => $returnCode,
+                'output' => $errorMessage,
+            ]);
+            throw new \RuntimeException("PostgreSQL COPY export failed: {$errorMessage}");
+        }
+
+        // Count the lines in the output file (subtract 1 for header)
+        $lineCount = 0;
+        if (file_exists($filePath)) {
+            $handle = fopen($filePath, 'r');
+            if ($handle) {
+                while (fgets($handle) !== false) {
+                    $lineCount++;
+                }
+                fclose($handle);
+            }
+        }
+
+        // Subtract header row
+        return max(0, $lineCount - 1);
+    }
+
+    /**
+     * Check if this export should use PostgreSQL COPY
+     */
+    public function shouldUseCopyExport(QueryLog $queryLog): bool
+    {
+        // Use COPY for large datasets
+        $rowCount = $queryLog->actual_count ?? 0;
+
+        return $rowCount >= $this->copyThreshold;
+    }
+
+    /**
+     * Override the handle method to use COPY for large exports
+     */
+    public function handle(): void
+    {
+        // Get the query log to check row count
+        $queryLog = QueryLog::find($this->queryLogId);
+
+        if ($queryLog && $this->shouldUseCopyExport($queryLog)) {
+            $this->handleWithCopy();
+        } else {
+            // Use the parent's default implementation for smaller exports
+            parent::handle();
+        }
+    }
+
+    /**
+     * Handle export using PostgreSQL COPY
+     */
+    protected function handleWithCopy(): void
+    {
+        // Set execution parameters
+        ini_set('memory_limit', '512M'); // Much lower memory needed for COPY
+        set_time_limit($this->maxExecutionTime);
+
+        $filename = $this->generateFilename();
+        $messageContent = $this->initializeMessageContent($filename);
+
+        // Get request information
+        $request = request();
+        $ip = $request->ip();
+        $userAgent = $request->userAgent();
+
+        // Create an export download record
+        $exportDownload = ExportDownload::create([
+            'user_id' => $this->user->id,
+            'filename' => $filename,
+            'format' => 'csv',
+            'ip_address' => $ip,
+            'user_agent' => $userAgent,
+            'database_key' => $this->getDatabaseKey(),
+            'status' => 'processing',
+            'message' => 'Using PostgreSQL COPY for large dataset export',
+            'started_at' => Carbon::now(),
+        ]);
+
+        // Associate with the query log
+        $exportDownload->queryLogs()->attach($this->queryLogId);
+
+        try {
+            $startTime = microtime(true);
+            $directory = $this->getStorageDirectory();
+
+            // Make sure the directory exists
+            Storage::makeDirectory($directory);
+
+            $filePath = Storage::path("{$directory}/{$filename}");
+
+            // Get the query log
+            $queryLog = QueryLog::findOrFail($this->queryLogId);
+
+            Log::info("Starting COPY export for {$this->getDatabaseKey()}", [
+                'query_log_id' => $queryLog->id,
+                'estimated_rows' => $queryLog->actual_count,
+            ]);
+
+            // Execute the PostgreSQL COPY export
+            $totalExported = $this->exportWithPostgresCopy($queryLog, $filePath);
+
+            // Get file size and processing time
+            $fileSize = filesize($filePath);
+            $formattedFileSize = $this->formatBytes($fileSize);
+            $processingTime = round(microtime(true) - $startTime, 2);
+
+            // Update message content
+            $messageContent['total_records'] = $totalExported;
+            $messageContent['processing_time'] = $processingTime;
+            $messageContent['file_size'] = $formattedFileSize;
+
+            Log::info("{$this->getDatabaseKey()} COPY export complete", [
+                'records' => $totalExported,
+                'time' => $processingTime,
+                'size' => $formattedFileSize,
+            ]);
+
+            // Update the export download record with completion metrics
+            $exportDownload->update([
+                'status' => 'completed',
+                'record_count' => $totalExported,
+                'file_size_bytes' => $fileSize,
+                'file_size_formatted' => $formattedFileSize,
+                'processing_time_seconds' => $processingTime,
+                'completed_at' => Carbon::now(),
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error("{$this->getDatabaseKey()} COPY export failed: ".$e->getMessage());
+
+            $messageContent['export_failed'] = true;
+            $messageContent['error'] = $e->getMessage();
+
+            $exportDownload->update([
+                'status' => 'failed',
+                'message' => $e->getMessage(),
+                'completed_at' => Carbon::now(),
+                'processing_time_seconds' => isset($startTime)
+                    ? round(microtime(true) - $startTime, 2)
+                    : null,
+            ]);
+        }
+
+        // Send notification email
+        $this->sendNotificationEmail($messageContent);
     }
 }

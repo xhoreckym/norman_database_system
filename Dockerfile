@@ -21,7 +21,8 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     libzip-dev \
-    libpq-dev
+    libpq-dev \
+    postgresql-client
 
 # Install Node.js and npm
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \

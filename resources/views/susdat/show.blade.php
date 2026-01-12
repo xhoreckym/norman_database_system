@@ -70,9 +70,6 @@
 
             <table class="table-auto w-full border-separate border-spacing-1 text-xs">
               @foreach ($substance->toArray() as $key => $value)
-                @if ($key === 'metadata_general')
-                  @continue
-                @endif
                 <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
                   <td class="p-1 font-bold">{{ $key }}</td>
                   @if (substr($key, 0, 8) == 'metadata')
