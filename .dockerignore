@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE and editors
+.idea
+.vscode
+*.swp
+*.swo
+
+# Laravel storage (keep structure, exclude contents)
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/app/public/*
+
+# Build artifacts
+public/build
+public/hot
+
+# Testing
+.phpunit.result.cache
+coverage
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Documentation
+*.md
+!README.md
+
+# Docker files (not needed inside container)
+docker-compose*.yml
+Dockerfile
+*.dockerfile
+
+# Misc
+.DS_Store
+Thumbs.db
+npm-debug.log
+yarn-error.log

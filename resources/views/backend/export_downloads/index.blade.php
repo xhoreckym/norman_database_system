@@ -60,78 +60,78 @@
 
           @if($exportDownloads->count() > 0)
             <div class="overflow-x-auto">
-              <table class="min-w-full bg-white border border-gray-200">
+              <table class="table-standard w-full">
                 <thead>
                   <tr class="bg-gray-600 text-white">
-                    <th class="py-3 px-4 border-b text-left">ID</th>
-                    <th class="py-3 px-4 border-b text-left">Filename</th>
-                    <th class="py-3 px-4 border-b text-left">Format</th>
-                    <th class="py-3 px-4 border-b text-left">Database</th>
-                    <th class="py-3 px-4 border-b text-left">Records</th>
-                    <th class="py-3 px-4 border-b text-left">File Size</th>
-                    <th class="py-3 px-4 border-b text-left">Duration</th>
-                    <th class="py-3 px-4 border-b text-left">Status</th>
-                    <th class="py-3 px-4 border-b text-left">Created (CET)</th>
-                    <th class="py-3 px-4 border-b text-left">Actions</th>
+                    <th class="py-2 px-2 text-left">ID</th>
+                    <th class="py-2 px-2 text-left">Filename</th>
+                    <th class="py-2 px-2 text-left">Format</th>
+                    <th class="py-2 px-2 text-left">Database</th>
+                    <th class="py-2 px-2 text-left">Records</th>
+                    <th class="py-2 px-2 text-left">File Size</th>
+                    <th class="py-2 px-2 text-left">Duration</th>
+                    <th class="py-2 px-2 text-left">Status</th>
+                    <th class="py-2 px-2 text-left">Created (CET)</th>
+                    <th class="py-2 px-2 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   @foreach($exportDownloads as $download)
-                    <tr class="hover:bg-gray-50 border-b">
-                      <td class="py-3 px-4 text-sm">{{ $download->id }}</td>
-                      <td class="py-3 px-4 text-sm font-medium">
+                    <tr class="@if($loop->odd) bg-slate-100 @else bg-slate-200 @endif hover:bg-slate-300 transition">
+                      <td class="py-2 px-2 font-mono">{{ $download->id }}</td>
+                      <td class="py-2 px-2 font-medium">
                         <span class="text-gray-800">{{ $download->filename }}</span>
                       </td>
-                      <td class="py-3 px-4 text-sm">
-                        <span class="bg-gray-100 px-2 py-1 rounded text-xs uppercase">{{ $download->format }}</span>
+                      <td class="py-2 px-2">
+                        <span class="bg-gray-100 px-1 py-0.5 rounded uppercase">{{ $download->format }}</span>
                       </td>
-                      <td class="py-3 px-4 text-sm">{{ $download->database_key }}</td>
-                      <td class="py-3 px-4 text-sm">
+                      <td class="py-2 px-2">{{ $download->database_key }}</td>
+                      <td class="py-2 px-2">
                         @if($download->record_count)
                           {{ number_format($download->record_count) }}
                         @else
                           <span class="text-gray-400">-</span>
                         @endif
                       </td>
-                      <td class="py-3 px-4 text-sm">
+                      <td class="py-2 px-2">
                         @if($download->formatted_file_size)
                           <span class="text-gray-700 font-medium">{{ $download->formatted_file_size }}</span>
                         @else
                           <span class="text-gray-400">-</span>
                         @endif
                       </td>
-                      <td class="py-3 px-4 text-sm">
+                      <td class="py-2 px-2">
                         @if($download->duration)
                           <span class="text-gray-700">{{ $download->duration }}</span>
                         @else
                           <span class="text-gray-400">-</span>
                         @endif
                       </td>
-                      <td class="py-3 px-4 text-sm">
+                      <td class="py-2 px-2">
                         @if($download->status === 'completed')
-                          <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Completed</span>
+                          <span class="bg-green-100 text-green-800 px-1 py-0.5 rounded">Completed</span>
                         @elseif($download->status === 'processing')
-                          <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Processing</span>
+                          <span class="bg-yellow-100 text-yellow-800 px-1 py-0.5 rounded">Processing</span>
                         @elseif($download->status === 'failed')
-                          <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Failed</span>
+                          <span class="bg-red-100 text-red-800 px-1 py-0.5 rounded">Failed</span>
                         @else
-                          <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">{{ ucfirst($download->status) }}</span>
+                          <span class="bg-gray-100 text-gray-800 px-1 py-0.5 rounded">{{ ucfirst($download->status) }}</span>
                         @endif
                       </td>
-                      <td class="py-3 px-4 text-sm text-gray-600">
+                      <td class="py-2 px-2 text-gray-600">
                         <div>{{ $download->created_at }}</div>
                         @if($download->started_at && $download->completed_at)
-                          <div class="text-xs text-gray-500 mt-1">
+                          <div class="text-gray-500 mt-0.5">
                             Started: {{ $download->started_at }}<br>
                             Completed: {{ $download->completed_at }}
                           </div>
                         @elseif($download->started_at)
-                          <div class="text-xs text-gray-500 mt-1">
+                          <div class="text-gray-500 mt-0.5">
                             Started: {{ $download->started_at }}
                           </div>
                         @endif
                       </td>
-                      <td class="py-3 px-4 text-sm">
+                      <td class="py-2 px-2 text-center">
                         @if($download->status === 'completed')
                           @php
                             $downloadRoute = '';
@@ -139,6 +139,9 @@
                               switch($download->database_key) {
                                 case 'empodat':
                                   $downloadRoute = route('csv.download', ['filename' => $download->filename]);
+                                  break;
+                                case 'empodat_suspect':
+                                  $downloadRoute = route('empodat_suspect.csv.download', ['filename' => $download->filename]);
                                   break;
                                 case 'sars':
                                   $downloadRoute = route('sars.csv.download', ['filename' => $download->filename]);
@@ -169,11 +172,10 @@
                             }
                           @endphp
                           @if($downloadRoute !== '#')
-                            <a href="{{ $downloadRoute }}" class="inline-flex items-center px-3 py-1 bg-slate-600 text-white text-xs font-medium rounded hover:bg-slate-700 transition-colors">
-                              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            <a href="{{ $downloadRoute }}" class="text-green-600 hover:text-green-800" title="Download">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                               </svg>
-                              Download
                             </a>
                           @else
                             <span class="text-gray-400 text-xs">
