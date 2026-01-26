@@ -34,13 +34,25 @@ class LiteratureSeeder_ULEI extends Seeder
      */
     public function run(): void
     {
+        // Increase PHP memory limit and execution time FIRST
+        ini_set('memory_limit', '4G');
+        ini_set('max_execution_time', '3600'); // 1 hour
+        $this->command->info('Memory limit set to 4G, execution time to 1 hour');
+
         $target_table_name = 'literature_temp_main';
 
-        $this->command->info('Truncating literature_temp_main table...');
-        DB::table($target_table_name)->truncate();
+        // Delete only records for this file_id (preserves data from other seeders)
+        $deleted = DB::table($target_table_name)->where('file_id', $this->fileId)->delete();
+        $this->command->info("Deleted {$deleted} existing records for file_id = {$this->fileId}");
 
         $this->command->info('Loading lookup tables into cache...');
         $this->loadLookupCaches();
+
+        // Disable Telescope during seeding to prevent memory issues
+        if (class_exists(\Laravel\Telescope\Telescope::class)) {
+            \Laravel\Telescope\Telescope::stopRecording();
+            $this->command->info('Telescope recording stopped for memory optimization');
+        }
 
         // Disable query logging for performance
         DB::connection()->disableQueryLog();
@@ -88,16 +100,12 @@ class LiteratureSeeder_ULEI extends Seeder
         $this->command->info("Total columns in header: " . count($header));
 
         $batch = [];
-        $batchSize = 200; // 
+        $batchSize = 500;
         $rowCount = 0;
         $skippedRows = 0;
-        $progressInterval = 200; // Report progress every 1000 rows
+        $progressInterval = 500;
         $startTime = microtime(true);
         $lastProgressTime = $startTime;
-
-        // Increase PHP memory limit and execution time for large imports
-        ini_set('memory_limit', '2048M');
-        ini_set('max_execution_time', '3600'); // 1 hour
 
         // Start transaction for better performance
         DB::beginTransaction();
@@ -145,6 +153,7 @@ class LiteratureSeeder_ULEI extends Seeder
                 // Insert batch when it reaches the batch size
                 if (count($batch) >= $batchSize) {
                     DB::table($target_table_name)->insert($batch);
+                    unset($batch);
                     $batch = [];
 
                     // Report progress less frequently with timing
@@ -154,6 +163,9 @@ class LiteratureSeeder_ULEI extends Seeder
                         $totalDuration = round($currentTime - $startTime, 2);
                         $this->command->info("Processed {$rowCount} rows... (batch: {$batchDuration}s, total: {$totalDuration}s)");
                         $lastProgressTime = $currentTime;
+
+                        // Force garbage collection periodically
+                        gc_collect_cycles();
                     }
                 }
             }
@@ -161,9 +173,14 @@ class LiteratureSeeder_ULEI extends Seeder
             // Insert remaining records
             if (!empty($batch)) {
                 DB::table($target_table_name)->insert($batch);
+                unset($batch);
+                $batch = [];
             }
 
             DB::commit();
+
+            // Force final garbage collection
+            gc_collect_cycles();
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -189,6 +206,12 @@ class LiteratureSeeder_ULEI extends Seeder
         // Re-enable query logging
         DB::connection()->enableQueryLog();
 
+        // Re-enable Telescope
+        if (class_exists(\Laravel\Telescope\Telescope::class)) {
+            \Laravel\Telescope\Telescope::startRecording();
+        }
+
+        $this->command->info("All records seeded with file_id: {$this->fileId}");
     }
 
     /**

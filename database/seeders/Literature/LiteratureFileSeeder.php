@@ -42,6 +42,17 @@ class LiteratureFileSeeder extends Seeder
                 'database_entity_id' => 17,
                 'matrice_dct' => 1, // Biota-Terrestrial
             ],
+            [
+                'id' => 9002,
+                'original_name' => 'DCT_BIOTA_TerraChem_LiteratureData_ POPs_19102025_v1.xlsx',
+                'name' => 'TerraChem POPs Literature Data',
+                'description' => 'DCT Biota Literature data for POPs (Persistent Organic Pollutants). Long format with ~19,000 records.',
+                'file_path' => 'literature/DCT_BIOTA_TerraChem_LiteratureData_ POPs_19102025_v1.xlsx',
+                'file_size' => 3995597,
+                'mime_type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'database_entity_id' => 17,
+                'matrice_dct' => 1, // Biota-Terrestrial
+            ],
         ];
 
         $now = Carbon::now();
