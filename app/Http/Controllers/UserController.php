@@ -43,12 +43,16 @@ class UserController extends Controller implements HasMiddleware
     $superAdmins = User::role('super_admin')->orderBy('last_name')->get();
     $admins = User::role('admin')->orderBy('last_name')->get();
 
+    // Get all distinct roles for filter dropdown
+    $roles = \Spatie\Permission\Models\Role::orderBy('name')->pluck('name');
+
     return view('backend.dashboard.users.index', [
       'users' => $users,
       'columns' => $this->getVisibleColumns(),
       'usersWithTokens' => $usersWithTokens,
       'superAdmins' => $superAdmins,
       'admins' => $admins,
+      'roles' => $roles,
     ]);
   }
   
@@ -79,8 +83,17 @@ class UserController extends Controller implements HasMiddleware
         ->orWhere('last_name', 'like', "%{$search}%")
         ->orWhere('email', 'like', "%{$search}%");
       });
-      
+
       \Log::debug('Applied search filter', ['sql' => $query->toSql()]);
+    }
+
+    // Apply role filter
+    if (!empty($role)) {
+      $query->whereHas('roles', function ($q) use ($role) {
+        $q->where('name', $role);
+      });
+
+      \Log::debug('Applied role filter', ['role' => $role]);
     }
     
     // Apply sorting

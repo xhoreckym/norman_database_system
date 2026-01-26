@@ -58,18 +58,28 @@
                   <option value="100">100</option>
                 </select>
               </div>
-              
+
+              <div class="w-48">
+                <label for="roleFilter" class="block text-sm font-medium text-gray-700">Role</label>
+                <select id="roleFilter" x-model="roleFilter" @change="changePage(1)" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md focus:outline-none focus:ring-slate-500 focus:border-slate-500 sm:text-sm">
+                  <option value="">All roles</option>
+                  @foreach($roles as $role)
+                    <option value="{{ $role }}">{{ $role }}</option>
+                  @endforeach
+                </select>
+              </div>
+
               <div class="flex-1">
                 <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
-                <input type="text" 
-                id="search" 
-                x-model="search" 
-                @input="debounceSearch()" 
-                placeholder="Search by name or email..." 
+                <input type="text"
+                id="search"
+                x-model="search"
+                @input="debounceSearch()"
+                placeholder="Search by name or email..."
                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-slate-500 focus:border-slate-500 sm:text-sm">
               </div>
             </div>
-        
+
           </div>
           
           <div class="overflow-x-auto">
@@ -224,31 +234,37 @@
         totalUsers: 0,
         totalPages: 1,
         search: '',
+        roleFilter: '',
         searchTimeout: null,
         sortColumn: 'last_name',
         sortDirection: 'asc',
-        
+
         init() {
           console.log('Initializing user table');
           this.fetchUsers();
         },
-        
+
         fetchUsers() {
           this.loading = true;
-          console.log('Fetching users with search:', this.search);
-          
+          console.log('Fetching users with search:', this.search, 'role:', this.roleFilter);
+
           // Build URL with search parameters
           const url = new URL('backend/user-data', window.location.origin);
           url.searchParams.append('page', this.currentPage);
           url.searchParams.append('per_page', this.perPage);
           url.searchParams.append('sort', this.sortColumn);
           url.searchParams.append('direction', this.sortDirection);
-          
+
           // Only append search param if it's not empty
           if (this.search && this.search.trim() !== '') {
             url.searchParams.append('search', this.search.trim());
           }
-          
+
+          // Only append role param if it's not empty
+          if (this.roleFilter && this.roleFilter !== '') {
+            url.searchParams.append('role', this.roleFilter);
+          }
+
           console.log('Fetching from URL:', url.toString());
           
           fetch(url.toString())
