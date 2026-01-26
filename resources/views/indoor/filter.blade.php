@@ -96,7 +96,65 @@
                 </div>
               </div>
             </div>
-          
+
+            <div id="searchSubstance">
+              <div class="bg-gray-100 p-2">
+                <div class="font-bold mb-2">
+                  Substance:
+                </div>
+                @livewire('backend.substance-search')
+              </div>
+            </div>
+
+            <div id="searchConcentrationIndicator">
+              <div class="bg-gray-100 p-2">
+                <div class="font-bold mb-2">
+                  Concentration Indicator:
+                </div>
+                @include('_t.form-apline-multiselect', [
+                'tag' => 'concentrationIndicatorSearch', 'list' => $concentrationIndicatorList,
+                'active_ids' => isset($request->concentrationIndicatorSearch) ? $request->concentrationIndicatorSearch : [],
+                ])
+              </div>
+            </div>
+
+            <div id="searchSource">
+              <div class="bg-gray-100 p-2">
+                <div class="font-bold mb-2">
+                  SLE Source:
+                </div>
+                <div class="w-full">
+                  @include('_t.form-apline-multiselect', [
+                  'tag' => 'sourceSearch', 'list' => $sourceList,
+                  'active_ids' => isset($request->sourceSearch) ? $request->sourceSearch : [],
+                  ])
+                </div>
+              </div>
+            </div>
+
+            <div id="searchCategory">
+              <div class="bg-gray-100 p-2">
+                <div class="font-bold mb-2">
+                  Search Use category:
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
+                  @foreach ($categories as $category)
+                  <div class="block p-1">
+                    <span>
+                      <input type="checkbox"
+                             name="categoriesSearch[]"
+                             value="{{$category->id}}"
+                             @if (is_array(request('categoriesSearch')) && in_array($category->id, request('categoriesSearch'))) checked @endif>
+                    </span>
+                    <span class="ml-1">
+                      {!! str_replace(' (', '&nbsp;(', $category->name_abbreviation) !!}
+                    </span>
+                  </div>
+                  @endforeach
+                </div>
+              </div>
+            </div>
+
 
             {{-- <div id="searchGeography">
               <div class="bg-gray-100 p-2">

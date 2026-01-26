@@ -18,6 +18,10 @@
               'matrixSearch'       => $matrixSearch,
               'environmentTypeSearch'     => $environmentTypeSearch,
               'environmentCategorySearch' => $environmentCategorySearch,
+              'substances'         => $substances ?? [],
+              'concentrationIndicatorSearch' => $concentrationIndicatorSearch ?? [],
+              'sourceSearch'       => $sourceSearch ?? [],
+              'categoriesSearch'   => $categoriesSearch ?? [],
               'query_log_id'       => $query_log_id
             ]) }}" class="btn-submit"><i class="fas fa-filter mr-1"></i>Refine Search</a>
 
@@ -93,7 +97,6 @@
               <th>ID</th>
               <th>Substance</th>
               <th>Concentration</th>
-              <th>Unit</th>
               <th>Matrix</th>
               <th>Type of Environment</th>
               <th>Category of Environment</th>
@@ -123,8 +126,26 @@
                 <span class="text-gray-400">N/A</span>
                 @endif
               </td>
-              <td class="p-1 text-center">{{ number_format($e->concentration_value, 4) }}</td>
-              <td class="p-1 text-center">{{ $e->concentration_unit }}</td>
+              <td class="p-1 text-center">
+                @if($e->dic_id == 1)
+                  {{-- Individual Value - show numeric concentration with unit --}}
+                  <span class="font-medium">{{ $e->concentration_value !== null ? number_format($e->concentration_value, 4, '.', ' ') : 'N/A' }}</span>&nbsp;{{ $e->concentration_unit ?? '' }}
+                @elseif($e->dic_id > 1)
+                  {{-- Less than LoD/LoQ - show indicator name --}}
+                  @if($e->collectionCode)
+                    <span class="text-amber-700 italic">{{ $e->collectionCode->name }}</span>
+                  @else
+                    <span class="text-gray-400">N/A</span>
+                  @endif
+                @else
+                  {{-- dic_id == 0 or null - show raw value if available --}}
+                  @if($e->concentration_value !== null)
+                    <span class="font-medium">{{ number_format($e->concentration_value, 4, '.', ' ') }}</span>&nbsp;{{ $e->concentration_unit ?? '' }}
+                  @else
+                    <span class="text-gray-400">N/A</span>
+                  @endif
+                @endif
+              </td>
               <td class="p-1 text-center">
                 @if($e->matrix)
                 {{ $e->matrix->name }}

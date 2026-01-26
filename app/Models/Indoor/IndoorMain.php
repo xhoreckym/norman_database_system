@@ -96,17 +96,17 @@ class IndoorMain extends Model
     /**
      * Get the country record associated with the indoor record.
      */
-    public function country()
+    public function countryRecord()
     {
-        return $this->belongsTo(IndoorDataCountry::class, 'country', 'id');
+        return $this->belongsTo(IndoorDataCountry::class, 'country', 'abbreviation');
     }
 
     /**
      * Get the other country record associated with the indoor record.
      */
-    public function countryOther()
+    public function countryOtherRecord()
     {
-        return $this->belongsTo(IndoorDataCountryOther::class, 'country_other', 'id');
+        return $this->belongsTo(IndoorDataCountryOther::class, 'country_other', 'abbreviation');
     }
 
     /**
@@ -158,6 +158,22 @@ class IndoorMain extends Model
     }
 
     /**
+     * Get the analytical method record associated with the indoor record.
+     */
+    public function analyticalMethod()
+    {
+        return $this->belongsTo(IndoorAnalyticalMethod::class, 'id_method', 'id_method');
+    }
+
+    /**
+     * Get the data source record associated with the indoor record.
+     */
+    public function dataSource()
+    {
+        return $this->belongsTo(IndoorDataSource::class, 'id_data', 'id_data');
+    }
+
+    /**
      * Get a formatted sampling date
      *
      * @return string
@@ -192,5 +208,37 @@ class IndoorMain extends Model
                     ($this->longitude_d.'° '.$this->longitude_m.'\' '.$this->longitude_s.'" '.$this->east_west);
 
         return $latitude.', '.$longitude;
+    }
+
+    /**
+     * Scope to filter by categories (via substance relationship)
+     */
+    public function scopeByCategories($query, array $categoryIds)
+    {
+        if (empty($categoryIds)) {
+            return $query;
+        }
+
+        return $query->join('susdat_substances', 'indoor_main.substance_id', '=', 'susdat_substances.id')
+            ->join('susdat_category_substance', 'susdat_substances.id', '=', 'susdat_category_substance.substance_id')
+            ->whereIn('susdat_category_substance.category_id', $categoryIds)
+            ->select('indoor_main.*')
+            ->distinct();
+    }
+
+    /**
+     * Scope to filter by SLE sources (via substance relationship)
+     */
+    public function scopeBySources($query, array $sourceIds)
+    {
+        if (empty($sourceIds)) {
+            return $query;
+        }
+
+        return $query->join('susdat_substances as subs_source', 'indoor_main.substance_id', '=', 'subs_source.id')
+            ->join('susdat_source_substance', 'subs_source.id', '=', 'susdat_source_substance.substance_id')
+            ->whereIn('susdat_source_substance.source_id', $sourceIds)
+            ->select('indoor_main.*')
+            ->distinct();
     }
 }

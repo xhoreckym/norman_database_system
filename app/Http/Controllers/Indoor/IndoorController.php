@@ -8,9 +8,12 @@ use App\Models\Backend\QueryLog;
 use App\Models\DatabaseEntity;
 use App\Models\Indoor\IndoorDataCountry;
 use App\Models\Indoor\IndoorDataDcoe;
+use App\Models\Indoor\IndoorDataDic;
 use App\Models\Indoor\IndoorDataDtoe;
 use App\Models\Indoor\IndoorDataMatrix;
 use App\Models\Indoor\IndoorMain;
+use App\Models\SLE\SuspectListExchangeSource;
+use App\Models\Susdat\Category;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -50,7 +53,8 @@ class IndoorController extends Controller
     public function show(string $id)
     {
         $record = IndoorMain::with([
-            'country',
+            'countryRecord',
+            'countryOtherRecord',
             'matrix',
             'environmentType',
             'environmentCategory',
@@ -58,6 +62,13 @@ class IndoorController extends Controller
             'purposeCode',
             'observationType',
             'collectionCode',
+            'analyticalMethod.coverageFactor',
+            'analyticalMethod.samplingMethod1',
+            'analyticalMethod.samplingMethod2',
+            'analyticalMethod.samplePreparationMethod',
+            'analyticalMethod.analyticalMethod',
+            'analyticalMethod.standardisedMethod',
+            'dataSource.typeOfDataSource',
         ])->findOrFail($id);
 
         return view('indoor.show', [
@@ -112,12 +123,42 @@ class IndoorController extends Controller
             ->pluck('name', 'id')
             ->toArray();
 
+        $concentrationIndicatorList = IndoorDataDic::orderBy('id')
+            ->pluck('name', 'id')
+            ->toArray();
+
+        // SLE Sources
+        $sources = SuspectListExchangeSource::where('show', 1)
+            ->whereNotNull('order')
+            ->orderBy('order', 'asc')
+            ->get();
+        $sourceList = [];
+        foreach ($sources as $s) {
+            $code = preg_replace('/[^a-zA-Z0-9]/', '', $s->code);
+            $name = preg_replace('/[^a-zA-Z0-9]/', '', $s->name);
+            $sourceList[$s->id] = $code.' - '.$name;
+        }
+        asort($sourceList);
+
+        // Categories
+        $categories = Category::select('id', 'name', 'abbreviation')
+            ->get()
+            ->map(function ($cat) {
+                $cat->name_abbreviation = $cat->name.($cat->abbreviation ? ' ('.$cat->abbreviation.')' : '');
+
+                return $cat;
+            })
+            ->keyBy('id');
+
         return view('indoor.filter', [
             'request' => $request,
             'countryList' => $countryList,
             'environmentTypeList' => $environmentTypeList,
             'environmentCategoryList' => $environmentCategoryList,
             'matrixList' => $matrixList,
+            'concentrationIndicatorList' => $concentrationIndicatorList,
+            'sourceList' => $sourceList,
+            'categories' => $categories,
         ]);
     }
 
@@ -125,7 +166,7 @@ class IndoorController extends Controller
     {
 
         // Define the input fields to process
-        $searchFields = ['countrySearch', 'matrixSearch', 'environmentTypeSearch', 'environmentCategorySearch'];
+        $searchFields = ['countrySearch', 'matrixSearch', 'environmentTypeSearch', 'environmentCategorySearch', 'concentrationIndicatorSearch'];
 
         // Process each field with the same logic
         /*
@@ -136,14 +177,29 @@ class IndoorController extends Controller
             ? $request->input($field)
             : json_decode($request->input($field), true);
         }
+
+        // Process substances separately (comes from Livewire component)
+        $substances = is_array($request->input('substances'))
+            ? $request->input('substances')
+            : json_decode($request->input('substances'), true);
+
+        // Process sourceSearch
+        $sourceSearch = is_array($request->input('sourceSearch'))
+            ? $request->input('sourceSearch')
+            : json_decode($request->input('sourceSearch'), true);
+
+        // Process categoriesSearch (checkboxes)
+        $categoriesSearch = $request->input('categoriesSearch', []);
+
         $searchParameters = [];
 
         $resultsObjects = IndoorMain::with([
-            'country',
+            'countryRecord',
             'matrix',
             'environmentType',
             'environmentCategory',
             'substance',
+            'collectionCode',
         ]);
 
         // Apply country filter
@@ -168,6 +224,30 @@ class IndoorController extends Controller
         if (! empty($environmentCategorySearch)) {
             $resultsObjects = $resultsObjects->whereIn('dcoe_id', $environmentCategorySearch);
             $searchParameters['environmentCategorySearch'] = IndoorDataDcoe::whereIn('id', $environmentCategorySearch)->pluck('name');
+        }
+
+        // Apply substance filter
+        if (! empty($substances)) {
+            $resultsObjects = $resultsObjects->whereIn('substance_id', $substances);
+            $searchParameters['substances'] = \App\Models\Susdat\Substance::whereIn('id', $substances)->pluck('name');
+        }
+
+        // Apply concentration indicator filter
+        if (! empty($concentrationIndicatorSearch)) {
+            $resultsObjects = $resultsObjects->whereIn('dic_id', $concentrationIndicatorSearch);
+            $searchParameters['concentrationIndicatorSearch'] = IndoorDataDic::whereIn('id', $concentrationIndicatorSearch)->pluck('name');
+        }
+
+        // Apply SLE source filter (via substance relationship)
+        if (! empty($sourceSearch)) {
+            $resultsObjects = $resultsObjects->bySources($sourceSearch);
+            $searchParameters['sourceSearch'] = SuspectListExchangeSource::whereIn('id', $sourceSearch)->pluck('code');
+        }
+
+        // Apply category filter (via substance relationship)
+        if (! empty($categoriesSearch)) {
+            $resultsObjects = $resultsObjects->byCategories($categoriesSearch);
+            $searchParameters['categoriesSearch'] = Category::whereIn('id', $categoriesSearch)->pluck('name');
         }
 
         $main_request = $request->all();
@@ -304,13 +384,26 @@ class IndoorController extends Controller
             $requestData = $content['request'] ?? [];
 
             // Process search fields
-            $searchFields = ['countrySearch', 'matrixSearch', 'environmentTypeSearch', 'environmentCategorySearch'];
+            $searchFields = ['countrySearch', 'matrixSearch', 'environmentTypeSearch', 'environmentCategorySearch', 'concentrationIndicatorSearch'];
             $filters = [];
             foreach ($searchFields as $field) {
                 $filters[$field] = is_array($requestData[$field] ?? null)
                     ? $requestData[$field]
                     : json_decode($requestData[$field] ?? '[]', true);
             }
+
+            // Process substances separately
+            $filters['substances'] = is_array($requestData['substances'] ?? null)
+                ? $requestData['substances']
+                : json_decode($requestData['substances'] ?? '[]', true);
+
+            // Process sourceSearch
+            $filters['sourceSearch'] = is_array($requestData['sourceSearch'] ?? null)
+                ? $requestData['sourceSearch']
+                : json_decode($requestData['sourceSearch'] ?? '[]', true);
+
+            // Process categoriesSearch
+            $filters['categoriesSearch'] = $requestData['categoriesSearch'] ?? [];
 
             // Use raw query with joins for better performance
             $baseQuery = DB::table('indoor_main as im')
@@ -352,6 +445,30 @@ class IndoorController extends Controller
 
             if (! empty($filters['environmentCategorySearch'])) {
                 $baseQuery->whereIn('im.dcoe_id', $filters['environmentCategorySearch']);
+            }
+
+            if (! empty($filters['substances'])) {
+                $baseQuery->whereIn('im.substance_id', $filters['substances']);
+            }
+
+            if (! empty($filters['concentrationIndicatorSearch'])) {
+                $baseQuery->whereIn('im.dic_id', $filters['concentrationIndicatorSearch']);
+            }
+
+            // Apply SLE source filter (via substance relationship)
+            if (! empty($filters['sourceSearch'])) {
+                $baseQuery->join('susdat_substances as ss_src', 'im.substance_id', '=', 'ss_src.id')
+                    ->join('susdat_source_substance as sss', 'ss_src.id', '=', 'sss.substance_id')
+                    ->whereIn('sss.source_id', $filters['sourceSearch'])
+                    ->distinct();
+            }
+
+            // Apply category filter (via substance relationship)
+            if (! empty($filters['categoriesSearch'])) {
+                $baseQuery->join('susdat_substances as ss_cat', 'im.substance_id', '=', 'ss_cat.id')
+                    ->join('susdat_category_substance as scs', 'ss_cat.id', '=', 'scs.substance_id')
+                    ->whereIn('scs.category_id', $filters['categoriesSearch'])
+                    ->distinct();
             }
 
             // Process records in chunks
