@@ -11,9 +11,9 @@
     Search
   </x-nav-link-header>
 
-  <x-nav-link-header :href="route('templates.specific.index', ['code' => 'literature'])" :active="request()->is('backend/templates/entity/literature*')">
+  {{-- <x-nav-link-header :href="route('templates.specific.index', ['code' => 'literature'])" :active="request()->is('backend/templates/entity/literature*')">
     DCT Download
-  </x-nav-link-header>
+  </x-nav-link-header> --}}
 
   <x-nav-link-header :href="route('literature.statistics.index')" :active="request()->is('*statistics*')">
     Statistics
