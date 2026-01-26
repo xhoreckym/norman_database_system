@@ -5,7 +5,7 @@
 
   <div class="py-4">
     <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
-      <div class="bg-white overflow-hidden shadow-lg rounded-0">
+      <div class="bg-white overflow-visible shadow-lg rounded-0">
 
         {{-- {!! dump($request) !!} --}}
         <!-- Main Search form -->
