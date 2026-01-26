@@ -31,6 +31,17 @@ class LiteratureFileSeeder extends Seeder
                 'mime_type' => 'text/csv',
                 'database_entity_id' => 17,
             ],
+            [
+                'id' => 9001,
+                'original_name' => 'DCT_BIOTA_LITERATURE_TerraChem_NILU Heimstad_2013_2023_11122025_v3.xlsx',
+                'name' => 'TerraChem NILU Heimstad 2013-2023',
+                'description' => 'DCT Biota Literature data from TerraChem/NILU Heimstad (2013-2023). Wide format with 232 chemical compounds per sample.',
+                'file_path' => 'literature/DCT_BIOTA_LITERATURE_TerraChem_NILU Heimstad_2013_2023_11122025_v3.xlsx',
+                'file_size' => 941150,
+                'mime_type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'database_entity_id' => 17,
+                'matrice_dct' => 1, // Biota-Terrestrial
+            ],
         ];
 
         $now = Carbon::now();
