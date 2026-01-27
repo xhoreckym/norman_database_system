@@ -57,7 +57,7 @@
                   
                   <div class="w-full">
                     <div class="font-bold mb-2">
-                      Ecosystems/matrices:
+                      Sample matrix:
                     </div>
                     @include('_t.form-apline-multiselect', [
                     'tag' => 'matrixSearch', 'list' => $matrixList,

@@ -52,8 +52,7 @@
           </h2>
           <p class="text-gray-700 leading-relaxed mb-4 text-justify">
             To include data into the NORMAN ARB&ARG database, please use the DATA COLLECTION TEMPLATES (DCT) which can
-            be downloaded at <a href="https://www.norman-network.com/nds/bacteria/downloadDCT.php" target="_blank"
-              class="link-lime-text">https://www.norman-network.com/nds/bacteria/downloadDCT.php</a>.
+            be downloaded at <a href="{{ route('empodat.templates', ['code' => 'arbg']) }}" class="link-lime-text">{{ route('empodat.templates', ['code' => 'arbg']) }}</a>.
           </p>
 
           <p class="text-gray-700 leading-relaxed mb-4 text-justify">

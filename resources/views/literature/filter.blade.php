@@ -223,7 +223,7 @@
             <div id="searchMatrix">
               <div class="bg-gray-100 p-2">
                 <div class="font-bold mb-2">
-                  Ecosystems/matrices:
+                  Sample matrix:
                 </div>
                 <div aria-describedby="matrix-help">
                   @include('_t.form-apline-multiselect', [
