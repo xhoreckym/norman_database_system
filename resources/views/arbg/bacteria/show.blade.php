@@ -181,10 +181,10 @@
                 </tr>
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->sampleMatrix->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'is_active', 'ordering', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-teal-50 @else bg-teal-100 @endif">
@@ -202,10 +202,10 @@
                 </tr>
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->bacterialGroup->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'is_active', 'ordering', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-teal-50 @else bg-teal-100 @endif">
@@ -421,10 +421,10 @@
                 </tr>
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->soilType->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'soil_type_id', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'soil_type_id', 'is_active', 'ordering', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-amber-50 @else bg-amber-100 @endif">
@@ -442,10 +442,10 @@
                 </tr>
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->soilTexture->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'soil_texture_id', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'soil_texture_id', 'is_active', 'ordering', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-amber-50 @else bg-amber-100 @endif">
@@ -463,10 +463,10 @@
                 </tr>
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->depthSamplingType->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'is_active', 'ordering', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
@@ -484,10 +484,10 @@
                 </tr>
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->grainSizeDistribution->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'grain_size_distribution_id', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'grain_size_distribution_id', 'is_active', 'ordering', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
@@ -505,10 +505,10 @@
                 </tr>
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->concentrationData->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'concentration_data_id', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'concentration_data_id', 'is_active', 'ordering', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">

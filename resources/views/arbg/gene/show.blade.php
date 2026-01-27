@@ -186,7 +186,7 @@
                 </tr>
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->sampleMatrix->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'is_active', 'ordering', 'created_at', 'updated_at']))
                     @continue
                   @endif
                   @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
@@ -403,7 +403,7 @@
                 </tr>
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->concentrationData->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'concentration_data_id', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'concentration_data_id', 'is_active', 'ordering', 'created_at', 'updated_at']))
                     @continue
                   @endif
                   @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
