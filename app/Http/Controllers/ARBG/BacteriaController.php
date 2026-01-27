@@ -49,16 +49,19 @@ class BacteriaController extends Controller
     public function show(string $id)
     {
         $record = BacteriaMain::with([
-            'coordinate',
+            'coordinate.country',
             'sampleMatrix',
             'bacterialGroup',
-            'source',
+            'source.typeOfDataSource',
+            'source.typeOfMonitoring',
             'concentrationData',
             'grainSizeDistribution',
             'soilTexture',
             'soilType',
             'depthSamplingType',
-            'method',
+            'method.bacteriaIsolationMethod',
+            'method.phenotypeDeterminationMethod',
+            'method.interpretationCriteria',
         ])->findOrFail($id);
 
         return view('arbg.bacteria.show', [

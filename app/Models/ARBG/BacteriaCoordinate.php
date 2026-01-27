@@ -48,6 +48,14 @@ class BacteriaCoordinate extends Model
     }
 
     /**
+     * Get the country record associated with the coordinate.
+     */
+    public function country()
+    {
+        return $this->belongsTo(DataCountry::class, 'country_id', 'abbreviation');
+    }
+
+    /**
      * Get formatted longitude coordinates
      *
      * @return string|null

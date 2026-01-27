@@ -1,6 +1,6 @@
 <div class="px-4 sm:px-6 lg:px-8">
   <span class="mr-12 font-bold text-lime-700">
-    Antibiotic Resistant B/G
+    ARB&ARG Database
   </span> 
 
   <x-nav-link-header :href="route('arbghome.index')" :active="request()->is('*home*')">

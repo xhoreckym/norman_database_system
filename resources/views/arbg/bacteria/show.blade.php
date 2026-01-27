@@ -25,7 +25,7 @@
 
           {{-- Record Information at Glance --}}
           <div class="mb-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">ARBG Bacteria Record at Glance</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">ARB Record at Glance</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               @if ($record->id)
                 <div>
@@ -73,7 +73,12 @@
                   <p class="text-sm text-teal-800 font-mono">{{ $record->coordinate->station_name }}</p>
                 </div>
               @endif
-              @if ($record->coordinate && $record->coordinate->country_id)
+              @if ($record->coordinate && $record->coordinate->country)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Country</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $record->coordinate->country->name }}</p>
+                </div>
+              @elseif ($record->coordinate && $record->coordinate->country_id)
                 <div>
                   <h3 class="text-sm font-medium text-gray-800 mb-1">Country</h3>
                   <p class="text-sm text-teal-800 font-mono">{{ $record->coordinate->country_id }}</p>
@@ -132,14 +137,14 @@
                 </tr>
 
                 {{-- Show coordinates with map link if available --}}
-                @if ($record->coordinate->latitude && $record->coordinate->longitude)
+                @if ($record->coordinate->latitude_decimal && $record->coordinate->longitude_decimal)
                   <tr class="bg-emerald-100">
                     <td class="p-1 font-bold" style="width: 20%; min-width: 120px;">Coordinates</td>
                     <td class="p-1" style="width: 80%;">
-                      <a href="https://www.google.com/maps?q={{ $record->coordinate->latitude }},{{ $record->coordinate->longitude }}"
+                      <a href="https://www.google.com/maps?q={{ $record->coordinate->latitude_decimal }},{{ $record->coordinate->longitude_decimal }}"
                          target="_blank"
                          class="text-teal-700 hover:text-teal-900 hover:underline">
-                        {{ $record->coordinate->latitude }}, {{ $record->coordinate->longitude }}
+                        {{ $record->coordinate->latitude_decimal }}, {{ $record->coordinate->longitude_decimal }}
                         <i class="fas fa-external-link-alt text-xs ml-1"></i>
                       </a>
                     </td>
@@ -153,11 +158,11 @@
 
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->coordinate->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'latitude', 'longitude', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'latitude_decimal', 'longitude_decimal', 'created_at', 'updated_at', 'country']))
                     @continue
                   @endif
 
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || (is_array($value)) || (is_string($value) && $value === ''))
                     @continue
                   @endif
 
@@ -217,11 +222,30 @@
                   <td colspan="2" class="p-2 font-bold text-center">Data Source</td>
                 </tr>
                 @php $rowIndex = 0; @endphp
+
+                {{-- Type of Data Source --}}
+                @if ($record->source->typeOfDataSource)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Type of data source</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->source->typeOfDataSource->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Type of Monitoring --}}
+                @if ($record->source->typeOfMonitoring)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Type of monitoring</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->source->typeOfMonitoring->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
                 @foreach ($record->source->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'source_id', 'type_of_data_source_id', 'type_of_monitoring_id', 'type_of_data_source', 'type_of_monitoring', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || (is_array($value)) || (is_string($value) && $value === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
@@ -238,19 +262,51 @@
                   <td colspan="2" class="p-2 font-bold text-center">Analytical Method</td>
                 </tr>
                 @php $rowIndex = 0; @endphp
-                @foreach ($record->method->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'method_id', 'created_at', 'updated_at']))
-                    @continue
-                  @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
-                    @continue
-                  @endif
+
+                {{-- Limit of Detection --}}
+                @if ($record->method->lod)
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
-                    <td class="p-1 font-bold" style="width: 20%;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
-                    <td class="p-1" style="width: 80%;">{{ $value }}</td>
+                    <td class="p-1 font-bold" style="width: 20%;">Limit of Detection (LoD):<br><span class="font-normal text-gray-500">[{{ $record->method->lod_unit ?? 'CFU/ml' }}]</span></td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->lod }}</td>
                   </tr>
                   @php $rowIndex++; @endphp
-                @endforeach
+                @endif
+
+                {{-- Limit of Quantification --}}
+                @if ($record->method->loq)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Limit of Quantification (LoQ):<br><span class="font-normal text-gray-500">[{{ $record->method->loq_unit ?? 'CFU/ml' }}]</span></td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->loq }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Bacteria isolation method --}}
+                @if ($record->method->bacteriaIsolationMethod)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Bacteria isolation method:</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->bacteriaIsolationMethod->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Phenotype determination method --}}
+                @if ($record->method->phenotypeDeterminationMethod)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Phenotype determination method:</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->phenotypeDeterminationMethod->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Interpretation criteria --}}
+                @if ($record->method->interpretationCriteria)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Interpretation criteria:</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->interpretationCriteria->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
               @endif
 
               {{-- Soil Type Information --}}
@@ -366,11 +422,11 @@
   </div>
 
   {{-- Initialize Leaflet map if coordinates are available --}}
-  @if ($record->coordinate && $record->coordinate->latitude && $record->coordinate->longitude)
+  @if ($record->coordinate && $record->coordinate->latitude_decimal && $record->coordinate->longitude_decimal)
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        const lat = {{ $record->coordinate->latitude }};
-        const lng = {{ $record->coordinate->longitude }};
+        const lat = {{ $record->coordinate->latitude_decimal }};
+        const lng = {{ $record->coordinate->longitude_decimal }};
         const stationName = @json($record->coordinate->station_name ?? 'Station');
 
         // Initialize the map
