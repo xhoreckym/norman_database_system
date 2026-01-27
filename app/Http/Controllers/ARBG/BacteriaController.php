@@ -59,9 +59,10 @@ class BacteriaController extends Controller
             'soilTexture',
             'soilType',
             'depthSamplingType',
-            'method.bacteriaIsolationMethod',
-            'method.phenotypeDeterminationMethod',
-            'method.interpretationCriteria',
+            'method.analyticalMethodType',
+            'method.typeOfSample',
+            'method.targetedAnalysis',
+            'method.nonTargetedAnalysis',
         ])->findOrFail($id);
 
         return view('arbg.bacteria.show', [

@@ -101,7 +101,7 @@ class GeneMain extends Model
      */
     public function method()
     {
-        return $this->belongsTo(DataAnalyticalMethod::class, 'method_id', 'id');
+        return $this->belongsTo(AnalyticalMethod::class, 'method_id', 'method_id');
     }
 
     /**

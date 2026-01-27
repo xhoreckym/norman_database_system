@@ -48,11 +48,15 @@ class GeneController extends Controller
     public function show(string $id)
     {
         $record = GeneMain::with([
-            'coordinate',
+            'coordinate.country',
             'sampleMatrix',
-            'source',
+            'source.typeOfDataSource',
+            'source.typeOfMonitoring',
             'concentrationData',
-            'method',
+            'method.analyticalMethodType',
+            'method.typeOfSample',
+            'method.targetedAnalysis',
+            'method.nonTargetedAnalysis',
         ])->findOrFail($id);
 
         return view('arbg.gene.show', [

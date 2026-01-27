@@ -74,7 +74,12 @@
                   <p class="text-sm text-teal-800 font-mono">{{ $record->coordinate->station_name }}</p>
                 </div>
               @endif
-              @if ($record->coordinate && $record->coordinate->country_id)
+              @if ($record->coordinate && $record->coordinate->country)
+                <div>
+                  <h3 class="text-sm font-medium text-gray-800 mb-1">Country</h3>
+                  <p class="text-sm text-teal-800 font-mono">{{ $record->coordinate->country->name }}</p>
+                </div>
+              @elseif ($record->coordinate && $record->coordinate->country_id)
                 <div>
                   <h3 class="text-sm font-medium text-gray-800 mb-1">Country</h3>
                   <p class="text-sm text-teal-800 font-mono">{{ $record->coordinate->country_id }}</p>
@@ -94,7 +99,7 @@
             <table class="table-auto w-full border-separate border-spacing-1 text-xs mt-4" style="table-layout: fixed;">
               @php
                 $rowIndex = 0;
-                $excludedKeys = ['coordinate', 'sample_matrix', 'source', 'concentration_data', 'method', 'created_at', 'updated_at'];
+                $excludedKeys = ['coordinate', 'sample_matrix', 'source', 'concentration_data', 'method', 'country', 'created_at', 'updated_at'];
               @endphp
 
               @foreach ($record->toArray() as $key => $value)
@@ -109,18 +114,14 @@
                 @endif
 
                 {{-- Skip null values and empty arrays --}}
-                @if (is_null($value) || (is_array($value) && empty($value)) || (is_string($value) && $value === ''))
+                @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                   @continue
                 @endif
 
                 <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
                   <td class="p-1 font-bold" style="width: 20%; min-width: 120px; word-wrap: break-word; overflow-wrap: break-word;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
                   <td class="p-1" style="width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all; max-width: 0;">
-                    @if (is_array($value))
-                      {{ json_encode($value) }}
-                    @else
-                      {{ $value }}
-                    @endif
+                    {{ $value }}
                   </td>
                 </tr>
                 @php $rowIndex++; @endphp
@@ -132,15 +133,23 @@
                   <td colspan="2" class="p-2 font-bold text-center">Station / Coordinate Information</td>
                 </tr>
 
+                {{-- Show country name from relationship --}}
+                @if ($record->coordinate->country)
+                  <tr class="bg-slate-100">
+                    <td class="p-1 font-bold" style="width: 20%; min-width: 120px;">Country</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->coordinate->country->name }}</td>
+                  </tr>
+                @endif
+
                 {{-- Show coordinates with map link if available --}}
-                @if ($record->coordinate->latitude && $record->coordinate->longitude)
+                @if ($record->coordinate->latitude_decimal && $record->coordinate->longitude_decimal)
                   <tr class="bg-emerald-100">
                     <td class="p-1 font-bold" style="width: 20%; min-width: 120px;">Coordinates</td>
                     <td class="p-1" style="width: 80%;">
-                      <a href="https://www.google.com/maps?q={{ $record->coordinate->latitude }},{{ $record->coordinate->longitude }}"
+                      <a href="https://www.google.com/maps?q={{ $record->coordinate->latitude_decimal }},{{ $record->coordinate->longitude_decimal }}"
                          target="_blank"
                          class="text-teal-700 hover:text-teal-900 hover:underline">
-                        {{ $record->coordinate->latitude }}, {{ $record->coordinate->longitude }}
+                        {{ $record->coordinate->latitude_decimal }}, {{ $record->coordinate->longitude_decimal }}
                         <i class="fas fa-external-link-alt text-xs ml-1"></i>
                       </a>
                     </td>
@@ -154,11 +163,11 @@
 
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->coordinate->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'latitude', 'longitude', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'country', 'country_id', 'latitude_decimal', 'longitude_decimal', 'created_at', 'updated_at']))
                     @continue
                   @endif
 
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                     @continue
                   @endif
 
@@ -180,7 +189,7 @@
                   @if (in_array($key, ['id', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-teal-50 @else bg-teal-100 @endif">
@@ -196,12 +205,29 @@
                 <tr class="bg-gray-300">
                   <td colspan="2" class="p-2 font-bold text-center">Data Source</td>
                 </tr>
+
+                {{-- Display type of data source name --}}
+                @if ($record->source->typeOfDataSource)
+                  <tr class="bg-slate-100">
+                    <td class="p-1 font-bold" style="width: 20%;">Type of data source</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->source->typeOfDataSource->name }}</td>
+                  </tr>
+                @endif
+
+                {{-- Display type of monitoring name --}}
+                @if ($record->source->typeOfMonitoring)
+                  <tr class="bg-slate-200">
+                    <td class="p-1 font-bold" style="width: 20%;">Type of monitoring</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->source->typeOfMonitoring->name }}</td>
+                  </tr>
+                @endif
+
                 @php $rowIndex = 0; @endphp
                 @foreach ($record->source->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'created_at', 'updated_at']))
+                  @if (in_array($key, ['id', 'type_of_data_source', 'type_of_monitoring', 'type_of_data_source_id', 'type_of_monitoring_id', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
@@ -218,19 +244,156 @@
                   <td colspan="2" class="p-2 font-bold text-center">Analytical Method</td>
                 </tr>
                 @php $rowIndex = 0; @endphp
-                @foreach ($record->method->toArray() as $key => $value)
-                  @if (in_array($key, ['id', 'method_id', 'created_at', 'updated_at']))
-                    @continue
-                  @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
-                    @continue
-                  @endif
+
+                {{-- Analytical Method Type --}}
+                @if ($record->method->analyticalMethodType)
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
-                    <td class="p-1 font-bold" style="width: 20%;">{{ str_replace('_', ' ', ucfirst($key)) }}</td>
-                    <td class="p-1" style="width: 80%;">{{ $value }}</td>
+                    <td class="p-1 font-bold" style="width: 20%;">Analytical method</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->analyticalMethodType->name }}</td>
                   </tr>
                   @php $rowIndex++; @endphp
-                @endforeach
+                @elseif ($record->method->analytical_method_other)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Analytical method</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->analytical_method_other }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Type of Sample --}}
+                @if ($record->method->typeOfSample)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Type of sample</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->typeOfSample->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @elseif ($record->method->type_of_sample_other)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Type of sample</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->type_of_sample_other }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Volume of sample used for DNA extraction --}}
+                @if ($record->method->volume_of_sample_used_for_dna_extraction)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Volume of sample for DNA extraction</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->volume_of_sample_used_for_dna_extraction }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Method used for DNA extraction --}}
+                @if ($record->method->method_used_for_dna_extraction)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Method for DNA extraction</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->method_used_for_dna_extraction }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Targeted Analysis --}}
+                @if ($record->method->targetedAnalysis)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Targeted analysis</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->targetedAnalysis->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @elseif ($record->method->targeted_analysis_other)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Targeted analysis</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->targeted_analysis_other }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Non-Targeted Analysis --}}
+                @if ($record->method->nonTargetedAnalysis)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Non-targeted analysis</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->nonTargetedAnalysis->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @elseif ($record->method->non_targeted_analysis_other)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Non-targeted analysis</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->non_targeted_analysis_other }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Analysis of pooled DNA extracts --}}
+                @if ($record->method->analysis_of_pooled_dna_extracts)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Analysis of pooled DNA extracts</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->analysis_of_pooled_dna_extracts }}@if($record->method->analysis_of_pooled_dna_extracts_specify) ({{ $record->method->analysis_of_pooled_dna_extracts_specify }})@endif</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- DNA --}}
+                @if ($record->method->dna)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">DNA</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->dna }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Limit of Detection --}}
+                @if ($record->method->limit_of_detection)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Limit of Detection (LoD)</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->limit_of_detection }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Limit of Quantification --}}
+                @if ($record->method->limit_of_quantification)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Limit of Quantification (LoQ)</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->limit_of_quantification }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Uncertainty of the quantification --}}
+                @if ($record->method->uncertainty_of_the_quantification)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Uncertainty of the quantification</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->uncertainty_of_the_quantification }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Efficiency --}}
+                @if ($record->method->efficiency)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Efficiency</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->efficiency }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Sequencing read depth --}}
+                @if ($record->method->sequencing_read_depth)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Sequencing read depth</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->sequencing_read_depth }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Remarks --}}
+                @if ($record->method->remarks)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Remarks</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->remarks }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
               @endif
 
               {{-- Concentration Data Information --}}
@@ -243,7 +406,7 @@
                   @if (in_array($key, ['id', 'concentration_data_id', 'created_at', 'updated_at']))
                     @continue
                   @endif
-                  @if (is_null($value) || (is_string($value) && $value === ''))
+                  @if (is_null($value) || is_array($value) || (is_string($value) && $value === ''))
                     @continue
                   @endif
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
@@ -262,11 +425,11 @@
   </div>
 
   {{-- Initialize Leaflet map if coordinates are available --}}
-  @if ($record->coordinate && $record->coordinate->latitude && $record->coordinate->longitude)
+  @if ($record->coordinate && $record->coordinate->latitude_decimal && $record->coordinate->longitude_decimal)
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        const lat = {{ $record->coordinate->latitude }};
-        const lng = {{ $record->coordinate->longitude }};
+        const lat = {{ $record->coordinate->latitude_decimal }};
+        const lng = {{ $record->coordinate->longitude_decimal }};
         const stationName = @json($record->coordinate->station_name ?? 'Station');
 
         // Initialize the map

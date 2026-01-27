@@ -144,7 +144,7 @@ class BacteriaMain extends Model
      */
     public function method()
     {
-        return $this->belongsTo(BacteriaMethod::class, 'method_id', 'method_id');
+        return $this->belongsTo(AnalyticalMethod::class, 'method_id', 'method_id');
     }
 
     /**

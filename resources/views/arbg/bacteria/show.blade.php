@@ -263,47 +263,152 @@
                 </tr>
                 @php $rowIndex = 0; @endphp
 
-                {{-- Limit of Detection --}}
-                @if ($record->method->lod)
+                {{-- Analytical Method Type --}}
+                @if ($record->method->analyticalMethodType)
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
-                    <td class="p-1 font-bold" style="width: 20%;">Limit of Detection (LoD):<br><span class="font-normal text-gray-500">[{{ $record->method->lod_unit ?? 'CFU/ml' }}]</span></td>
-                    <td class="p-1" style="width: 80%;">{{ $record->method->lod }}</td>
+                    <td class="p-1 font-bold" style="width: 20%;">Analytical method</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->analyticalMethodType->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @elseif ($record->method->analytical_method_other)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Analytical method</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->analytical_method_other }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Type of Sample --}}
+                @if ($record->method->typeOfSample)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Type of sample</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->typeOfSample->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @elseif ($record->method->type_of_sample_other)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Type of sample</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->type_of_sample_other }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Volume of sample used for DNA extraction --}}
+                @if ($record->method->volume_of_sample_used_for_dna_extraction)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Volume of sample for DNA extraction</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->volume_of_sample_used_for_dna_extraction }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Method used for DNA extraction --}}
+                @if ($record->method->method_used_for_dna_extraction)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Method for DNA extraction</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->method_used_for_dna_extraction }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Targeted Analysis --}}
+                @if ($record->method->targetedAnalysis)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Targeted analysis</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->targetedAnalysis->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @elseif ($record->method->targeted_analysis_other)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Targeted analysis</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->targeted_analysis_other }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Non-Targeted Analysis --}}
+                @if ($record->method->nonTargetedAnalysis)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Non-targeted analysis</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->nonTargetedAnalysis->name }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @elseif ($record->method->non_targeted_analysis_other)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Non-targeted analysis</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->non_targeted_analysis_other }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Analysis of pooled DNA extracts --}}
+                @if ($record->method->analysis_of_pooled_dna_extracts)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Analysis of pooled DNA extracts</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->analysis_of_pooled_dna_extracts }}@if($record->method->analysis_of_pooled_dna_extracts_specify) ({{ $record->method->analysis_of_pooled_dna_extracts_specify }})@endif</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- DNA --}}
+                @if ($record->method->dna)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">DNA</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->dna }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Limit of Detection --}}
+                @if ($record->method->limit_of_detection)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Limit of Detection (LoD)</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->limit_of_detection }}</td>
                   </tr>
                   @php $rowIndex++; @endphp
                 @endif
 
                 {{-- Limit of Quantification --}}
-                @if ($record->method->loq)
+                @if ($record->method->limit_of_quantification)
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
-                    <td class="p-1 font-bold" style="width: 20%;">Limit of Quantification (LoQ):<br><span class="font-normal text-gray-500">[{{ $record->method->loq_unit ?? 'CFU/ml' }}]</span></td>
-                    <td class="p-1" style="width: 80%;">{{ $record->method->loq }}</td>
+                    <td class="p-1 font-bold" style="width: 20%;">Limit of Quantification (LoQ)</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->limit_of_quantification }}</td>
                   </tr>
                   @php $rowIndex++; @endphp
                 @endif
 
-                {{-- Bacteria isolation method --}}
-                @if ($record->method->bacteriaIsolationMethod)
+                {{-- Uncertainty of the quantification --}}
+                @if ($record->method->uncertainty_of_the_quantification)
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
-                    <td class="p-1 font-bold" style="width: 20%;">Bacteria isolation method:</td>
-                    <td class="p-1" style="width: 80%;">{{ $record->method->bacteriaIsolationMethod->name }}</td>
+                    <td class="p-1 font-bold" style="width: 20%;">Uncertainty of the quantification</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->uncertainty_of_the_quantification }}</td>
                   </tr>
                   @php $rowIndex++; @endphp
                 @endif
 
-                {{-- Phenotype determination method --}}
-                @if ($record->method->phenotypeDeterminationMethod)
+                {{-- Efficiency --}}
+                @if ($record->method->efficiency)
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
-                    <td class="p-1 font-bold" style="width: 20%;">Phenotype determination method:</td>
-                    <td class="p-1" style="width: 80%;">{{ $record->method->phenotypeDeterminationMethod->name }}</td>
+                    <td class="p-1 font-bold" style="width: 20%;">Efficiency</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->efficiency }}</td>
                   </tr>
                   @php $rowIndex++; @endphp
                 @endif
 
-                {{-- Interpretation criteria --}}
-                @if ($record->method->interpretationCriteria)
+                {{-- Sequencing read depth --}}
+                @if ($record->method->sequencing_read_depth)
                   <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
-                    <td class="p-1 font-bold" style="width: 20%;">Interpretation criteria:</td>
-                    <td class="p-1" style="width: 80%;">{{ $record->method->interpretationCriteria->name }}</td>
+                    <td class="p-1 font-bold" style="width: 20%;">Sequencing read depth</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->sequencing_read_depth }}</td>
+                  </tr>
+                  @php $rowIndex++; @endphp
+                @endif
+
+                {{-- Remarks --}}
+                @if ($record->method->remarks)
+                  <tr class="@if ($rowIndex % 2 === 0) bg-slate-100 @else bg-slate-200 @endif">
+                    <td class="p-1 font-bold" style="width: 20%;">Remarks</td>
+                    <td class="p-1" style="width: 80%;">{{ $record->method->remarks }}</td>
                   </tr>
                   @php $rowIndex++; @endphp
                 @endif
