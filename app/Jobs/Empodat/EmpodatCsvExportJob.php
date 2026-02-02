@@ -245,51 +245,6 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
     }
 
     /**
-     * Override ID extraction to handle column ambiguity with JOINs
-     */
-    protected function extractIds(QueryLog $queryLog)
-    {
-        $baseQuery = $this->buildBaseQuery();
-        $filteredQuery = $this->applyQueryFilters($baseQuery, $queryLog);
-
-        // Explicitly select empodat_main.id to avoid ambiguity
-        $filteredQuery->select('empodat_main.id')
-            ->orderBy('empodat_main.id');
-
-        // Use chunking for memory efficiency
-        $ids = [];
-        $filteredQuery->chunk(1000, function ($records) use (&$ids) {
-            foreach ($records as $record) {
-                $ids[] = $record->id;
-            }
-        });
-
-        // Return generator for memory efficiency
-        foreach ($ids as $id) {
-            yield $id;
-        }
-    }
-
-    /**
-     * Override chunked ID extraction to handle column ambiguity
-     */
-    protected function extractIdsChunked(QueryLog $queryLog)
-    {
-        $baseQuery = $this->buildBaseQuery();
-        $filteredQuery = $this->applyQueryFilters($baseQuery, $queryLog);
-
-        // Explicitly select empodat_main.id to avoid ambiguity
-        $ids = $filteredQuery->select('empodat_main.id')
-            ->orderBy('empodat_main.id')
-            ->pluck('empodat_main.id')
-            ->toArray();
-
-        foreach ($ids as $id) {
-            yield $id;
-        }
-    }
-
-    /**
      * Get records for a batch of IDs with all necessary relationships
      * Optimized to avoid JOIN conflicts with filtered queries
      */
@@ -374,14 +329,6 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
             ->whereIn('empodat_main.id', $orderedIds)
             ->orderBy('empodat_main.id')
             ->cursor(); // Use cursor for memory efficiency with larger datasets
-    }
-
-    /**
-     * Override batch size optimization for Empodat's specific needs
-     */
-    protected function optimizeBatchSize(array $lastBatch): void
-    {
-        parent::optimizeBatchSize($lastBatch);
     }
 
     /**
@@ -685,6 +632,12 @@ class EmpodatCsvExportJob extends AbstractCsvExportJob
      */
     protected function handleWithCopy(): void
     {
+        // Disable debugbar and query log to prevent memory issues
+        if (app()->bound('debugbar')) {
+            app('debugbar')->disable();
+        }
+        DB::disableQueryLog();
+
         // Set execution parameters
         ini_set('memory_limit', '512M'); // Much lower memory needed for COPY
         set_time_limit($this->maxExecutionTime);

@@ -21,6 +21,11 @@ class EmpodatSuspectCsvExportJob extends AbstractCsvExportJob
     protected $maxBatchSize = 2000;
 
     /**
+     * Cache for matrix metadata keyed by station_id to avoid re-fetching across batches
+     */
+    protected array $matrixCache = [];
+
+    /**
      * Extended timeout for large datasets
      */
     protected $maxExecutionTime = 3600; // 1 hour
@@ -305,29 +310,6 @@ class EmpodatSuspectCsvExportJob extends AbstractCsvExportJob
     }
 
     /**
-     * Override ID extraction to handle column specificity
-     */
-    protected function extractIds(QueryLog $queryLog)
-    {
-        $baseQuery = $this->buildBaseQuery();
-        $filteredQuery = $this->applyQueryFilters($baseQuery, $queryLog);
-
-        $filteredQuery->select('empodat_suspect_main.id')
-            ->orderBy('empodat_suspect_main.id');
-
-        $ids = [];
-        $filteredQuery->chunk(1000, function ($records) use (&$ids) {
-            foreach ($records as $record) {
-                $ids[] = $record->id;
-            }
-        });
-
-        foreach ($ids as $id) {
-            yield $id;
-        }
-    }
-
-    /**
      * Get records for a batch of IDs with all necessary relationships and matrix metadata
      */
     protected function getRecordsBatch(array $idBatch)
@@ -392,34 +374,43 @@ class EmpodatSuspectCsvExportJob extends AbstractCsvExportJob
     }
 
     /**
-     * Fetch matrix metadata for a set of station IDs
+     * Fetch matrix metadata for a set of station IDs, using cross-batch cache
      */
     protected function fetchMatrixMetadataForStations(array $stationIds): array
     {
-        $result = [];
-
         if (empty($stationIds)) {
-            return $result;
+            return [];
         }
 
-        foreach ($this->matrixTypes as $type => $tableName) {
-            try {
-                $data = DB::table($tableName)
-                    ->whereIn('station_id', $stationIds)
-                    ->get()
-                    ->groupBy('station_id');
+        // Only query for station IDs not already cached
+        $uncachedIds = array_values(array_diff($stationIds, array_keys($this->matrixCache)));
 
-                foreach ($data as $stationId => $rows) {
-                    if (! isset($result[$stationId])) {
-                        $result[$stationId] = [];
-                    }
-                    // Take only the first row per station per matrix type
-                    $result[$stationId][$type] = $rows->first();
-                }
-            } catch (\Exception $e) {
-                // MV might not exist yet, skip silently
-                Log::debug("Matrix MV {$tableName} not available: ".$e->getMessage());
+        if (! empty($uncachedIds)) {
+            // Initialize cache entries for uncached stations
+            foreach ($uncachedIds as $id) {
+                $this->matrixCache[$id] = [];
             }
+
+            foreach ($this->matrixTypes as $type => $tableName) {
+                try {
+                    $data = DB::table($tableName)
+                        ->whereIn('station_id', $uncachedIds)
+                        ->get()
+                        ->groupBy('station_id');
+
+                    foreach ($data as $stationId => $rows) {
+                        $this->matrixCache[$stationId][$type] = $rows->first();
+                    }
+                } catch (\Exception $e) {
+                    Log::debug("Matrix MV {$tableName} not available: ".$e->getMessage());
+                }
+            }
+        }
+
+        // Return only the requested station IDs from cache
+        $result = [];
+        foreach ($stationIds as $id) {
+            $result[$id] = $this->matrixCache[$id] ?? [];
         }
 
         return $result;
