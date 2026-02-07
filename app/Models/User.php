@@ -4,19 +4,17 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Backend\Project;
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
+    use HasApiTokens;
     use HasFactory, Notifiable;
     use HasRoles;
-    use HasApiTokens;
-
-
 
     /**
      * The attributes that are mass assignable.
@@ -63,8 +61,6 @@ class User extends Authenticatable
 
     /**
      * Get the user's full name.
-     *
-     * @return string
      */
     public function getFullNameAttribute(): string
     {
@@ -73,15 +69,13 @@ class User extends Authenticatable
 
     /**
      * Get the user's formatted name with salutation if available.
-     *
-     * @return string
      */
     public function getFormattedNameAttribute(): string
     {
         if ($this->salutation) {
             return "{$this->salutation} {$this->first_name} {$this->last_name}";
         }
-        
+
         return $this->getFullNameAttribute();
     }
 
@@ -110,9 +104,17 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the export downloads for the user.
+     */
+    public function exportDownloads(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Backend\ExportDownload::class);
+    }
+
+    /**
      * Scope a query to only include active users.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeActive($query)

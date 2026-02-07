@@ -7,12 +7,28 @@
         <div class="p-6 text-gray-900">
           
           <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">My Downloads</h1>
+            <h1 class="text-2xl font-bold text-gray-800">{{ $isSuperAdmin ? 'Downloads' : 'My Downloads' }}</h1>
+
+            @if($isSuperAdmin && $usersWithExports->count() > 0)
+              <div class="mt-3 p-4 bg-lime-50 rounded-lg border border-lime-200">
+                <form method="GET" action="{{ route('export_downloads.index') }}" class="flex items-center gap-4">
+                  <label for="user_id" class="text-sm font-medium text-gray-700">Filter by User:</label>
+                  <select name="user_id" id="user_id" class="rounded-md border-gray-300 shadow-sm focus:border-lime-500 focus:ring-lime-500 text-sm" onchange="this.form.submit()">
+                    <option value="">-- Select User --</option>
+                    @foreach($usersWithExports as $u)
+                      <option value="{{ $u->id }}" {{ $userId == $u->id ? 'selected' : '' }}>
+                        {{ $u->last_name }}, {{ $u->first_name }} ({{ $u->email }}) - {{ $u->export_downloads_count }} downloads
+                      </option>
+                    @endforeach
+                  </select>
+                </form>
+              </div>
+            @endif
+
             @if($user)
               <div class="mt-3 p-4 bg-gray-50 rounded-lg">
-                <h3 class="text-lg font-medium text-gray-800">User Information</h3>
                 <p class="text-xs text-gray-500 mb-3"><em>All times displayed in Central European Time (CET/CEST)</em></p>
-                <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-wrap gap-6">
                   <div>
                     <span class="text-sm font-medium text-gray-600">Name:</span>
                     <span class="text-sm text-gray-800 ml-2">{{ $user->full_name }}</span>
@@ -21,38 +37,10 @@
                     <span class="text-sm font-medium text-gray-600">Email:</span>
                     <span class="text-sm text-gray-800 ml-2">{{ $user->email }}</span>
                   </div>
-                  @if($user->organisation)
-                  <div>
-                    <span class="text-sm font-medium text-gray-600">Organisation:</span>
-                    <span class="text-sm text-gray-800 ml-2">{{ $user->organisation }}</span>
-                  </div>
-                  @endif
                   <div>
                     <span class="text-sm font-medium text-gray-600">Total Downloads:</span>
-                    <span class="text-sm text-gray-800 ml-2">{{ $exportDownloads->total() }}</span>
+                    <span class="text-sm text-gray-800 ml-2 font-mono">{{ $exportDownloads instanceof \Illuminate\Pagination\LengthAwarePaginator ? $exportDownloads->total() : $exportDownloads->count() }}</span>
                   </div>
-                  @if($exportDownloads->where('status', 'completed')->count() > 0)
-                  <div>
-                    <span class="text-sm font-medium text-gray-600">Completed Downloads:</span>
-                    <span class="text-sm text-green-600 ml-2 font-medium">{{ $exportDownloads->where('status', 'completed')->count() }}</span>
-                  </div>
-                  @endif
-                  @if($exportDownloads->whereNotNull('file_size_bytes')->sum('file_size_bytes') > 0)
-                  <div>
-                    <span class="text-sm font-medium text-gray-600">Total Downloaded:</span>
-                    <span class="text-sm text-gray-800 ml-2">
-                      @php
-                        $totalBytes = $exportDownloads->whereNotNull('file_size_bytes')->sum('file_size_bytes');
-                        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-                        $bytes = max($totalBytes, 0);
-                        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-                        $pow = min($pow, count($units) - 1);
-                        $bytes /= (1 << (10 * $pow));
-                        echo round($bytes, 2) . ' ' . $units[$pow];
-                      @endphp
-                    </span>
-                  </div>
-                  @endif
                 </div>
               </div>
             @endif
@@ -204,17 +192,24 @@
               </table>
             </div>
 
-            <div class="mt-6">
-              {{ $exportDownloads->appends(['user_id' => $userId])->links() }}
-            </div>
+            @if($exportDownloads instanceof \Illuminate\Pagination\LengthAwarePaginator && $exportDownloads->hasPages())
+              <div class="mt-6">
+                {{ $exportDownloads->appends(['user_id' => $userId])->links() }}
+              </div>
+            @endif
           @else
             <div class="text-center py-8">
               <div class="text-gray-500">
                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">No downloads found</h3>
-                <p class="mt-1 text-sm text-gray-500">No export downloads were found for this user.</p>
+                @if($isSuperAdmin && !$userId)
+                  <h3 class="mt-2 text-sm font-medium text-gray-900">Select a user</h3>
+                  <p class="mt-1 text-sm text-gray-500">Select a user from the dropdown above to view their downloads.</p>
+                @else
+                  <h3 class="mt-2 text-sm font-medium text-gray-900">No downloads found</h3>
+                  <p class="mt-1 text-sm text-gray-500">No export downloads were found for this user.</p>
+                @endif
               </div>
             </div>
           @endif
