@@ -2,6 +2,7 @@
   <x-slot name="header">
     @include('arbg.header')
   </x-slot>
+  
 
 
   <div class="py-4">
