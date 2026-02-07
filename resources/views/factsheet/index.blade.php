@@ -15,8 +15,15 @@
               <div class="col-span-1">
                 <div class="mb-6">
                   <h1 class="text-2xl font-bold text-teal-800 font-mono mb-2">
-                    {{ $substance->name ?? 'Substance Factsheet' }} 
+                    {{ $substance->name ?? 'Substance Factsheet' }}
                   </h1>
+                  @if($substance->structure_image_url)
+                  <div class="mt-4">
+                    <img src="{{ $substance->structure_image_url }}"
+                         alt="Structure of {{ $substance->name }}"
+                         class="w-40 h-40 object-contain bg-white border border-gray-200 rounded-lg p-2">
+                  </div>
+                  @endif
                 </div>
                 <div class="mb-4 space-y-2">
                   <div class="flex flex-wrap gap-2">

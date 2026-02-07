@@ -2,19 +2,19 @@
 
 namespace App\Models\Susdat;
 
-use App\Models\User;
 use App\Models\SLE\SuspectListExchangeSource;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use OwenIt\Auditing\Contracts\Auditable;
 use OwenIt\Auditing\Auditable as AuditableTrait;
+use OwenIt\Auditing\Contracts\Auditable;
 
 class Substance extends Model implements Auditable
 {
+    use AuditableTrait;
     use HasFactory;
     use SoftDeletes;
-    use AuditableTrait;
 
     /**
      * The table associated with the model.
@@ -90,7 +90,7 @@ class Substance extends Model implements Auditable
         static::saving(function ($substance) {
             if ($substance->canonical_id && $substance->isDirty('canonical_id')) {
                 $canonical = self::find($substance->canonical_id);
-                if (!$canonical || $canonical->status !== 'active') {
+                if (! $canonical || $canonical->status !== 'active') {
                     throw new \InvalidArgumentException('canonical_id must reference an active substance');
                 }
             }
@@ -128,18 +128,19 @@ class Substance extends Model implements Auditable
      */
     public function getPrefixedCodeAttribute()
     {
-        return 'NS' . $this->code;
+        return 'NS'.$this->code;
     }
 
     /**
      * Store code without prefix.
      *
-     * @param string $code
+     * @param  string  $code
      * @return bool
      */
     public function storeCodeWithoutPrefix($code)
     {
         $this->code = str_replace('NS', '', $code);
+
         return $this->save();
     }
 
@@ -161,16 +162,16 @@ class Substance extends Model implements Auditable
      */
     public function getFormattedCasAttribute()
     {
-        if (!$this->cas_number) {
+        if (! $this->cas_number) {
             return null;
         }
 
         // If CAS number doesn't contain dashes, format it
-        if (!str_contains($this->cas_number, '-')) {
+        if (! str_contains($this->cas_number, '-')) {
             $cas = $this->cas_number;
             if (strlen($cas) >= 3) {
                 // Format as XXXXX-XX-X
-                return substr($cas, 0, -3) . '-' . substr($cas, -3, 2) . '-' . substr($cas, -1);
+                return substr($cas, 0, -3).'-'.substr($cas, -3, 2).'-'.substr($cas, -1);
             }
         }
 
@@ -193,7 +194,7 @@ class Substance extends Model implements Auditable
         // Add other name fields as synonyms if they exist and are different
         $nameFields = ['name', 'name_dashboard', 'name_chemspider', 'name_iupac'];
         foreach ($nameFields as $field) {
-            if ($this->$field && !in_array($this->$field, $synonyms)) {
+            if ($this->$field && ! in_array($this->$field, $synonyms)) {
                 $synonyms[] = $this->$field;
             }
         }
@@ -208,7 +209,30 @@ class Substance extends Model implements Auditable
      */
     public function getHasStructureDataAttribute()
     {
-        return !empty($this->smiles) || !empty($this->stdinchi) || !empty($this->molecular_formula);
+        return ! empty($this->smiles) || ! empty($this->stdinchi) || ! empty($this->molecular_formula);
+    }
+
+    /**
+     * Get the structure image URL for this substance.
+     */
+    public function getStructureImageUrlAttribute(): ?string
+    {
+        $filename = $this->prefixed_code.'.png';
+        $path = 'substances/'.$filename;
+
+        if (\Storage::disk('public')->exists($path)) {
+            return asset('storage/'.$path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if a structure image exists for this substance.
+     */
+    public function getHasStructureImageAttribute(): bool
+    {
+        return $this->structure_image_url !== null;
     }
 
     /**

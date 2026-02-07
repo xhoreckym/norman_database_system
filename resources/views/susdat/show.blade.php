@@ -16,7 +16,15 @@
           {{-- Substance Information at Glance --}}
           <div class="mb-6 bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Substance Information at Glance</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div class="flex flex-col lg:flex-row gap-6">
+              @if($substance->structure_image_url)
+              <div class="flex-shrink-0">
+                <img src="{{ $substance->structure_image_url }}"
+                     alt="Structure of {{ $substance->name }}"
+                     class="w-48 h-48 object-contain bg-white border border-gray-200 rounded-lg p-2">
+              </div>
+              @endif
+              <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               <div>
                 <h3 class="text-sm font-medium text-gray-800 mb-1">NORMAN SusDat ID</h3>
                 <p class="text-sm text-teal-800 font-mono">{{ $substance->prefixed_code ?? 'N/A' }}</p>
@@ -52,6 +60,7 @@
               <div>
                 <h3 class="text-sm font-medium text-gray-800 mb-1">Monoisotopic Mass</h3>
                 <p class="text-sm text-teal-800 font-mono">{{ $substance->mass_iso ? number_format((float)$substance->mass_iso, 4, '.', ' ') : 'N/A' }}</p>
+              </div>
               </div>
             </div>
           </div>
