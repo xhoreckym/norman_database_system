@@ -1079,8 +1079,8 @@ class EmpodatController extends Controller
             return $query;
         }
 
-        // Always use 'id' field for searching
-        $fieldName = 'id';
+        // Always use 'id' field for searching, qualified with table name to avoid ambiguity in JOINs
+        $fieldName = 'empodat_main.id';
 
         // Apply range filtering
         if (! empty($idFrom) && ! empty($idTo)) {

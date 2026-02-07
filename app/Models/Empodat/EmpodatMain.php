@@ -425,7 +425,15 @@ class EmpodatMain extends Model
             $user = auth()->user();
         }
 
-        // Join with files table for filtering
+        // Check if user is super_admin (can see everything, including deleted and orphaned records)
+        if ($user && $user->hasRole('super_admin')) {
+            // Use LEFT JOIN so super_admin can see records with NULL file_id
+            return $query->leftJoin('files', 'empodat_main.file_id', '=', 'files.id')
+                ->select('empodat_main.*')
+                ->distinct();
+        }
+
+        // For all other users, use INNER JOIN (requires valid file)
         $query = $query->join('files', 'empodat_main.file_id', '=', 'files.id')
             ->select('empodat_main.*')
             ->distinct();
@@ -437,11 +445,6 @@ class EmpodatMain extends Model
                     $q->where('files.is_deleted', false)
                         ->orWhereNull('files.is_deleted');
                 });
-        }
-
-        // Check if user is super_admin (can see everything, including deleted)
-        if ($user->hasRole('super_admin')) {
-            return $query;
         }
 
         // Check if user has admin-level permissions (admin, empodat roles)
