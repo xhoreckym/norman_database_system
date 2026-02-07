@@ -18,10 +18,28 @@
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Substance Information at Glance</h2>
             <div class="flex flex-col lg:flex-row gap-6">
               @if($substance->structure_image_url)
-              <div class="flex-shrink-0">
+              <div class="flex-shrink-0" x-data="{ open: false }">
                 <img src="{{ $substance->structure_image_url }}"
                      alt="Structure of {{ $substance->name }}"
-                     class="w-48 h-48 object-contain bg-white border border-gray-200 rounded-lg p-2">
+                     class="w-48 h-48 object-contain bg-white border border-gray-200 rounded-lg p-2 cursor-pointer hover:border-gray-400 transition-colors"
+                     @click="open = true">
+                <!-- Modal overlay -->
+                <div x-show="open"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     @click="open = false"
+                     @keydown.escape.window="open = false"
+                     class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+                     style="display: none;">
+                  <img src="{{ $substance->structure_image_url }}"
+                       alt="Structure of {{ $substance->name }}"
+                       class="max-w-full max-h-[90vh] object-contain bg-white rounded-lg p-4 shadow-2xl"
+                       @click.stop>
+                </div>
               </div>
               @endif
               <div class="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -77,10 +95,10 @@
               @endauth
             </div>
 
-            <table class="table-auto w-full border-separate border-spacing-1 text-xs">
+            <table class="table-fixed w-full border-separate border-spacing-1 text-xs">
               @foreach ($substance->toArray() as $key => $value)
                 <tr class="@if ($loop->odd) bg-slate-100 @else bg-slate-200 @endif">
-                  <td class="p-1 font-bold">{{ $key }}</td>
+                  <td class="p-1 font-bold w-40 align-top">{{ $key }}</td>
                   @if (substr($key, 0, 8) == 'metadata')
                     @php
                       // Handle both string and array values for metadata
@@ -98,7 +116,7 @@
                           $decodedJson = [];
                       }
                     @endphp
-                    <td class="p-1">
+                    <td class="p-1 break-words">
                       @if (is_array($decodedJson) && !empty($decodedJson))
                         @foreach ($decodedJson as $keyInner => $valueInner)
                           <span class="block py-1">
@@ -121,7 +139,7 @@
                       @endif
                     </td>
                   @else
-                    <td class="p-1">
+                    <td class="p-1 break-words">
                       @if (is_array($value))
                         @if (!empty($value))
                           @if ($key === 'categories')
