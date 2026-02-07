@@ -33,7 +33,7 @@ class EmpodatSuspectController extends Controller
     /**
      * Maximum number of records allowed for download
      */
-    private const MAX_DOWNLOAD_RECORDS = 205000;
+    private const MAX_DOWNLOAD_RECORDS = 700000;
 
     /**
      * Create a new controller instance.
