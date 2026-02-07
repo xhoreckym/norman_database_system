@@ -111,10 +111,45 @@
             {{-- Right: Download CSV --}}
             <div class="flex flex-col items-end">
               @auth
-                <a href="{{ route('empodat_suspect.search.download', ['query_log_id' => $query_log_id]) }}"
-                  class="btn-download"><i class="fas fa-file-csv mr-1"></i>Download CSV</a>
+                @php
+                  $canDownload = true;
+                  $downloadBlockReason = null;
+
+                  // Check if filters are applied
+                  if (!isset($hasFilters) || !$hasFilters) {
+                      $canDownload = false;
+                      $downloadBlockReason = 'no_filters';
+                  }
+
+                  // Check record count limit (only when we have the count from paginated results)
+                  if ($canDownload && isset($actualRecordCount) && $actualRecordCount > $maxDownloadRecords) {
+                      $canDownload = false;
+                      $downloadBlockReason = 'too_many_records';
+                  }
+                @endphp
+
+                @if ($canDownload)
+                  <a href="{{ route('empodat_suspect.search.download', ['query_log_id' => $query_log_id]) }}"
+                    class="btn-download"><i class="fas fa-file-csv mr-1"></i>Download CSV</a>
+                @else
+                  <button type="button" class="btn-download opacity-50 cursor-not-allowed" disabled>
+                    <i class="fas fa-file-csv mr-1"></i>Download CSV
+                  </button>
+                  @if ($downloadBlockReason === 'no_filters')
+                    <span class="text-xs text-amber-600 mt-1 text-right max-w-xs">
+                      <i class="fas fa-exclamation-triangle mr-1"></i>
+                      Download is not available for unfiltered data. Please apply at least one search criterion.
+                    </span>
+                  @elseif ($downloadBlockReason === 'too_many_records')
+                    <span class="text-xs text-amber-600 mt-1 text-right max-w-xs">
+                      <i class="fas fa-exclamation-triangle mr-1"></i>
+                      The number of records ({{ number_format($actualRecordCount, 0, '.', ' ') }}) exceeds {{ number_format($maxDownloadRecords, 0, '.', ' ') }}.
+                      Please use the API or contact the administrator.
+                    </span>
+                  @endif
+                @endif
               @else
-                <button type="button" class="btn-download" disabled>
+                <button type="button" class="btn-download opacity-50 cursor-not-allowed" disabled>
                   <i class="fas fa-file-csv mr-1"></i>Download CSV
                 </button>
                 <span class="text-xs text-gray-400 mt-1">Available for logged in users only</span>

@@ -31,6 +31,11 @@ use Illuminate\Support\Facades\Storage;
 class EmpodatSuspectController extends Controller
 {
     /**
+     * Maximum number of records allowed for download
+     */
+    private const MAX_DOWNLOAD_RECORDS = 205000;
+
+    /**
      * Create a new controller instance.
      */
     public function __construct()
@@ -355,6 +360,9 @@ class EmpodatSuspectController extends Controller
             // Prepare request data for logging
             $mainRequest = $this->prepareRequestData($request, $searchInputs);
 
+            // Check if any filters are applied (for download restriction)
+            $hasFilters = $this->checkIfFiltersApplied($searchInputs, $request);
+
             // Log query if not paginated request
             $queryLogId = $this->logQuery($empodatSuspects, $mainRequest, $request);
 
@@ -370,11 +378,20 @@ class EmpodatSuspectController extends Controller
             // Get total count
             $empodatSuspectsCount = $this->getDatabaseEntityCount('empodat_suspect');
 
+            // Get actual record count for download limit check
+            $actualRecordCount = null;
+            if ($request->input('displayOption') != 1) {
+                $actualRecordCount = $empodatSuspects->total();
+            }
+
             return view('empodat_suspect.index', array_merge([
                 'empodatSuspects' => $empodatSuspects,
                 'empodatSuspectsCount' => $empodatSuspectsCount,
                 'query_log_id' => $queryLogId,
                 'searchParameters' => $searchParameters,
+                'hasFilters' => $hasFilters,
+                'actualRecordCount' => $actualRecordCount,
+                'maxDownloadRecords' => self::MAX_DOWNLOAD_RECORDS,
             ], $mainRequest));
 
         } catch (\Exception $e) {
@@ -598,6 +615,47 @@ class EmpodatSuspectController extends Controller
     }
 
     /**
+     * Check if any filters are applied (used during search to pass to view)
+     */
+    private function checkIfFiltersApplied(array $searchInputs, Request $request): bool
+    {
+        // List of filter fields to check
+        $filterFields = [
+            'countrySearch',
+            'matrixSearch',
+            'sourceSearch',
+            'analyticalMethodSearch',
+            'categoriesSearch',
+            'typeDataSourcesSearch',
+            'concentrationIndicatorSearch',
+            'qualityAnalyticalMethodsSearch',
+            'dataSourceLaboratorySearch',
+            'dataSourceOrganisationSearch',
+            'fileSearch',
+            'confidenceLevelSearch',
+        ];
+
+        // Check array-based filters from searchInputs
+        foreach ($filterFields as $field) {
+            if (isset($searchInputs[$field]) && is_array($searchInputs[$field]) && count($searchInputs[$field]) > 0) {
+                return true;
+            }
+        }
+
+        // Check substances from request
+        if (! empty($request->input('substances'))) {
+            return true;
+        }
+
+        // Check year filters
+        if (! empty($searchInputs['year_from']) || ! empty($searchInputs['year_to'])) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Display the specified resource.
      */
     public function show(string $id)
@@ -679,6 +737,31 @@ class EmpodatSuspectController extends Controller
             return back();
         }
 
+        // Get the query log entry
+        $queryLog = QueryLog::find($query_log_id);
+        if (! $queryLog) {
+            session()->flash('error', 'Query log not found. Please perform a new search.');
+
+            return back();
+        }
+
+        // Check if any filters were applied
+        if (! $this->hasFiltersApplied($queryLog)) {
+            session()->flash('error', 'Download is not available for unfiltered data. Please apply at least one search criterion (country, matrix, substance, year, etc.) to download the data.');
+
+            return back();
+        }
+
+        // Check record count limit
+        $recordCount = $this->getQueryRecordCount($queryLog);
+        if ($recordCount > self::MAX_DOWNLOAD_RECORDS) {
+            $formattedCount = number_format($recordCount, 0, '.', ' ');
+            $formattedLimit = number_format(self::MAX_DOWNLOAD_RECORDS, 0, '.', ' ');
+            session()->flash('error', "The number of records ({$formattedCount}) exceeds the maximum download limit of {$formattedLimit}. Please use the API for large data exports or contact the administrator.");
+
+            return back();
+        }
+
         // Generate filename at dispatch time to avoid timing issues
         $filename = 'empodat_suspect_export_uid_'.Auth::id().'_'.now()->format('YmdHis').'.csv';
 
@@ -689,6 +772,163 @@ class EmpodatSuspectController extends Controller
         session()->flash('success', 'The CSV file is being generated with all matrix metadata. You will receive an email once it is ready for download, or check the "My downloads" page for the status.');
 
         return back();
+    }
+
+    /**
+     * Check if any filters were applied to the query
+     */
+    private function hasFiltersApplied(QueryLog $queryLog): bool
+    {
+        $content = json_decode($queryLog->content, true);
+
+        if (! $content || ! isset($content['request'])) {
+            return false;
+        }
+
+        $request = $content['request'];
+
+        // List of filter fields to check
+        $filterFields = [
+            'countrySearch',
+            'matrixSearch',
+            'sourceSearch',
+            'analyticalMethodSearch',
+            'categoriesSearch',
+            'typeDataSourcesSearch',
+            'concentrationIndicatorSearch',
+            'qualityAnalyticalMethodsSearch',
+            'dataSourceLaboratorySearch',
+            'dataSourceOrganisationSearch',
+            'fileSearch',
+            'confidenceLevelSearch',
+            'substances',
+        ];
+
+        // Check array-based filters
+        foreach ($filterFields as $field) {
+            if (isset($request[$field]) && is_array($request[$field]) && count($request[$field]) > 0) {
+                return true;
+            }
+        }
+
+        // Check year filters
+        if (! empty($request['year_from']) || ! empty($request['year_to'])) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the record count for the query
+     */
+    private function getQueryRecordCount(QueryLog $queryLog): int
+    {
+        // First try to use the cached actual_count
+        if ($queryLog->actual_count !== null) {
+            return (int) $queryLog->actual_count;
+        }
+
+        // If not cached, we need to execute a count query
+        // Re-build the query from the logged content
+        $content = json_decode($queryLog->content, true);
+
+        if (! $content || ! isset($content['request'])) {
+            // If we can't parse the content, return the total count as a fallback
+            return $queryLog->total_count ?? 0;
+        }
+
+        $request = $content['request'];
+        $searchInputs = $request;
+
+        // Build query similar to search method
+        $query = EmpodatSuspectMain::query()
+            ->whereNotNull('station_id')
+            ->whereNotNull('substance_id');
+
+        $hasStationFilters = ! empty($searchInputs['countrySearch'])
+            || ! empty($searchInputs['matrixSearch'])
+            || ! empty($searchInputs['year_from'])
+            || ! empty($searchInputs['year_to']);
+
+        if ($hasStationFilters) {
+            $stationFiltersQuery = DB::table('empodat_suspect_station_filters');
+
+            if (! empty($searchInputs['countrySearch'])) {
+                $stationFiltersQuery->whereIn('country_id', $searchInputs['countrySearch']);
+            }
+
+            if (! empty($searchInputs['matrixSearch'])) {
+                $stationFiltersQuery->whereIn('matrix_id', $searchInputs['matrixSearch']);
+            }
+
+            if (! empty($searchInputs['year_from'])) {
+                $stationFiltersQuery->where('sampling_date_year', '>=', $searchInputs['year_from']);
+            }
+
+            if (! empty($searchInputs['year_to'])) {
+                $stationFiltersQuery->where('sampling_date_year', '<=', $searchInputs['year_to']);
+            }
+
+            $filteredStationIds = $stationFiltersQuery->distinct()->pluck('station_id');
+            $query->whereIn('station_id', $filteredStationIds);
+        }
+
+        if (! empty($searchInputs['substances'])) {
+            $query->whereIn('substance_id', $searchInputs['substances']);
+        }
+
+        if (! empty($searchInputs['fileSearch'])) {
+            $query->whereIn('file_id', $searchInputs['fileSearch']);
+        }
+
+        if (! empty($searchInputs['categoriesSearch'])) {
+            $query->whereHas('substance.categories', function ($q) use ($searchInputs) {
+                $q->whereIn('susdat_categories.id', $searchInputs['categoriesSearch']);
+            });
+        }
+
+        if (! empty($searchInputs['sourceSearch'])) {
+            $query->whereHas('substance', function ($q) use ($searchInputs) {
+                $q->whereHas('sources', function ($sourceQuery) use ($searchInputs) {
+                    $sourceQuery->whereIn('sle_sources.id', $searchInputs['sourceSearch']);
+                });
+            });
+        }
+
+        if (! empty($searchInputs['confidenceLevelSearch'])) {
+            $query->where(function ($q) use ($searchInputs) {
+                foreach ($searchInputs['confidenceLevelSearch'] as $index => $level) {
+                    $method = $index === 0 ? 'where' : 'orWhere';
+                    $q->$method(function ($subQ) use ($level) {
+                        switch ($level) {
+                            case '1':
+                                $subQ->where('ip_max', '>', 0.75)->where('ip_max', '<=', 1.00);
+                                break;
+                            case '2':
+                                $subQ->where('ip_max', '>', 0.60)->where('ip_max', '<=', 0.75);
+                                break;
+                            case '3':
+                                $subQ->where('ip_max', '>', 0.50)->where('ip_max', '<=', 0.60);
+                                break;
+                            case '4':
+                                $subQ->where('ip_max', '>', 0.20)->where('ip_max', '<=', 0.50);
+                                break;
+                            case '5':
+                                $subQ->where('ip_max', '<=', 0.20);
+                                break;
+                        }
+                    });
+                }
+            });
+        }
+
+        $count = $query->count();
+
+        // Cache the count for future use
+        $queryLog->update(['actual_count' => $count]);
+
+        return $count;
     }
 
     /**
