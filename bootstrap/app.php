@@ -18,7 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
     health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->prependToGroup('api', \App\Http\Middleware\AlwaysAcceptJson::class); 
+        $middleware->trustProxies(at: '*');
+        $middleware->prependToGroup('api', \App\Http\Middleware\AlwaysAcceptJson::class);
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
