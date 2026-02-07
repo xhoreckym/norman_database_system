@@ -25,6 +25,9 @@
                                             Login Date
                                         </th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            IP Address
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             User Agent
                                         </th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -40,6 +43,9 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                 {{ $result->formatted_login_date }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">
+                                                {{ $result->ip_address ?? 'N/A' }}
                                             </td>
                                             <td class="px-6 py-4 text-sm text-gray-900">
                                                 <div class="max-w-xs truncate" title="{{ $result->meta_data['user_agent'] ?? 'N/A' }}">

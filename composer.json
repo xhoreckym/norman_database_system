@@ -18,7 +18,8 @@
         "sentry/sentry-laravel": "^4.16",
         "spatie/laravel-data": "^4.11",
         "spatie/laravel-permission": "^6.7",
-        "spatie/simple-excel": "^3.7"
+        "spatie/simple-excel": "^3.7",
+        "stevebauman/location": "^7.6"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.13",

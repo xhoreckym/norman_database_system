@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
+use Stevebauman\Location\Facades\Location;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -34,16 +35,25 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
         if ($user) {
             try {
+                $ipAddress = $request->ip();
+                $country = null;
+
+                // Get country from IP using geolocation
+                $position = Location::get($ipAddress);
+                if ($position) {
+                    $country = $position->countryCode;
+                }
+
                 $metaData = [
                     'user_agent' => $request->userAgent(),
-                    'country' => null, // Implement IP geolocation service if needed
+                    'country' => $country,
                     'referer' => $request->header('referer'),
                     'session_id' => $request->session()->getId(),
                 ];
 
                 $loginRetention = UserLoginRetention::create([
                     'user_id' => $user->id,
-                    'ip_address' => $request->ip(),
+                    'ip_address' => $ipAddress,
                     'login_datetime' => now(),
                     'meta_data' => $metaData,
                 ]);
@@ -51,7 +61,8 @@ class AuthenticatedSessionController extends Controller
                 Log::info('User login tracked successfully', [
                     'user_id' => $user->id,
                     'email' => $user->email,
-                    'ip_address' => $request->ip(),
+                    'ip_address' => $ipAddress,
+                    'country' => $country,
                     'retention_id' => $loginRetention->id,
                     'timestamp' => now()->toDateTimeString(),
                 ]);
