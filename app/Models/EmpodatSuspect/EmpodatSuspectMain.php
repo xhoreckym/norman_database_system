@@ -2,11 +2,11 @@
 
 namespace App\Models\EmpodatSuspect;
 
+use App\Models\Backend\File;
 use App\Models\Empodat\EmpodatStation;
 use App\Models\Susdat\Substance;
-use App\Models\Backend\File;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class EmpodatSuspectMain extends Model
 {
@@ -30,6 +30,7 @@ class EmpodatSuspectMain extends Model
         'xlsx_station_mapping_id',
         'station_id',
         'concentration',
+        'is_numeric_concentration',
         'ip',
         'ip_max',
         'based_on_hrms_library',
@@ -47,6 +48,7 @@ class EmpodatSuspectMain extends Model
         'xlsx_station_mapping_id' => 'integer',
         'station_id' => 'integer',
         'concentration' => 'float',
+        'is_numeric_concentration' => 'boolean',
         'ip_max' => 'float',
         'based_on_hrms_library' => 'boolean',
     ];
@@ -81,6 +83,22 @@ class EmpodatSuspectMain extends Model
     public function file()
     {
         return $this->belongsTo(File::class, 'file_id');
+    }
+
+    /**
+     * Scope to filter only numeric concentration records
+     */
+    public function scopeNumericOnly($query)
+    {
+        return $query->where('is_numeric_concentration', true);
+    }
+
+    /**
+     * Scope to filter only non-numeric concentration records
+     */
+    public function scopeNonNumericOnly($query)
+    {
+        return $query->where('is_numeric_concentration', false);
     }
 
     /**
@@ -126,11 +144,11 @@ class EmpodatSuspectMain extends Model
      */
     public function scopeByIpMaxRange($query, $ipMaxMin = null, $ipMaxMax = null)
     {
-        if (!is_null($ipMaxMin)) {
+        if (! is_null($ipMaxMin)) {
             $query->where('ip_max', '>=', $ipMaxMin);
         }
 
-        if (!is_null($ipMaxMax)) {
+        if (! is_null($ipMaxMax)) {
             $query->where('ip_max', '<=', $ipMaxMax);
         }
 

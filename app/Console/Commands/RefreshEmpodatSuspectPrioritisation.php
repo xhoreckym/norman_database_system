@@ -37,7 +37,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
         $this->newLine();
 
         $limit = $this->option('limit') ?: 100000;
-        $this->info("→ Processing limit: " . number_format($limit) . " records from empodat_suspect_main");
+        $this->info('→ Processing limit: '.number_format($limit).' records from empodat_suspect_main');
         $this->newLine();
 
         try {
@@ -46,7 +46,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             // Check if the materialized view exists
             $viewExists = $this->checkViewExists();
 
-            if (!$viewExists) {
+            if (! $viewExists) {
                 if ($this->option('create')) {
                     $this->warn('⚠ Materialized view does not exist. Creating it...');
                     $this->createView($limit);
@@ -57,6 +57,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
                     $this->newLine();
                     $this->info('Or run the migration:');
                     $this->info('  php artisan migrate');
+
                     return Command::FAILURE;
                 }
             } else {
@@ -77,7 +78,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             Log::info('Empodat Suspect prioritisation refreshed successfully', [
                 'duration' => $duration,
                 'method' => $viewExists ? 'refresh' : 'create',
-                'limit' => $limit
+                'limit' => $limit,
             ]);
 
             return Command::SUCCESS;
@@ -85,15 +86,15 @@ class RefreshEmpodatSuspectPrioritisation extends Command
         } catch (\Exception $e) {
             $this->newLine();
             $this->error('✗ Failed to refresh materialized view:');
-            $this->error('  ' . $e->getMessage());
+            $this->error('  '.$e->getMessage());
 
             if ($this->getOutput()->isVerbose()) {
                 $this->newLine();
                 $this->error($e->getTraceAsString());
             }
 
-            Log::error('Empodat Suspect prioritisation refresh failed: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+            Log::error('Empodat Suspect prioritisation refresh failed: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return Command::FAILURE;
@@ -131,7 +132,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
      */
     private function refreshView(): void
     {
-        $concurrent = !$this->option('force');
+        $concurrent = ! $this->option('force');
 
         if ($concurrent) {
             $this->info('→ Refreshing materialized view (CONCURRENT mode - non-blocking)...');
@@ -146,7 +147,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             $this->warn('→ Refreshing materialized view (FORCE mode - blocking)...');
             $this->line('  This will block all reads during refresh but is faster.');
 
-            if (!$this->confirm('Continue with blocking refresh?', false)) {
+            if (! $this->confirm('Continue with blocking refresh?', false)) {
                 $this->info('  Cancelled. Use without --force for non-blocking refresh.');
                 exit(Command::SUCCESS);
             }
@@ -170,14 +171,15 @@ class RefreshEmpodatSuspectPrioritisation extends Command
 
         // Create the materialized view
         $this->info('→ Creating materialized view...');
-        $this->info("  Using limit: " . number_format($limit) . " records");
+        $this->info('  Using limit: '.number_format($limit).' records');
 
         DB::statement("
             CREATE MATERIALIZED VIEW empodat_suspect_prioritisation AS
             WITH limited_suspect AS (
-                -- Limit to first N records for testing
+                -- Limit to first N records
                 SELECT * FROM empodat_suspect_main
-                WHERE id <= {$limit}
+                ORDER BY id
+                LIMIT {$limit}
             ),
             most_recent_main AS (
                 -- Get most recent empodat_main record per station
@@ -190,25 +192,50 @@ class RefreshEmpodatSuspectPrioritisation extends Command
                 FROM empodat_main
                 WHERE station_id IN (SELECT DISTINCT station_id FROM limited_suspect)
                 ORDER BY station_id, sampling_date_year DESC NULLS LAST
+            ),
+            -- Calculate am_loq: minimum concentration divided by 3 for each matrix + substance combination
+            min_concentration_by_matrix_substance AS (
+                SELECT
+                    em.matrix_id,
+                    esm.substance_id,
+                    MIN(esm.concentration) / 3.0 AS am_loq
+                FROM limited_suspect esm
+                INNER JOIN most_recent_main em ON em.station_id = esm.station_id
+                WHERE esm.concentration IS NOT NULL
+                    AND esm.concentration > 0
+                GROUP BY em.matrix_id, esm.substance_id
+            ),
+            -- Calculate max_ip_max: maximum ip_max for each matrix + substance combination
+            max_ip_by_matrix_substance AS (
+                SELECT
+                    em.matrix_id,
+                    esm.substance_id,
+                    MAX(esm.ip_max) AS max_ip_max
+                FROM limited_suspect esm
+                INNER JOIN most_recent_main em ON em.station_id = esm.station_id
+                WHERE esm.ip_max IS NOT NULL
+                GROUP BY em.matrix_id, esm.substance_id
             )
             SELECT
                 -- Primary identifiers
                 esm.id,
-                em.id as empodat_main_id,
 
                 -- Core fields from suspect data
-                em.matrix_id,
-                esm.concentration as concentration_value,
+                em.matrix_id AS matrix,
+                esm.concentration AS concentration_value,
+                mcms.am_loq,
                 esm.ip_max,
+                mims.max_ip_max,
 
                 -- Geographic and temporal information
-                es.country as country,
-                em.sampling_date_year as sampling_date_y,
-                es.latitude as latitude_decimal,
-                es.longitude as longitude_decimal,
+                es.country AS country,
+                esm.station_id AS station_name,
+                em.sampling_date_year AS sampling_date_y,
+                es.latitude AS latitude_decimal,
+                es.longitude AS longitude_decimal,
 
                 -- Substance information
-                ss.code as sus_id,
+                ss.code AS sus_id,
 
                 -- Matrix-specific fields using COALESCE
                 -- basin_name (from biota or water_waste)
@@ -217,7 +244,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
                     emww.basin_name,
                     emws.basin_name,
                     emwg.basin_name
-                ) as basin_name,
+                ) AS basin_name,
 
                 -- df_id (from water_waste only)
                 emww.df_id,
@@ -247,6 +274,16 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             -- Join to substances for substance code
             LEFT JOIN susdat_substances ss
                 ON esm.substance_id = ss.id
+
+            -- Join to pre-calculated am_loq
+            LEFT JOIN min_concentration_by_matrix_substance mcms
+                ON em.matrix_id = mcms.matrix_id
+                AND esm.substance_id = mcms.substance_id
+
+            -- Join to pre-calculated max_ip_max
+            LEFT JOIN max_ip_by_matrix_substance mims
+                ON em.matrix_id = mims.matrix_id
+                AND esm.substance_id = mims.substance_id
 
             -- Matrix-specific LEFT JOINs based on matrix_id ranges
 
@@ -286,6 +323,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             COMMENT ON MATERIALIZED VIEW empodat_suspect_prioritisation IS
             'Comprehensive materialized view for Empodat Suspect prioritisation analysis.
             Combines suspect screening data with matrix-specific metadata.
+            Includes am_loq (min concentration / 3 per matrix+substance) and max_ip_max.
             Limited to first {$limit} suspect records for testing.
             Refresh command: php artisan empodat-suspect:refresh-prioritisation'
         ");
@@ -300,12 +338,13 @@ class RefreshEmpodatSuspectPrioritisation extends Command
     {
         $indexes = [
             'idx_esp_id' => 'id',
-            'idx_esp_empodat_main_id' => 'empodat_main_id',
-            'idx_esp_matrix_id' => 'matrix_id',
+            'idx_esp_matrix' => 'matrix',
             'idx_esp_country' => 'country',
             'idx_esp_year' => 'sampling_date_y',
             'idx_esp_sus_id' => 'sus_id',
             'idx_esp_ip_max' => 'ip_max',
+            'idx_esp_station_name' => 'station_name',
+            'idx_esp_max_ip_max' => 'max_ip_max',
         ];
 
         $indexCount = 0;
@@ -322,6 +361,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             'idx_esp_dsgr_id' => 'dsgr_id',
             'idx_esp_dtiel_id' => 'dtiel_id',
             'idx_esp_dmeas_id' => 'dmeas_id',
+            'idx_esp_am_loq' => 'am_loq',
         ];
 
         foreach ($partialIndexes as $indexName => $column) {
@@ -330,18 +370,16 @@ class RefreshEmpodatSuspectPrioritisation extends Command
         }
 
         // Compound indexes
-        DB::statement('CREATE INDEX IF NOT EXISTS idx_esp_matrix_year ON empodat_suspect_prioritisation(matrix_id, sampling_date_y)');
-        DB::statement('CREATE INDEX IF NOT EXISTS idx_esp_country_matrix ON empodat_suspect_prioritisation(country, matrix_id)');
+        DB::statement('CREATE INDEX IF NOT EXISTS idx_esp_matrix_year ON empodat_suspect_prioritisation(matrix, sampling_date_y)');
+        DB::statement('CREATE INDEX IF NOT EXISTS idx_esp_country_matrix ON empodat_suspect_prioritisation(country, matrix)');
         DB::statement('CREATE INDEX IF NOT EXISTS idx_esp_lat_lon ON empodat_suspect_prioritisation(latitude_decimal, longitude_decimal)');
-        $indexCount += 3;
+        DB::statement('CREATE INDEX IF NOT EXISTS idx_esp_matrix_substance ON empodat_suspect_prioritisation(matrix, sus_id)');
+        $indexCount += 4;
 
         // UNIQUE index for CONCURRENT refresh support
         DB::statement('
-            CREATE UNIQUE INDEX IF NOT EXISTS idx_esp_unique_combo
-            ON empodat_suspect_prioritisation(
-                id,
-                empodat_main_id
-            )
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_esp_unique_id
+            ON empodat_suspect_prioritisation(id)
         ');
         $indexCount++;
 
@@ -360,75 +398,87 @@ class RefreshEmpodatSuspectPrioritisation extends Command
         try {
             // Get row count
             $rowCount = DB::table('empodat_suspect_prioritisation')->count();
-            $this->line("  Total records:            " . number_format($rowCount));
+            $this->line('  Total records:            '.number_format($rowCount));
 
             // Get unique stations
             $stationCount = DB::table('empodat_suspect_prioritisation')
-                ->distinct('station_id')
-                ->count('station_id');
-            $this->line("  Unique stations:          " . number_format($stationCount));
+                ->distinct('station_name')
+                ->count('station_name');
+            $this->line('  Unique stations:          '.number_format($stationCount));
 
             // Get unique countries
             $countryCount = DB::table('empodat_suspect_prioritisation')
                 ->distinct('country')
                 ->count('country');
-            $this->line("  Unique countries:         " . number_format($countryCount));
+            $this->line('  Unique countries:         '.number_format($countryCount));
 
             // Get unique substances
             $substanceCount = DB::table('empodat_suspect_prioritisation')
-                ->distinct('substance_id')
-                ->count('substance_id');
-            $this->line("  Unique substances:        " . number_format($substanceCount));
+                ->distinct('sus_id')
+                ->count('sus_id');
+            $this->line('  Unique substances:        '.number_format($substanceCount));
 
             // Get matrix distribution
             $matrixDistribution = DB::table('empodat_suspect_prioritisation')
-                ->select('matrix_id', DB::raw('count(*) as count'))
-                ->groupBy('matrix_id')
+                ->select('matrix', DB::raw('count(*) as count'))
+                ->groupBy('matrix')
                 ->orderBy('count', 'desc')
                 ->limit(5)
                 ->get();
 
             $this->line("\n  Top 5 matrices by record count:");
             foreach ($matrixDistribution as $matrix) {
-                $this->line("    Matrix {$matrix->matrix_id}: " . number_format($matrix->count));
+                $this->line("    Matrix {$matrix->matrix}: ".number_format($matrix->count));
             }
 
             // Get records with matrix-specific data
             $biotaCount = DB::table('empodat_suspect_prioritisation')
                 ->whereNotNull('dsgr_id')
                 ->count();
-            $this->line("\n  Records with biota data:  " . number_format($biotaCount));
+            $this->line("\n  Records with biota data:  ".number_format($biotaCount));
 
             $waterWasteCount = DB::table('empodat_suspect_prioritisation')
                 ->whereNotNull('df_id')
                 ->count();
-            $this->line("  Records with water waste data: " . number_format($waterWasteCount));
+            $this->line('  Records with water waste data: '.number_format($waterWasteCount));
+
+            // Get records with am_loq
+            $amLoqCount = DB::table('empodat_suspect_prioritisation')
+                ->whereNotNull('am_loq')
+                ->count();
+            $this->line('  Records with am_loq:      '.number_format($amLoqCount));
+
+            // Get records with max_ip_max
+            $maxIpMaxCount = DB::table('empodat_suspect_prioritisation')
+                ->whereNotNull('max_ip_max')
+                ->count();
+            $this->line('  Records with max_ip_max:  '.number_format($maxIpMaxCount));
 
             // Get view size
             $sizeResult = DB::select("
                 SELECT pg_size_pretty(pg_total_relation_size('empodat_suspect_prioritisation')) as size
             ");
-            $this->line("\n  Total size (with indexes): " . ($sizeResult[0]->size ?? 'N/A'));
+            $this->line("\n  Total size (with indexes): ".($sizeResult[0]->size ?? 'N/A'));
 
             // Get data-only size
             $mvInfo = DB::select("
                 SELECT pg_size_pretty(pg_relation_size('empodat_suspect_prioritisation')) as size
             ");
-            $this->line("  View size (data only):     " . ($mvInfo[0]->size ?? 'N/A'));
+            $this->line('  View size (data only):     '.($mvInfo[0]->size ?? 'N/A'));
 
             // Count non-null values for sparse columns
             $this->line("\n  Non-null values in matrix-specific columns:");
-            $sparseColumns = ['basin_name', 'df_id', 'dsa_id', 'dsgr_id', 'dtiel_id', 'dmeas_id'];
+            $sparseColumns = ['basin_name', 'df_id', 'dsa_id', 'dsgr_id', 'dtiel_id', 'dmeas_id', 'am_loq', 'max_ip_max'];
             foreach ($sparseColumns as $column) {
                 $nonNullCount = DB::table('empodat_suspect_prioritisation')
                     ->whereNotNull($column)
                     ->count();
                 $percentage = $rowCount > 0 ? round(($nonNullCount / $rowCount) * 100, 2) : 0;
-                $this->line("    {$column}: " . number_format($nonNullCount) . " ({$percentage}%)");
+                $this->line("    {$column}: ".number_format($nonNullCount)." ({$percentage}%)");
             }
 
         } catch (\Exception $e) {
-            $this->warn('  Could not retrieve all statistics: ' . $e->getMessage());
+            $this->warn('  Could not retrieve all statistics: '.$e->getMessage());
         }
     }
 }

@@ -277,23 +277,23 @@ class EmpodatSuspectApexMainSeeder extends Seeder
         foreach ($stationColumns as $columnName => $mappingData) {
             $concentrationValue = $data[$columnName] ?? null;
 
-            // Skip NA or empty values
-            if ($this->isNullOrNA($concentrationValue)) {
+            // Skip only truly empty values (null or empty string)
+            if ($concentrationValue === null || $concentrationValue === '') {
                 continue;
             }
 
-            // Clean the concentration value
+            // Determine if concentration is numeric
             $concentration = $this->cleanDouble($concentrationValue);
-            if ($concentration === null) {
-                continue;
-            }
+            $isNumeric = ($concentration !== null);
 
+            // Create record for ALL values (don't skip non-numeric)
             $records[] = [
                 'file_id' => $this->fileId,
                 'substance_id' => $substanceId,
                 'xlsx_station_mapping_id' => $mappingData['mapping_id'],
                 'station_id' => $mappingData['station_id'],
                 'concentration' => $concentration,
+                'is_numeric_concentration' => $isNumeric,
                 'ip' => $ip,
                 'ip_max' => $ipMax,
                 'based_on_hrms_library' => $basedOnHRMSLibrary,

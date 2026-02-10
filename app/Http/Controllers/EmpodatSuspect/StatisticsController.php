@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers\EmpodatSuspect;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Models\EmpodatSuspect\EmpodatSuspectMain;
-use App\Models\Statistic;
 use App\Models\DatabaseEntity;
+use App\Models\Statistic;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class StatisticsController extends Controller
 {
@@ -27,7 +25,7 @@ class StatisticsController extends Controller
     {
         $databaseEntity = DatabaseEntity::where('code', 'empodat_suspect')->first();
 
-        if (!$databaseEntity) {
+        if (! $databaseEntity) {
             abort(403, 'Module not found.');
         }
 
@@ -37,7 +35,7 @@ class StatisticsController extends Controller
         }
 
         // Module is private - check if user is logged in
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             abort(403, 'You must be logged in to access this module.');
         }
 
@@ -99,16 +97,57 @@ class StatisticsController extends Controller
      */
     public function generateStatistics()
     {
+        // Increase PHP timeout for long-running statistics generation
+        set_time_limit(600); // 10 minutes
+
+        // Set database timeout
+        try {
+            DB::statement('SET statement_timeout = 600000'); // 10 minutes in milliseconds
+        } catch (\Exception $e) {
+            // Ignore if not supported
+        }
+
         // Get empodat_suspect database entity
         $empodatSuspectEntity = DatabaseEntity::where('code', 'empodat_suspect')->first();
 
-        if (!$empodatSuspectEntity) {
+        if (! $empodatSuspectEntity) {
             return back()->with('error', 'Empodat Suspect database entity not found.');
         }
 
-        // 1. Total number of substances
-        $totalSubstances = EmpodatSuspectMain::distinct('substance_id')
+        // 0. Records by concentration type (numeric vs non-numeric)
+        // Use direct partition queries for better performance
+        $numericCount = DB::table('empodat_suspect_main_numeric')->count();
+        $nonNumericCount = DB::table('empodat_suspect_main_nonnumeric')->count();
+        $totalCount = $numericCount + $nonNumericCount;
+
+        Statistic::create([
+            'database_entity_id' => $empodatSuspectEntity->id,
+            'key' => 'empodat_suspect.records_by_concentration_type',
+            'meta_data' => [
+                'numeric_count' => $numericCount,
+                'non_numeric_count' => $nonNumericCount,
+                'total_count' => $totalCount,
+                'numeric_percentage' => $totalCount > 0 ? round(($numericCount / $totalCount) * 100, 2) : 0,
+                'non_numeric_percentage' => $totalCount > 0 ? round(($nonNumericCount / $totalCount) * 100, 2) : 0,
+                'generated_at' => now()->toISOString(),
+            ],
+        ]);
+
+        // 1. Total number of substances (with breakdown by concentration type)
+        // Use direct partition queries for better performance
+        $numericSubstances = DB::table('empodat_suspect_main_numeric')
             ->whereNotNull('substance_id')
+            ->distinct()
+            ->count('substance_id');
+
+        $nonNumericSubstances = DB::table('empodat_suspect_main_nonnumeric')
+            ->whereNotNull('substance_id')
+            ->distinct()
+            ->count('substance_id');
+
+        $totalSubstances = DB::table('empodat_suspect_main')
+            ->whereNotNull('substance_id')
+            ->distinct()
             ->count('substance_id');
 
         Statistic::create([
@@ -116,12 +155,15 @@ class StatisticsController extends Controller
             'key' => 'empodat_suspect.total_substances',
             'meta_data' => [
                 'count' => $totalSubstances,
+                'numeric_count' => $numericSubstances,
+                'non_numeric_count' => $nonNumericSubstances,
                 'generated_at' => now()->toISOString(),
-            ]
+            ],
         ]);
 
-        // 2. Number of substances per sample code (xlsx_name)
-        $substancesBySampleCode = DB::table('empodat_suspect_main as esm')
+        // 2. Number of substances per sample code (xlsx_name) - with numeric/non-numeric breakdown
+        // Use direct partition queries for better performance
+        $substancesBySampleCodeNumeric = DB::table('empodat_suspect_main_numeric as esm')
             ->join('empodat_suspect_xlsx_stations_mapping as mapping', 'esm.xlsx_station_mapping_id', '=', 'mapping.id')
             ->select(
                 'mapping.xlsx_name as sample_code',
@@ -130,10 +172,37 @@ class StatisticsController extends Controller
             ->whereNotNull('esm.substance_id')
             ->whereNotNull('mapping.xlsx_name')
             ->groupBy('mapping.xlsx_name')
-            ->orderBy('mapping.xlsx_name')
             ->get()
-            ->pluck('substance_count', 'sample_code')
-            ->toArray();
+            ->keyBy('sample_code');
+
+        $substancesBySampleCodeNonNumeric = DB::table('empodat_suspect_main_nonnumeric as esm')
+            ->join('empodat_suspect_xlsx_stations_mapping as mapping', 'esm.xlsx_station_mapping_id', '=', 'mapping.id')
+            ->select(
+                'mapping.xlsx_name as sample_code',
+                DB::raw('COUNT(DISTINCT esm.substance_id) as substance_count')
+            )
+            ->whereNotNull('esm.substance_id')
+            ->whereNotNull('mapping.xlsx_name')
+            ->groupBy('mapping.xlsx_name')
+            ->get()
+            ->keyBy('sample_code');
+
+        // Combine all sample codes from both partitions
+        $allSampleCodes = collect($substancesBySampleCodeNumeric->keys())
+            ->merge($substancesBySampleCodeNonNumeric->keys())
+            ->unique();
+
+        $substancesBySampleCode = [];
+        foreach ($allSampleCodes as $sampleCode) {
+            $numericCount = $substancesBySampleCodeNumeric[$sampleCode]->substance_count ?? 0;
+            $nonNumericCount = $substancesBySampleCodeNonNumeric[$sampleCode]->substance_count ?? 0;
+            $substancesBySampleCode[$sampleCode] = [
+                'total' => $numericCount + $nonNumericCount,
+                'numeric' => $numericCount,
+                'non_numeric' => $nonNumericCount,
+            ];
+        }
+        ksort($substancesBySampleCode);
 
         Statistic::create([
             'database_entity_id' => $empodatSuspectEntity->id,
@@ -142,11 +211,12 @@ class StatisticsController extends Controller
                 'data' => $substancesBySampleCode,
                 'generated_at' => now()->toISOString(),
                 'total_sample_codes' => count($substancesBySampleCode),
-            ]
+            ],
         ]);
 
-        // 3. Number of records per sample code (xlsx_name)
-        $recordsBySampleCode = DB::table('empodat_suspect_main as esm')
+        // 3. Number of records per sample code (xlsx_name) - with numeric/non-numeric breakdown
+        // Use direct partition queries for better performance
+        $recordsBySampleCodeNumeric = DB::table('empodat_suspect_main_numeric as esm')
             ->join('empodat_suspect_xlsx_stations_mapping as mapping', 'esm.xlsx_station_mapping_id', '=', 'mapping.id')
             ->select(
                 'mapping.xlsx_name as sample_code',
@@ -154,10 +224,36 @@ class StatisticsController extends Controller
             )
             ->whereNotNull('mapping.xlsx_name')
             ->groupBy('mapping.xlsx_name')
-            ->orderBy('mapping.xlsx_name')
             ->get()
-            ->pluck('record_count', 'sample_code')
-            ->toArray();
+            ->keyBy('sample_code');
+
+        $recordsBySampleCodeNonNumeric = DB::table('empodat_suspect_main_nonnumeric as esm')
+            ->join('empodat_suspect_xlsx_stations_mapping as mapping', 'esm.xlsx_station_mapping_id', '=', 'mapping.id')
+            ->select(
+                'mapping.xlsx_name as sample_code',
+                DB::raw('COUNT(*) as record_count')
+            )
+            ->whereNotNull('mapping.xlsx_name')
+            ->groupBy('mapping.xlsx_name')
+            ->get()
+            ->keyBy('sample_code');
+
+        // Combine all sample codes from both partitions
+        $allRecordsSampleCodes = collect($recordsBySampleCodeNumeric->keys())
+            ->merge($recordsBySampleCodeNonNumeric->keys())
+            ->unique();
+
+        $recordsBySampleCode = [];
+        foreach ($allRecordsSampleCodes as $sampleCode) {
+            $numericCount = $recordsBySampleCodeNumeric[$sampleCode]->record_count ?? 0;
+            $nonNumericCount = $recordsBySampleCodeNonNumeric[$sampleCode]->record_count ?? 0;
+            $recordsBySampleCode[$sampleCode] = [
+                'total' => $numericCount + $nonNumericCount,
+                'numeric' => $numericCount,
+                'non_numeric' => $nonNumericCount,
+            ];
+        }
+        ksort($recordsBySampleCode);
 
         Statistic::create([
             'database_entity_id' => $empodatSuspectEntity->id,
@@ -166,11 +262,12 @@ class StatisticsController extends Controller
                 'data' => $recordsBySampleCode,
                 'generated_at' => now()->toISOString(),
                 'total_sample_codes' => count($recordsBySampleCode),
-            ]
+            ],
         ]);
 
-        // 4. Number of substances per country
-        $substancesByCountry = DB::table('empodat_suspect_main as esm')
+        // 4. Number of substances per country - with numeric/non-numeric breakdown
+        // Use direct partition queries for better performance
+        $substancesByCountryNumeric = DB::table('empodat_suspect_main_numeric as esm')
             ->join('empodat_stations as es', 'esm.station_id', '=', 'es.id')
             ->join('list_countries as lc', 'es.country_id', '=', 'lc.id')
             ->select(
@@ -181,16 +278,44 @@ class StatisticsController extends Controller
             ->whereNotNull('esm.substance_id')
             ->whereNotNull('es.country_id')
             ->groupBy('lc.name', 'lc.code')
-            ->orderBy('lc.name')
-            ->get();
+            ->get()
+            ->keyBy('country_name');
+
+        $substancesByCountryNonNumeric = DB::table('empodat_suspect_main_nonnumeric as esm')
+            ->join('empodat_stations as es', 'esm.station_id', '=', 'es.id')
+            ->join('list_countries as lc', 'es.country_id', '=', 'lc.id')
+            ->select(
+                'lc.name as country_name',
+                'lc.code as country_code',
+                DB::raw('COUNT(DISTINCT esm.substance_id) as substance_count')
+            )
+            ->whereNotNull('esm.substance_id')
+            ->whereNotNull('es.country_id')
+            ->groupBy('lc.name', 'lc.code')
+            ->get()
+            ->keyBy('country_name');
+
+        // Combine all countries from both partitions
+        $allCountries = collect($substancesByCountryNumeric->keys())
+            ->merge($substancesByCountryNonNumeric->keys())
+            ->unique();
 
         $substancesByCountryData = [];
-        foreach ($substancesByCountry as $stat) {
-            $substancesByCountryData[$stat->country_name] = [
-                'code' => $stat->country_code,
-                'count' => $stat->substance_count,
+        foreach ($allCountries as $countryName) {
+            $numericData = $substancesByCountryNumeric[$countryName] ?? null;
+            $nonNumericData = $substancesByCountryNonNumeric[$countryName] ?? null;
+            $code = $numericData->country_code ?? $nonNumericData->country_code ?? '';
+            $numericCount = $numericData->substance_count ?? 0;
+            $nonNumericCount = $nonNumericData->substance_count ?? 0;
+
+            $substancesByCountryData[$countryName] = [
+                'code' => $code,
+                'count' => $numericCount + $nonNumericCount,
+                'numeric' => $numericCount,
+                'non_numeric' => $nonNumericCount,
             ];
         }
+        ksort($substancesByCountryData);
 
         Statistic::create([
             'database_entity_id' => $empodatSuspectEntity->id,
@@ -199,11 +324,12 @@ class StatisticsController extends Controller
                 'data' => $substancesByCountryData,
                 'generated_at' => now()->toISOString(),
                 'total_countries' => count($substancesByCountryData),
-            ]
+            ],
         ]);
 
-        // 5. Number of records per country
-        $recordsByCountry = DB::table('empodat_suspect_main as esm')
+        // 5. Number of records per country - with numeric/non-numeric breakdown
+        // Use direct partition queries for better performance
+        $recordsByCountryNumeric = DB::table('empodat_suspect_main_numeric as esm')
             ->join('empodat_stations as es', 'esm.station_id', '=', 'es.id')
             ->join('list_countries as lc', 'es.country_id', '=', 'lc.id')
             ->select(
@@ -213,16 +339,43 @@ class StatisticsController extends Controller
             )
             ->whereNotNull('es.country_id')
             ->groupBy('lc.name', 'lc.code')
-            ->orderBy('lc.name')
-            ->get();
+            ->get()
+            ->keyBy('country_name');
+
+        $recordsByCountryNonNumeric = DB::table('empodat_suspect_main_nonnumeric as esm')
+            ->join('empodat_stations as es', 'esm.station_id', '=', 'es.id')
+            ->join('list_countries as lc', 'es.country_id', '=', 'lc.id')
+            ->select(
+                'lc.name as country_name',
+                'lc.code as country_code',
+                DB::raw('COUNT(*) as record_count')
+            )
+            ->whereNotNull('es.country_id')
+            ->groupBy('lc.name', 'lc.code')
+            ->get()
+            ->keyBy('country_name');
+
+        // Combine all countries from both partitions
+        $allRecordsCountries = collect($recordsByCountryNumeric->keys())
+            ->merge($recordsByCountryNonNumeric->keys())
+            ->unique();
 
         $recordsByCountryData = [];
-        foreach ($recordsByCountry as $stat) {
-            $recordsByCountryData[$stat->country_name] = [
-                'code' => $stat->country_code,
-                'count' => $stat->record_count,
+        foreach ($allRecordsCountries as $countryName) {
+            $numericData = $recordsByCountryNumeric[$countryName] ?? null;
+            $nonNumericData = $recordsByCountryNonNumeric[$countryName] ?? null;
+            $code = $numericData->country_code ?? $nonNumericData->country_code ?? '';
+            $numericCount = $numericData->record_count ?? 0;
+            $nonNumericCount = $nonNumericData->record_count ?? 0;
+
+            $recordsByCountryData[$countryName] = [
+                'code' => $code,
+                'count' => $numericCount + $nonNumericCount,
+                'numeric' => $numericCount,
+                'non_numeric' => $nonNumericCount,
             ];
         }
+        ksort($recordsByCountryData);
 
         Statistic::create([
             'database_entity_id' => $empodatSuspectEntity->id,
@@ -231,33 +384,44 @@ class StatisticsController extends Controller
                 'data' => $recordsByCountryData,
                 'generated_at' => now()->toISOString(),
                 'total_countries' => count($recordsByCountryData),
-            ]
+            ],
         ]);
 
-        // 6. Number of records per confidence interval (ip_max ranges)
-        $recordsByConfidenceInterval = DB::table('empodat_suspect_main')
-            ->select(
-                DB::raw("CASE
+        // 6. Number of records per confidence interval (ip_max ranges) - with numeric/non-numeric breakdown
+        // Use direct partition queries for better performance
+        $confidenceCaseStatement = "CASE
                     WHEN ip_max > 0.75 AND ip_max <= 1.00 THEN '1'
                     WHEN ip_max > 0.60 AND ip_max <= 0.75 THEN '2'
                     WHEN ip_max > 0.50 AND ip_max <= 0.60 THEN '3'
                     WHEN ip_max > 0.20 AND ip_max <= 0.50 THEN '4'
                     WHEN ip_max <= 0.20 THEN '5'
                     ELSE 'unknown'
-                END as confidence_level"),
+                END";
+
+        $recordsByConfidenceIntervalNumeric = DB::table('empodat_suspect_main_numeric')
+            ->select(
+                DB::raw("{$confidenceCaseStatement} as confidence_level"),
                 DB::raw('COUNT(*) as record_count')
             )
             ->whereNotNull('ip_max')
-            ->groupBy(DB::raw("CASE
-                    WHEN ip_max > 0.75 AND ip_max <= 1.00 THEN '1'
-                    WHEN ip_max > 0.60 AND ip_max <= 0.75 THEN '2'
-                    WHEN ip_max > 0.50 AND ip_max <= 0.60 THEN '3'
-                    WHEN ip_max > 0.20 AND ip_max <= 0.50 THEN '4'
-                    WHEN ip_max <= 0.20 THEN '5'
-                    ELSE 'unknown'
-                END"))
-            ->orderBy('confidence_level')
-            ->get();
+            ->groupBy(DB::raw($confidenceCaseStatement))
+            ->get()
+            ->keyBy('confidence_level');
+
+        $recordsByConfidenceIntervalNonNumeric = DB::table('empodat_suspect_main_nonnumeric')
+            ->select(
+                DB::raw("{$confidenceCaseStatement} as confidence_level"),
+                DB::raw('COUNT(*) as record_count')
+            )
+            ->whereNotNull('ip_max')
+            ->groupBy(DB::raw($confidenceCaseStatement))
+            ->get()
+            ->keyBy('confidence_level');
+
+        // Combine all confidence levels from both partitions
+        $allConfidenceLevels = collect($recordsByConfidenceIntervalNumeric->keys())
+            ->merge($recordsByConfidenceIntervalNonNumeric->keys())
+            ->unique();
 
         $confidenceLevelLabels = [
             '1' => 'IP_max > 0.75 AND <= 1.00',
@@ -270,24 +434,42 @@ class StatisticsController extends Controller
 
         $confidenceIntervalData = [];
         $totalWithIpMax = 0;
-        foreach ($recordsByConfidenceInterval as $stat) {
-            $label = $confidenceLevelLabels[$stat->confidence_level] ?? $stat->confidence_level;
+        $totalWithIpMaxNumeric = 0;
+        $totalWithIpMaxNonNumeric = 0;
+
+        foreach ($allConfidenceLevels as $level) {
+            $label = $confidenceLevelLabels[$level] ?? $level;
+            $numericCount = $recordsByConfidenceIntervalNumeric[$level]->record_count ?? 0;
+            $nonNumericCount = $recordsByConfidenceIntervalNonNumeric[$level]->record_count ?? 0;
+            $totalCount = $numericCount + $nonNumericCount;
+
             $confidenceIntervalData[$label] = [
-                'level' => $stat->confidence_level,
-                'count' => $stat->record_count,
+                'level' => $level,
+                'count' => $totalCount,
+                'numeric' => $numericCount,
+                'non_numeric' => $nonNumericCount,
             ];
-            $totalWithIpMax += $stat->record_count;
+            $totalWithIpMax += $totalCount;
+            $totalWithIpMaxNumeric += $numericCount;
+            $totalWithIpMaxNonNumeric += $nonNumericCount;
         }
 
-        // Also count records with NULL ip_max
-        $nullIpMaxCount = DB::table('empodat_suspect_main')
+        // Also count records with NULL ip_max (separated by concentration type)
+        // Use direct partition queries for better performance
+        $nullIpMaxNumericCount = DB::table('empodat_suspect_main_numeric')
             ->whereNull('ip_max')
             ->count();
+        $nullIpMaxNonNumericCount = DB::table('empodat_suspect_main_nonnumeric')
+            ->whereNull('ip_max')
+            ->count();
+        $nullIpMaxCount = $nullIpMaxNumericCount + $nullIpMaxNonNumericCount;
 
         if ($nullIpMaxCount > 0) {
             $confidenceIntervalData['No IP_max value'] = [
                 'level' => 'null',
                 'count' => $nullIpMaxCount,
+                'numeric' => $nullIpMaxNumericCount,
+                'non_numeric' => $nullIpMaxNonNumericCount,
             ];
         }
 
@@ -298,8 +480,18 @@ class StatisticsController extends Controller
                 'data' => $confidenceIntervalData,
                 'generated_at' => now()->toISOString(),
                 'total_with_ip_max' => $totalWithIpMax,
+                'total_with_ip_max_numeric' => $totalWithIpMaxNumeric,
+                'total_with_ip_max_non_numeric' => $totalWithIpMaxNonNumeric,
                 'total_without_ip_max' => $nullIpMaxCount,
-            ]
+                'total_without_ip_max_numeric' => $nullIpMaxNumericCount,
+                'total_without_ip_max_non_numeric' => $nullIpMaxNonNumericCount,
+            ],
+        ]);
+
+        // Update the database entity with total record count and last update timestamp
+        $empodatSuspectEntity->update([
+            'number_of_records' => $totalCount,
+            'last_update' => now(),
         ]);
 
         return back()->with('success', 'All statistics generated and stored successfully.');
@@ -312,7 +504,7 @@ class StatisticsController extends Controller
     {
         $empodatSuspectEntity = DatabaseEntity::where('code', 'empodat_suspect')->first();
 
-        if (!$empodatSuspectEntity) {
+        if (! $empodatSuspectEntity) {
             return back()->with('error', 'Empodat Suspect database entity not found.');
         }
 
@@ -321,7 +513,7 @@ class StatisticsController extends Controller
             ->latest('created_at')
             ->first();
 
-        if (!$statisticsRecord) {
+        if (! $statisticsRecord) {
             return view('empodat_suspect.statistics.substances_by_sample_code', [
                 'data' => [],
                 'message' => 'No statistics available. Please generate statistics first.',
@@ -344,7 +536,7 @@ class StatisticsController extends Controller
     {
         $empodatSuspectEntity = DatabaseEntity::where('code', 'empodat_suspect')->first();
 
-        if (!$empodatSuspectEntity) {
+        if (! $empodatSuspectEntity) {
             return back()->with('error', 'Empodat Suspect database entity not found.');
         }
 
@@ -353,7 +545,7 @@ class StatisticsController extends Controller
             ->latest('created_at')
             ->first();
 
-        if (!$statisticsRecord) {
+        if (! $statisticsRecord) {
             return view('empodat_suspect.statistics.records_by_sample_code', [
                 'data' => [],
                 'message' => 'No statistics available. Please generate statistics first.',
@@ -376,7 +568,7 @@ class StatisticsController extends Controller
     {
         $empodatSuspectEntity = DatabaseEntity::where('code', 'empodat_suspect')->first();
 
-        if (!$empodatSuspectEntity) {
+        if (! $empodatSuspectEntity) {
             return back()->with('error', 'Empodat Suspect database entity not found.');
         }
 
@@ -385,7 +577,7 @@ class StatisticsController extends Controller
             ->latest('created_at')
             ->first();
 
-        if (!$statisticsRecord) {
+        if (! $statisticsRecord) {
             return view('empodat_suspect.statistics.substances_by_country', [
                 'data' => [],
                 'message' => 'No statistics available. Please generate statistics first.',
@@ -408,7 +600,7 @@ class StatisticsController extends Controller
     {
         $empodatSuspectEntity = DatabaseEntity::where('code', 'empodat_suspect')->first();
 
-        if (!$empodatSuspectEntity) {
+        if (! $empodatSuspectEntity) {
             return back()->with('error', 'Empodat Suspect database entity not found.');
         }
 
@@ -417,7 +609,7 @@ class StatisticsController extends Controller
             ->latest('created_at')
             ->first();
 
-        if (!$statisticsRecord) {
+        if (! $statisticsRecord) {
             return view('empodat_suspect.statistics.records_by_country', [
                 'data' => [],
                 'message' => 'No statistics available. Please generate statistics first.',
@@ -440,7 +632,7 @@ class StatisticsController extends Controller
     {
         $empodatSuspectEntity = DatabaseEntity::where('code', 'empodat_suspect')->first();
 
-        if (!$empodatSuspectEntity) {
+        if (! $empodatSuspectEntity) {
             return back()->with('error', 'Empodat Suspect database entity not found.');
         }
 
@@ -449,7 +641,7 @@ class StatisticsController extends Controller
             ->latest('created_at')
             ->first();
 
-        if (!$statisticsRecord) {
+        if (! $statisticsRecord) {
             return view('empodat_suspect.statistics.records_by_confidence_interval', [
                 'data' => [],
                 'message' => 'No statistics available. Please generate statistics first.',

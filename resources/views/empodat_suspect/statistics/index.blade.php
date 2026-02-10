@@ -11,9 +11,19 @@
         <p class="text-slate-200">Suspect screening chemical occurrence data</p>
       </div>
       <div class="text-right">
-        <div class="text-3xl font-bold">{{ number_format($totalRecords, 0, '.', ' ') }}</div>
+        @php
+          // Use total from statistics if available, otherwise fall back to database entity
+          $displayTotal = isset($allStats['empodat_suspect.records_by_concentration_type']['total_count'])
+            ? $allStats['empodat_suspect.records_by_concentration_type']['total_count']
+            : $totalRecords;
+        @endphp
+        <div class="text-3xl font-bold">{{ number_format($displayTotal, 0, '.', ' ') }}</div>
         <div class="text-slate-200">Total Records</div>
-        @if($empodatSuspectEntity && $empodatSuspectEntity->last_update)
+        @if(isset($allStats['empodat_suspect.records_by_concentration_type']['generated_at']))
+          <div class="text-xs text-slate-300 mt-1">
+            Updated: {{ \Carbon\Carbon::parse($allStats['empodat_suspect.records_by_concentration_type']['generated_at'])->format('Y-m-d') }}
+          </div>
+        @elseif($empodatSuspectEntity && $empodatSuspectEntity->last_update)
           <div class="text-xs text-slate-300 mt-1">
             Updated: {{ \Carbon\Carbon::parse($empodatSuspectEntity->last_update)->format('Y-m-d') }}
           </div>
@@ -26,6 +36,29 @@
     <!-- Statistics Summary Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
 
+      <!-- Records by Concentration Type -->
+      @if(isset($allStats['empodat_suspect.records_by_concentration_type']))
+        <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+          <div class="flex justify-between items-start mb-3">
+            <h4 class="font-semibold text-slate-800">Records by Concentration</h4>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between">
+              <span class="text-sm text-slate-600">With concentration value:</span>
+              <span class="font-medium text-emerald-700">{{ number_format($allStats['empodat_suspect.records_by_concentration_type']['numeric_count'], 0, '.', ' ') }} ({{ $allStats['empodat_suspect.records_by_concentration_type']['numeric_percentage'] }}%)</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-sm text-slate-600">With N/A concentration:</span>
+              <span class="font-medium text-amber-700">{{ number_format($allStats['empodat_suspect.records_by_concentration_type']['non_numeric_count'], 0, '.', ' ') }} ({{ $allStats['empodat_suspect.records_by_concentration_type']['non_numeric_percentage'] }}%)</span>
+            </div>
+            <div class="flex justify-between border-t border-emerald-200 pt-2 mt-2">
+              <span class="text-sm font-medium text-slate-700">Total:</span>
+              <span class="font-bold text-slate-900">{{ number_format($allStats['empodat_suspect.records_by_concentration_type']['total_count'], 0, '.', ' ') }}</span>
+            </div>
+          </div>
+        </div>
+      @endif
+
       <!-- Total Substances -->
       @if(isset($allStats['empodat_suspect.total_substances']))
         <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
@@ -37,6 +70,16 @@
               <span class="text-sm text-slate-600">Total Count:</span>
               <span class="font-medium text-slate-900">{{ number_format($allStats['empodat_suspect.total_substances']['count'], 0, '.', ' ') }}</span>
             </div>
+            @if(isset($allStats['empodat_suspect.total_substances']['numeric_count']))
+              <div class="flex justify-between">
+                <span class="text-sm text-slate-600">In records with concentration:</span>
+                <span class="font-medium text-emerald-700">{{ number_format($allStats['empodat_suspect.total_substances']['numeric_count'], 0, '.', ' ') }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-sm text-slate-600">In records with N/A:</span>
+                <span class="font-medium text-amber-700">{{ number_format($allStats['empodat_suspect.total_substances']['non_numeric_count'], 0, '.', ' ') }}</span>
+              </div>
+            @endif
             <div class="text-xs text-slate-500 mt-2">
               Unique chemical substances detected
             </div>
@@ -61,16 +104,17 @@
             </div>
             @php
               $topSampleCode = collect($allStats['empodat_suspect.substances_by_sample_code']['data'])
-                ->sortByDesc(function($count, $sampleCode) { return $count; })
+                ->sortByDesc(function($item) { return is_array($item) ? ($item['total'] ?? 0) : $item; })
                 ->first();
               $topSampleCodeKey = collect($allStats['empodat_suspect.substances_by_sample_code']['data'])
-                ->sortByDesc(function($count, $sampleCode) { return $count; })
+                ->sortByDesc(function($item) { return is_array($item) ? ($item['total'] ?? 0) : $item; })
                 ->keys()
                 ->first();
+              $topCount = is_array($topSampleCode) ? ($topSampleCode['total'] ?? 0) : $topSampleCode;
             @endphp
             @if($topSampleCode)
               <div class="text-xs text-slate-500 mt-2">
-                Top: {{ Str::limit($topSampleCodeKey, 20) }}<br>{{ number_format($topSampleCode, 0, '.', ' ') }} substances
+                Top: {{ Str::limit($topSampleCodeKey, 20) }}<br>{{ number_format($topCount, 0, '.', ' ') }} substances
               </div>
             @endif
           </div>
@@ -94,16 +138,17 @@
             </div>
             @php
               $topRecordsSampleCode = collect($allStats['empodat_suspect.records_by_sample_code']['data'])
-                ->sortByDesc(function($count, $sampleCode) { return $count; })
+                ->sortByDesc(function($item) { return is_array($item) ? ($item['total'] ?? 0) : $item; })
                 ->first();
               $topRecordsSampleCodeKey = collect($allStats['empodat_suspect.records_by_sample_code']['data'])
-                ->sortByDesc(function($count, $sampleCode) { return $count; })
+                ->sortByDesc(function($item) { return is_array($item) ? ($item['total'] ?? 0) : $item; })
                 ->keys()
                 ->first();
+              $topRecordsCount = is_array($topRecordsSampleCode) ? ($topRecordsSampleCode['total'] ?? 0) : $topRecordsSampleCode;
             @endphp
             @if($topRecordsSampleCode)
               <div class="text-xs text-slate-500 mt-2">
-                Top: {{ Str::limit($topRecordsSampleCodeKey, 20) }}<br>{{ number_format($topRecordsSampleCode, 0, '.', ' ') }} records
+                Top: {{ Str::limit($topRecordsSampleCodeKey, 20) }}<br>{{ number_format($topRecordsCount, 0, '.', ' ') }} records
               </div>
             @endif
           </div>

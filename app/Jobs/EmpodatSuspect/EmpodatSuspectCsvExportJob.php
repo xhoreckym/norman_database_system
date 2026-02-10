@@ -93,7 +93,8 @@ class EmpodatSuspectCsvExportJob extends AbstractCsvExportJob
             // Prioritisation data (from empodat_main via MV)
             'Matrix ID',
             'Sampling Date Year',
-            'Empodat Main ID',
+            'AM LOQ',
+            'Max IP Max',
 
             // Matrix type indicator
             'Matrix Type',
@@ -346,7 +347,7 @@ class EmpodatSuspectCsvExportJob extends AbstractCsvExportJob
 
     /**
      * Fetch prioritisation data for a batch of empodat_suspect_main IDs
-     * Returns matrix_id, sampling_date_year, empodat_main_id keyed by suspect record ID
+     * Returns matrix, sampling_date_year, am_loq, max_ip_max keyed by suspect record ID
      */
     protected function fetchPrioritisationDataForIds(array $ids): array
     {
@@ -358,7 +359,7 @@ class EmpodatSuspectCsvExportJob extends AbstractCsvExportJob
 
         try {
             $data = DB::table('empodat_suspect_prioritisation')
-                ->select('id', 'matrix_id', 'sampling_date_y', 'empodat_main_id')
+                ->select('id', 'matrix', 'sampling_date_y', 'am_loq', 'max_ip_max', 'station_name')
                 ->whereIn('id', $ids)
                 ->get();
 
@@ -463,9 +464,10 @@ class EmpodatSuspectCsvExportJob extends AbstractCsvExportJob
 
         // Get prioritisation data (from empodat_main via MV)
         $prioritisation = $record->prioritisationData;
-        $matrixId = $prioritisation->matrix_id ?? '';
+        $matrixId = $prioritisation->matrix ?? '';
         $samplingDateYear = $prioritisation->sampling_date_y ?? '';
-        $empodatMainId = $prioritisation->empodat_main_id ?? '';
+        $amLoq = $prioritisation->am_loq ?? '';
+        $maxIpMax = $prioritisation->max_ip_max ?? '';
 
         // Determine which matrix type has data
         $matrixType = '';
@@ -525,7 +527,8 @@ class EmpodatSuspectCsvExportJob extends AbstractCsvExportJob
             // Prioritisation data (from empodat_main via MV)
             $matrixId,
             $samplingDateYear,
-            $empodatMainId,
+            $amLoq,
+            $maxIpMax,
 
             // Matrix type
             $matrixType,

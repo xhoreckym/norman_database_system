@@ -263,6 +263,7 @@ class EmpodatSuspectController extends Controller
 
             $empodatSuspects = EmpodatSuspectMain::query()
                 ->select('empodat_suspect_main.*')
+                ->where('empodat_suspect_main.is_numeric_concentration', true)
                 ->whereNotNull('empodat_suspect_main.station_id')
                 ->whereNotNull('empodat_suspect_main.substance_id')
                 ->selectSub(function ($query) {
@@ -843,6 +844,7 @@ class EmpodatSuspectController extends Controller
 
         // Build query similar to search method
         $query = EmpodatSuspectMain::query()
+            ->where('is_numeric_concentration', true)
             ->whereNotNull('station_id')
             ->whereNotNull('substance_id');
 
