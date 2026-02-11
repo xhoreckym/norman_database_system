@@ -283,6 +283,12 @@ class StatisticsController extends Controller
             ->whereNotNull('substance_id')
             ->count('substance_id');
 
+        // Update the database entity record count
+        $entity->update([
+            'number_of_records' => $totalRecords,
+            'last_update' => now(),
+        ]);
+
         Statistic::create([
             'database_entity_id' => $entity->id,
             'key' => 'literature.totals',
