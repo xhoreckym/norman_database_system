@@ -1,7 +1,7 @@
 @extends('empodat_suspect.statistics.layout')
 
 @section('page-title', 'EMPODAT Suspect Statistics Overview')
-
+ 
 @section('main-content')
   <!-- Database Overview Card -->
   <div class="bg-slate-600 text-white rounded-lg p-6 mb-6">
