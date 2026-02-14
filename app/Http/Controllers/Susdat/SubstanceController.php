@@ -171,7 +171,7 @@ class SubstanceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(int $id)
     {
         $substance = Substance::with(['categories', 'sources'])->findOrFail($id);
 

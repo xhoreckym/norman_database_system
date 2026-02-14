@@ -219,12 +219,12 @@ Route::prefix('susdat')->group(function () {
     Route::get('duplicates/merge-history', [DuplicateController::class, 'mergeHistory'])->name('duplicates.mergeHistory');
     Route::post('duplicates/{id}/restore', [DuplicateController::class, 'restore'])->middleware('auth')->name('duplicates.restore');
 
-    Route::resource('substances', SubstanceController::class)->only(['index', 'show']);
-    Route::resource('substances', SubstanceController::class)->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
+    Route::resource('substances', SubstanceController::class)->only(['index', 'show'])->whereNumber('substance');
+    Route::resource('substances', SubstanceController::class)->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy'])->whereNumber('substance');
     Route::resource('duplicates', DuplicateController::class)->middleware('auth');
 
     Route::get('substances-audited', [SubstanceController::class, 'withAudits'])->name('substances.audited');
-    Route::get('substances/{substance}/audits', [SubstanceController::class, 'audits'])->name('substances.audits');
+    Route::get('substances/{substance}/audits', [SubstanceController::class, 'audits'])->whereNumber('substance')->name('substances.audits');
 
     // Batch Conversion Routes
     Route::get('batch', [App\Http\Controllers\Susdat\BatchConversionController::class, 'index'])->name('susdat.batch.index');
