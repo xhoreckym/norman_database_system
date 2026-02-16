@@ -2,20 +2,19 @@
 
 namespace App\Models\Literature;
 
-use App\Models\List\Country;
-use App\Models\Literature\Species;
-use App\Models\List\Tissue;
-use App\Models\List\BiotaSex;
-use App\Models\List\LifeStage;
-use App\Models\List\HabitatType;
-use App\Models\List\ConcentrationUnit;
-use App\Models\List\CommonName;
-use App\Models\List\UseCategory;
-use App\Models\List\Matrix;
-use App\Models\Susdat\Substance;
 use App\Models\Backend\File;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\List\BiotaSex;
+use App\Models\List\CommonName;
+use App\Models\List\ConcentrationUnit;
+use App\Models\List\Country;
+use App\Models\List\HabitatType;
+use App\Models\List\LifeStage;
+use App\Models\List\Matrix;
+use App\Models\List\Tissue;
+use App\Models\List\UseCategory;
+use App\Models\Susdat\Substance;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class LiteratureTempMain extends Model
 {
@@ -64,6 +63,7 @@ class LiteratureTempMain extends Model
         'analytical_method',
         'storage_temp_c',
         'chemical_name',
+        'concentration_unit_raw',
     ];
 
     /**
@@ -337,11 +337,11 @@ class LiteratureTempMain extends Model
      */
     public function scopeByYearRange($query, $yearFrom = null, $yearTo = null)
     {
-        if (!is_null($yearFrom)) {
+        if (! is_null($yearFrom)) {
             $query->where('year', '>=', $yearFrom);
         }
 
-        if (!is_null($yearTo)) {
+        if (! is_null($yearTo)) {
             $query->where('year', '<=', $yearTo);
         }
 

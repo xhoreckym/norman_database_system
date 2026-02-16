@@ -18,26 +18,38 @@ class LiteratureSeeder_TerraChemPOPs extends Seeder
 
     // Lookup caches (lowercase key => id)
     protected array $speciesCache = [];
+
     protected array $tissuesCache = [];
+
     protected array $sexCache = [];
+
     protected array $lifeStagesCache = [];
+
     protected array $concentrationUnitsCache = [];
+
     protected array $commonNamesCache = [];
+
     protected array $matricesCache = [];
+
     protected array $substanceCache = [];
+
     protected array $countriesCache = [];
 
     // Test mode - set to null for full processing
     protected ?int $limitRows = null;
+
     protected int $fileId = 9002;
 
     // Excel structure constants
     protected int $headerRow = 2;
+
     protected int $dataStartRow = 3;
+
     protected int $lastDataColumn = 49; // Column AW
 
     // Skipped rows log
     protected array $skippedRows = [];
+
     protected string $skippedRowsLogPath;
 
     /**
@@ -365,6 +377,7 @@ class LiteratureSeeder_TerraChemPOPs extends Seeder
     {
         // Get concentration unit for ww_conc_ng determination
         $concentrationUnit = $data['G'] ?? null;
+        $unitLookup = $this->lookupConcentrationUnit($concentrationUnit);
         $isWetWeight = $this->isWetWeightUnit($concentrationUnit);
 
         // Determine concentration value handling
@@ -450,7 +463,8 @@ class LiteratureSeeder_TerraChemPOPs extends Seeder
             'range_max' => $this->extractRangeMax($data['F'] ?? null),
 
             // Concentration
-            'concentration_units_id' => $this->lookupConcentrationUnit($data['G'] ?? null), // Col G: unit
+            'concentration_units_id' => $unitLookup['id'],
+            'concentration_unit_raw' => $unitLookup['raw'],
             'reported_concentration' => $reportedConcentration,
             'concentrationlevel' => $concentrationLevel,
             'ww_conc_ng' => $wwConcNg,
@@ -662,18 +676,25 @@ class LiteratureSeeder_TerraChemPOPs extends Seeder
         return $this->lifeStagesCache['no data'] ?? null;
     }
 
-    protected function lookupConcentrationUnit(?string $name): ?int
+    /**
+     * @return array{id: ?int, raw: ?string}
+     */
+    protected function lookupConcentrationUnit(?string $name): array
     {
         if ($this->isSkipValue($name)) {
-            return null;
+            return ['id' => null, 'raw' => null];
         }
         $normalized = $this->normalizeUnitForLookup($name);
 
         if (isset($this->concentrationUnitsCache[$normalized])) {
-            return $this->concentrationUnitsCache[$normalized];
+            return ['id' => $this->concentrationUnitsCache[$normalized], 'raw' => null];
         }
 
-        return $this->concentrationUnitsCache['other'] ?? null;
+        // No match: assign "other" ID and preserve raw value
+        return [
+            'id' => $this->concentrationUnitsCache['other'] ?? null,
+            'raw' => trim($name),
+        ];
     }
 
     protected function lookupMatrix(?string $name): ?int
