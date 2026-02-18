@@ -16,8 +16,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
     protected $signature = 'empodat-suspect:refresh-prioritisation
                             {--force : Force non-concurrent refresh (faster but blocks reads)}
                             {--create : Create the view if it doesn\'t exist}
-                            {--stats : Show statistics after refresh}
-                            {--limit= : Limit to first N records from empodat_suspect_main (default: 100000)}';
+                            {--stats : Show statistics after refresh}';
 
     /**
      * The console command description.
@@ -36,30 +35,24 @@ class RefreshEmpodatSuspectPrioritisation extends Command
         $this->info('╚══════════════════════════════════════════════════════════════════╝');
         $this->newLine();
 
-        $limit = $this->option('limit') ?: 100000;
-        $this->info('→ Processing limit: '.number_format($limit).' records from empodat_suspect_main');
-        $this->newLine();
-
         try {
             $startTime = microtime(true);
 
             // Check if the materialized view exists
             $viewExists = $this->checkViewExists();
 
-            if (! $viewExists) {
-                if ($this->option('create')) {
-                    $this->warn('⚠ Materialized view does not exist. Creating it...');
-                    $this->createView($limit);
-                } else {
-                    $this->error('✗ Materialized view does not exist!');
-                    $this->info('Run with --create option to create it:');
-                    $this->info('  php artisan empodat-suspect:refresh-prioritisation --create');
-                    $this->newLine();
-                    $this->info('Or run the migration:');
-                    $this->info('  php artisan migrate');
+            if ($this->option('create')) {
+                $this->warn('⚠ Dropping and recreating materialized view...');
+                $this->createView();
+            } elseif (! $viewExists) {
+                $this->error('✗ Materialized view does not exist!');
+                $this->info('Run with --create option to create it:');
+                $this->info('  php artisan empodat-suspect:refresh-prioritisation --create');
+                $this->newLine();
+                $this->info('Or run the migration:');
+                $this->info('  php artisan migrate');
 
-                    return Command::FAILURE;
-                }
+                return Command::FAILURE;
             } else {
                 $this->refreshView();
             }
@@ -78,7 +71,6 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             Log::info('Empodat Suspect prioritisation refreshed successfully', [
                 'duration' => $duration,
                 'method' => $viewExists ? 'refresh' : 'create',
-                'limit' => $limit,
             ]);
 
             return Command::SUCCESS;
@@ -163,7 +155,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
     /**
      * Create the materialized view from scratch
      */
-    private function createView(int $limit): void
+    private function createView(): void
     {
         // Drop if exists
         $this->info('→ Dropping existing view (if any)...');
@@ -171,15 +163,11 @@ class RefreshEmpodatSuspectPrioritisation extends Command
 
         // Create the materialized view
         $this->info('→ Creating materialized view...');
-        $this->info('  Using limit: '.number_format($limit).' records');
 
-        DB::statement("
+        DB::statement('
             CREATE MATERIALIZED VIEW empodat_suspect_prioritisation AS
             WITH limited_suspect AS (
-                -- Limit to first N records
                 SELECT * FROM empodat_suspect_main
-                ORDER BY id
-                LIMIT {$limit}
             ),
             most_recent_main AS (
                 -- Get most recent empodat_main record per station
@@ -192,18 +180,6 @@ class RefreshEmpodatSuspectPrioritisation extends Command
                 FROM empodat_main
                 WHERE station_id IN (SELECT DISTINCT station_id FROM limited_suspect)
                 ORDER BY station_id, sampling_date_year DESC NULLS LAST
-            ),
-            -- Calculate am_loq: minimum concentration divided by 3 for each matrix + substance combination
-            min_concentration_by_matrix_substance AS (
-                SELECT
-                    em.matrix_id,
-                    esm.substance_id,
-                    MIN(esm.concentration) / 3.0 AS am_loq
-                FROM limited_suspect esm
-                INNER JOIN most_recent_main em ON em.station_id = esm.station_id
-                WHERE esm.concentration IS NOT NULL
-                    AND esm.concentration > 0
-                GROUP BY em.matrix_id, esm.substance_id
             ),
             -- Calculate max_ip_max: maximum ip_max for each matrix + substance combination
             max_ip_by_matrix_substance AS (
@@ -223,7 +199,6 @@ class RefreshEmpodatSuspectPrioritisation extends Command
                 -- Core fields from suspect data
                 em.matrix_id AS matrix,
                 esm.concentration AS concentration_value,
-                mcms.am_loq,
                 esm.ip_max,
                 mims.max_ip_max,
 
@@ -275,11 +250,6 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             LEFT JOIN susdat_substances ss
                 ON esm.substance_id = ss.id
 
-            -- Join to pre-calculated am_loq
-            LEFT JOIN min_concentration_by_matrix_substance mcms
-                ON em.matrix_id = mcms.matrix_id
-                AND esm.substance_id = mcms.substance_id
-
             -- Join to pre-calculated max_ip_max
             LEFT JOIN max_ip_by_matrix_substance mims
                 ON em.matrix_id = mims.matrix_id
@@ -310,7 +280,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             WHERE esm.station_id IS NOT NULL
                 AND es.id IS NOT NULL
                 AND em.id IS NOT NULL
-        ");
+        ');
 
         $this->info('  ✓ Materialized view created');
 
@@ -323,8 +293,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             COMMENT ON MATERIALIZED VIEW empodat_suspect_prioritisation IS
             'Comprehensive materialized view for Empodat Suspect prioritisation analysis.
             Combines suspect screening data with matrix-specific metadata.
-            Includes am_loq (min concentration / 3 per matrix+substance) and max_ip_max.
-            Limited to first {$limit} suspect records for testing.
+            Includes max_ip_max (max ip_max per matrix+substance).
             Refresh command: php artisan empodat-suspect:refresh-prioritisation'
         ");
 
@@ -361,7 +330,6 @@ class RefreshEmpodatSuspectPrioritisation extends Command
             'idx_esp_dsgr_id' => 'dsgr_id',
             'idx_esp_dtiel_id' => 'dtiel_id',
             'idx_esp_dmeas_id' => 'dmeas_id',
-            'idx_esp_am_loq' => 'am_loq',
         ];
 
         foreach ($partialIndexes as $indexName => $column) {
@@ -442,12 +410,6 @@ class RefreshEmpodatSuspectPrioritisation extends Command
                 ->count();
             $this->line('  Records with water waste data: '.number_format($waterWasteCount));
 
-            // Get records with am_loq
-            $amLoqCount = DB::table('empodat_suspect_prioritisation')
-                ->whereNotNull('am_loq')
-                ->count();
-            $this->line('  Records with am_loq:      '.number_format($amLoqCount));
-
             // Get records with max_ip_max
             $maxIpMaxCount = DB::table('empodat_suspect_prioritisation')
                 ->whereNotNull('max_ip_max')
@@ -468,7 +430,7 @@ class RefreshEmpodatSuspectPrioritisation extends Command
 
             // Count non-null values for sparse columns
             $this->line("\n  Non-null values in matrix-specific columns:");
-            $sparseColumns = ['basin_name', 'df_id', 'dsa_id', 'dsgr_id', 'dtiel_id', 'dmeas_id', 'am_loq', 'max_ip_max'];
+            $sparseColumns = ['basin_name', 'df_id', 'dsa_id', 'dsgr_id', 'dtiel_id', 'dmeas_id', 'max_ip_max'];
             foreach ($sparseColumns as $column) {
                 $nonNullCount = DB::table('empodat_suspect_prioritisation')
                     ->whereNotNull($column)

@@ -45,10 +45,11 @@ class RefreshEmpodatSuspectFilters extends Command
             if ($this->option('create')) {
                 $this->warn('⚠ Dropping and recreating materialized view...');
                 $this->createView();
-            } elseif (!$viewExists) {
+            } elseif (! $viewExists) {
                 $this->error('✗ Materialized view does not exist!');
                 $this->info('Run with --create option to create it:');
                 $this->info('  php artisan empodat-suspect:refresh-filters --create');
+
                 return Command::FAILURE;
             } else {
                 $this->refreshView();
@@ -67,7 +68,7 @@ class RefreshEmpodatSuspectFilters extends Command
 
             Log::info('Empodat Suspect filters refreshed successfully', [
                 'duration' => $duration,
-                'method' => $viewExists ? 'refresh' : 'create'
+                'method' => $viewExists ? 'refresh' : 'create',
             ]);
 
             return Command::SUCCESS;
@@ -75,15 +76,15 @@ class RefreshEmpodatSuspectFilters extends Command
         } catch (\Exception $e) {
             $this->newLine();
             $this->error('✗ Failed to refresh materialized view:');
-            $this->error('  ' . $e->getMessage());
+            $this->error('  '.$e->getMessage());
 
             if ($this->getOutput()->isVerbose()) {
                 $this->newLine();
                 $this->error($e->getTraceAsString());
             }
 
-            Log::error('Empodat Suspect filters refresh failed: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+            Log::error('Empodat Suspect filters refresh failed: '.$e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return Command::FAILURE;
@@ -121,7 +122,7 @@ class RefreshEmpodatSuspectFilters extends Command
      */
     private function refreshView(): void
     {
-        $concurrent = !$this->option('force');
+        $concurrent = ! $this->option('force');
 
         if ($concurrent) {
             $this->info('→ Refreshing materialized view (CONCURRENT mode - non-blocking)...');
@@ -136,7 +137,7 @@ class RefreshEmpodatSuspectFilters extends Command
             $this->warn('→ Refreshing materialized view (FORCE mode - blocking)...');
             $this->line('  This will block all reads during refresh but is faster.');
 
-            if (!$this->confirm('Continue with blocking refresh?', false)) {
+            if (! $this->confirm('Continue with blocking refresh?', false)) {
                 $this->info('  Cancelled. Use without --force for non-blocking refresh.');
                 exit(Command::SUCCESS);
             }
@@ -165,20 +166,43 @@ class RefreshEmpodatSuspectFilters extends Command
         $this->info('→ Step 1: Building suspect stations list...');
         $step1Start = microtime(true);
 
-        DB::statement('DROP TABLE IF EXISTS empodat_suspect_stations_helper CASCADE');
-        DB::statement("
-            CREATE TABLE empodat_suspect_stations_helper AS
-            SELECT DISTINCT
-                esm.station_id,
-                es.country_id,
-                MAX(esm.ip_max) as max_ip_confidence,
-                COUNT(esm.id) as suspect_measurement_count
-            FROM empodat_suspect_main esm
-            INNER JOIN empodat_stations es ON esm.station_id = es.id
-            WHERE esm.station_id IS NOT NULL
-            GROUP BY esm.station_id, es.country_id
+        $helperExists = DB::select("
+            SELECT EXISTS (
+                SELECT FROM pg_tables
+                WHERE schemaname = 'public'
+                AND tablename = 'empodat_suspect_stations_helper'
+            ) as exists
         ");
-        DB::statement('CREATE INDEX idx_essh_station_id ON empodat_suspect_stations_helper(station_id)');
+
+        if ($helperExists[0]->exists ?? false) {
+            DB::statement('TRUNCATE TABLE empodat_suspect_stations_helper');
+            DB::statement('
+                INSERT INTO empodat_suspect_stations_helper
+                SELECT DISTINCT
+                    esm.station_id,
+                    es.country_id,
+                    MAX(esm.ip_max) as max_ip_confidence,
+                    COUNT(esm.id) as suspect_measurement_count
+                FROM empodat_suspect_main esm
+                INNER JOIN empodat_stations es ON esm.station_id = es.id
+                WHERE esm.station_id IS NOT NULL
+                GROUP BY esm.station_id, es.country_id
+            ');
+        } else {
+            DB::statement('
+                CREATE TABLE empodat_suspect_stations_helper AS
+                SELECT DISTINCT
+                    esm.station_id,
+                    es.country_id,
+                    MAX(esm.ip_max) as max_ip_confidence,
+                    COUNT(esm.id) as suspect_measurement_count
+                FROM empodat_suspect_main esm
+                INNER JOIN empodat_stations es ON esm.station_id = es.id
+                WHERE esm.station_id IS NOT NULL
+                GROUP BY esm.station_id, es.country_id
+            ');
+            DB::statement('CREATE INDEX idx_essh_station_id ON empodat_suspect_stations_helper(station_id)');
+        }
 
         $step1Duration = round(microtime(true) - $step1Start, 2);
         $stationCount = DB::table('empodat_suspect_stations_helper')->count();
@@ -188,7 +212,7 @@ class RefreshEmpodatSuspectFilters extends Command
         $this->info('→ Step 2: Building filter combinations from empodat_main...');
         $step2Start = microtime(true);
 
-        DB::statement("
+        DB::statement('
             CREATE MATERIALIZED VIEW empodat_suspect_station_filters AS
             SELECT DISTINCT
                 ss.station_id,
@@ -201,7 +225,7 @@ class RefreshEmpodatSuspectFilters extends Command
             FROM empodat_suspect_stations_helper ss
             INNER JOIN empodat_main em ON em.station_id = ss.station_id
             WHERE em.matrix_id IS NOT NULL
-        ");
+        ');
 
         $step2Duration = round(microtime(true) - $step2Start, 2);
         $this->info("  ✓ Materialized view created ({$step2Duration}s)");
@@ -267,31 +291,31 @@ class RefreshEmpodatSuspectFilters extends Command
         try {
             // Get row count
             $rowCount = DB::table('empodat_suspect_station_filters')->count();
-            $this->line("  Total filter combinations: " . number_format($rowCount));
+            $this->line('  Total filter combinations: '.number_format($rowCount));
 
             // Get unique stations
             $stationCount = DB::table('empodat_suspect_station_filters')
                 ->distinct('station_id')
                 ->count('station_id');
-            $this->line("  Unique stations:          " . number_format($stationCount));
+            $this->line('  Unique stations:          '.number_format($stationCount));
 
             // Get unique countries
             $countryCount = DB::table('empodat_suspect_station_filters')
                 ->distinct('country_id')
                 ->count('country_id');
-            $this->line("  Unique countries:         " . number_format($countryCount));
+            $this->line('  Unique countries:         '.number_format($countryCount));
 
             // Get unique matrices
             $matrixCount = DB::table('empodat_suspect_station_filters')
                 ->distinct('matrix_id')
                 ->count('matrix_id');
-            $this->line("  Unique matrices:          " . number_format($matrixCount));
+            $this->line('  Unique matrices:          '.number_format($matrixCount));
 
             // Get view size
             $sizeResult = DB::select("
                 SELECT pg_size_pretty(pg_total_relation_size('empodat_suspect_station_filters')) as size
             ");
-            $this->line("  Total size (with indexes): " . ($sizeResult[0]->size ?? 'N/A'));
+            $this->line('  Total size (with indexes): '.($sizeResult[0]->size ?? 'N/A'));
 
             // Get last refresh time
             $mvInfo = DB::select("
@@ -301,12 +325,12 @@ class RefreshEmpodatSuspectFilters extends Command
                 WHERE matviewname = 'empodat_suspect_station_filters'
             ");
 
-            if (!empty($mvInfo)) {
-                $this->line("  View size (data only):     " . ($mvInfo[0]->size ?? 'N/A'));
+            if (! empty($mvInfo)) {
+                $this->line('  View size (data only):     '.($mvInfo[0]->size ?? 'N/A'));
             }
 
         } catch (\Exception $e) {
-            $this->warn('  Could not retrieve all statistics: ' . $e->getMessage());
+            $this->warn('  Could not retrieve all statistics: '.$e->getMessage());
         }
     }
 }
