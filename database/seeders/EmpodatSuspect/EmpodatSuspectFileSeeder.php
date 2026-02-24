@@ -85,6 +85,15 @@ class EmpodatSuspectFileSeeder extends Seeder
                 'mime_type' => 'text/csv',
                 'database_entity_id' => 18,
             ],
+            [
+                'id' => 10008,
+                'original_name' => 'OK_UBA-HELCOM_suspect screening results_ng g wet weight_1204.xlsx',
+                'name' => 'UBA-HELCOM Suspect Screening Results',
+                'description' => 'UBA-HELCOM suspect screening results - BIOTA data',
+                'file_path' => 'empodat_suspect/OK_UBA-HELCOM_suspect screening results_ng g wet weight_1204.xlsx',
+                'mime_type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'database_entity_id' => 18,
+            ],
         ];
 
         $now = Carbon::now();

@@ -194,6 +194,8 @@ class EmpodatSuspectConnect2SedimentsMainSeeder extends Seeder
         }
 
         $this->command->info("All records seeded with file_id: {$this->fileId}");
+
+        $this->validateSubstanceIds($this->fileId);
     }
 
     /**

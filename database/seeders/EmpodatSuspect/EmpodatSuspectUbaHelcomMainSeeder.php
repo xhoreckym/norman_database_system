@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Spatie\SimpleExcel\SimpleExcelReader;
 
-class EmpodatSuspectConnect2BiotaMainSeeder extends Seeder
+class EmpodatSuspectUbaHelcomMainSeeder extends Seeder
 {
     use LoadsSubstanceCaches;
     use WithoutModelEvents;
@@ -17,7 +17,7 @@ class EmpodatSuspectConnect2BiotaMainSeeder extends Seeder
     protected ?int $limitRows = null;
 
     // File tracking - set this to the file_id from the 'files' table
-    protected ?int $fileId = 10004;
+    protected ?int $fileId = 10008;
 
     /**
      * Run the database seeds.
@@ -31,7 +31,7 @@ class EmpodatSuspectConnect2BiotaMainSeeder extends Seeder
 
         $target_table_name = 'empodat_suspect_main';
 
-        $this->command->info('Processing CONNECT 2 BIOTA data for empodat_suspect_main table...');
+        $this->command->info('Processing UBA-HELCOM data for empodat_suspect_main table...');
         $this->command->warn('Note: This seeder adds to existing data. To start fresh, truncate tables manually.');
 
         $this->command->info('Loading lookup tables into cache...');
@@ -49,7 +49,7 @@ class EmpodatSuspectConnect2BiotaMainSeeder extends Seeder
         // Disable foreign key checks temporarily for faster inserts (PostgreSQL)
         DB::statement('SET session_replication_role = replica;');
 
-        $path = base_path().'/database/seeders/seeds/empodat_suspect/OK_CONNECT 2_suspect screening results_ng g wet weight_1192 - BIOTA.xlsx';
+        $path = base_path().'/database/seeders/seeds/empodat_suspect/OK_UBA-HELCOM_suspect screening results_ng g wet weight_1204.xlsx';
 
         if (! file_exists($path)) {
             $this->command->error("Excel file not found: {$path}");
@@ -347,4 +347,4 @@ class EmpodatSuspectConnect2BiotaMainSeeder extends Seeder
         return $cleaned === '' || $cleaned === 'NA';
     }
 }
-// php artisan db:seed --class=Database\\Seeders\\EmpodatSuspect\\EmpodatSuspectConnect2BiotaMainSeeder
+// php artisan db:seed --class=Database\\Seeders\\EmpodatSuspect\\EmpodatSuspectUbaHelcomMainSeeder

@@ -132,4 +132,37 @@ trait LoadsSubstanceCaches
 
         return $this->substanceCache[$normalizedCode] ?? null;
     }
+
+    /**
+     * Validate that all substance_ids inserted for a given file_id
+     * actually exist in susdat_substances. Runs a single query after
+     * seeding completes — no impact on insert performance.
+     */
+    protected function validateSubstanceIds(int $fileId): void
+    {
+        $orphans = DB::table('empodat_suspect_main')
+            ->where('file_id', $fileId)
+            ->whereNotNull('substance_id')
+            ->whereNotExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('susdat_substances')
+                    ->whereColumn('susdat_substances.id', 'empodat_suspect_main.substance_id');
+            })
+            ->select('substance_id', DB::raw('COUNT(*) as records'))
+            ->groupBy('substance_id')
+            ->get();
+
+        if ($orphans->isEmpty()) {
+            $this->command->info('Substance ID validation passed: all substance_ids are valid.');
+
+            return;
+        }
+
+        $totalRecords = $orphans->sum('records');
+        $this->command->error("Substance ID validation FAILED: {$orphans->count()} orphaned substance_id(s) affecting {$totalRecords} records.");
+
+        foreach ($orphans as $orphan) {
+            $this->command->error("  substance_id={$orphan->substance_id} ({$orphan->records} records)");
+        }
+    }
 }
