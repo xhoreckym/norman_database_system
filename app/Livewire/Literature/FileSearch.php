@@ -56,11 +56,10 @@ class FileSearch extends Component
 
             $resultsAvailable = true;
         } elseif ($this->isFocused && strlen($this->search) === 0) {
-            // Show first 3 files when input is focused but empty
+            // Show all files when input is focused but empty
             $results = File::orderBy('id', 'asc')
                 ->byDatabaseEntity(self::LITERATURE_ENTITY_ID)
                 ->notDeleted()
-                ->limit(3)
                 ->get();
 
             $resultsAvailable = true;
