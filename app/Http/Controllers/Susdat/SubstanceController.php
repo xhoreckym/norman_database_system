@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -557,6 +558,102 @@ class SubstanceController extends Controller
         }
 
         return $searchParameters;
+    }
+
+    /**
+     * Show substances with code but no name, with option to fetch from NORMAN API.
+     */
+    public function missingNames()
+    {
+        $substances = Substance::whereNotNull('code')
+            ->where(function ($query) {
+                $query->whereNull('name')->orWhere('name', '');
+            })
+            ->select(['id', 'code', 'name', 'cas_number', 'stdinchikey', 'molecular_formula'])
+            ->orderBy('code')
+            ->get();
+
+        return view('susdat.missing-names', [
+            'substances' => $substances,
+        ]);
+    }
+
+    /**
+     * Fetch missing substance data from the NORMAN SusDat API and update local records.
+     */
+    public function fetchMissingNames(Request $request)
+    {
+        $substances = Substance::whereNotNull('code')
+            ->where(function ($query) {
+                $query->whereNull('name')->orWhere('name', '');
+            })
+            ->orderBy('code')
+            ->get();
+
+        $updated = 0;
+        $failed = 0;
+        $errors = [];
+
+        foreach ($substances as $substance) {
+            try {
+                $nsid = $substance->code;
+                $response = Http::timeout(10)->get("https://www.norman-network.com/nds/api/susdat/nsid/{$nsid}/JSON");
+
+                if ($response->successful()) {
+                    $data = $response->json();
+
+                    if (! empty($data['Compound name'])) {
+                        $substance->name = $data['Compound name'];
+                    }
+                    if (! empty($data['CAS RN']) && empty($substance->cas_number)) {
+                        $substance->cas_number = $data['CAS RN'];
+                    }
+                    if (! empty($data['SMILES']) && empty($substance->smiles)) {
+                        $substance->smiles = $data['SMILES'];
+                    }
+                    if (! empty($data['InChI string']) && empty($substance->stdinchi)) {
+                        $substance->stdinchi = $data['InChI string'];
+                    }
+                    if (! empty($data['InChIKey']) && empty($substance->stdinchikey)) {
+                        $substance->stdinchikey = $data['InChIKey'];
+                    }
+                    if (! empty($data['PubChem CID']) && empty($substance->pubchem_cid)) {
+                        $substance->pubchem_cid = $data['PubChem CID'];
+                    }
+                    if (! empty($data['DSSTox Substance ID']) && empty($substance->dtxid)) {
+                        $substance->dtxid = $data['DSSTox Substance ID'];
+                    }
+                    if (! empty($data['Molecular formula']) && empty($substance->molecular_formula)) {
+                        $substance->molecular_formula = $data['Molecular formula'];
+                    }
+                    if (! empty($data['Monoisotopic Mass [g/mol]']) && empty($substance->mass_iso)) {
+                        $substance->mass_iso = $data['Monoisotopic Mass [g/mol]'];
+                    }
+                    if (! empty($data['Average Mass [g/mol]']) && empty($substance->average_mass)) {
+                        $substance->average_mass = $data['Average Mass [g/mol]'];
+                    }
+
+                    $substance->save();
+                    $updated++;
+                } else {
+                    $failed++;
+                    $errors[] = "NS{$nsid}: HTTP {$response->status()}";
+                }
+            } catch (Exception $e) {
+                $failed++;
+                $errors[] = "NS{$substance->code}: {$e->getMessage()}";
+            }
+
+            // Be respectful to the API
+            usleep(200000); // 200ms delay
+        }
+
+        session()->flash('success', "Fetched data for {$updated} substances. Failed: {$failed}.");
+        if (! empty($errors)) {
+            session()->flash('fetch_errors', $errors);
+        }
+
+        return redirect()->route('substances.missing-names');
     }
 
     protected function getEditableColumns()

@@ -52,5 +52,13 @@
     Batch Conversion
   </x-nav-link-header>
 
+  @auth
+    @if (auth()->user()->hasRole(['super_admin', 'admin', 'susdat']))
+      <x-nav-link-header :href="route('substances.missing-names')" :active="request()->routeIs('substances.missing-names')">
+        Fetch Missing Names
+      </x-nav-link-header>
+    @endif
+  @endauth
+
 
 </div>
