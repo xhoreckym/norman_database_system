@@ -45,9 +45,15 @@
                               value="{{ $valueInner }}" class="form-text-small text-sm">
                           </span>
                         @endforeach
-                      @else
-                        <span class="text-gray-500 text-sm">No metadata available</span>
                       @endif
+                      <span class="block py-1">
+                        <input type="text" name="{{ $value }}_new_key[]" placeholder="key"
+                          class="form-text-small text-sm w-1/4 inline-block">
+                        <input type="text" name="{{ $value }}_new_value[]" placeholder="value"
+                          class="form-text-small text-sm w-2/3 inline-block">
+                      </span>
+                    @elseif($value === 'code')
+                      <span class="font-mono text-sm p-1">NS{{ $substance->$value }}</span>
                     @else
                       <input type="text" name="{{ $value }}" value="{{ $substance->$value }}"
                         class="form-text">

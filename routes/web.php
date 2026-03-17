@@ -226,7 +226,7 @@ Route::prefix('susdat')->group(function () {
     Route::get('substances-audited', [SubstanceController::class, 'withAudits'])->name('substances.audited');
     Route::get('substances/{substance}/audits', [SubstanceController::class, 'audits'])->whereNumber('substance')->name('substances.audits');
 
-    Route::middleware(['auth', 'role:super_admin|admin|susdat'])->group(function () {
+    Route::middleware(['auth', 'role:super_admin'])->group(function () {
         Route::get('substances-missing-names', [SubstanceController::class, 'missingNames'])->name('substances.missing-names');
         Route::post('substances-fetch-missing-names', [SubstanceController::class, 'fetchMissingNames'])->name('substances.fetch-missing-names');
     });

@@ -158,7 +158,26 @@ class SubstanceController extends Controller
      */
     public function create()
     {
-        //
+        $nextCode = (int) Substance::where('code', '<', '00400000')->max('code') + 1;
+        $nextCode = str_pad((string) $nextCode, 8, '0', STR_PAD_LEFT);
+
+        $substance = new Substance(['code' => $nextCode]);
+        $editables = $this->getEditableColumns();
+
+        $categories = Category::orderBy('name', 'asc')->get();
+        $sources = SuspectListExchangeSource::orderBy('id', 'asc')->get();
+        $sourceList = [];
+        foreach ($sources as $s) {
+            $sourceList[$s->id] = $s->code.' - '.$s->sanitized_name;
+        }
+
+        return view('susdat.create', [
+            'substance' => $substance,
+            'categories' => $categories,
+            'sources' => $sources,
+            'sourceList' => $sourceList,
+            'editables' => $editables,
+        ]);
     }
 
     /**
@@ -166,7 +185,55 @@ class SubstanceController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'code' => 'required|string|unique:susdat_substances,code',
+            'name' => 'required|string|max:1000',
+        ]);
+
+        $substance = new Substance;
+        $editables = $this->getEditableColumns();
+
+        foreach ($editables as $key) {
+            if ($request->has($key)) {
+                if (substr($key, 0, 8) == 'metadata') {
+                    $substance->$key = json_encode($request->input($key));
+                } else {
+                    $substance->$key = $request->input($key);
+                }
+            }
+
+            // Handle new metadata key/value pairs
+            if (substr($key, 0, 8) == 'metadata') {
+                $newKeys = $request->input($key.'_new_key', []);
+                $newValues = $request->input($key.'_new_value', []);
+                $newData = [];
+                foreach ($newKeys as $i => $newKey) {
+                    $newKey = trim($newKey);
+                    if ($newKey !== '' && isset($newValues[$i])) {
+                        $newData[$newKey] = trim($newValues[$i]);
+                    }
+                }
+                if (! empty($newData)) {
+                    $substance->$key = json_encode($newData);
+                }
+            }
+        }
+
+        $substance->added_by = Auth::id();
+
+        try {
+            $substance->save();
+            session()->flash('success', 'Substance created successfully');
+
+            return redirect()->route('substances.show', ['substance' => $substance->id]);
+        } catch (Exception $e) {
+            session()->flash('failure', 'An error occurred while creating the substance. '.$e->getMessage());
+
+            return redirect()
+                ->route('substances.create')
+                ->withInput()
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -214,11 +281,43 @@ class SubstanceController extends Controller
         $editables = $this->getEditableColumns();
 
         foreach ($editables as $key) {
+            if ($key === 'code') {
+                continue;
+            }
+
             if ($request->has($key)) {
                 if (substr($key, 0, 8) == 'metadata') {
-                    $substance->$key = json_encode($request->input($key));
+                    $existing = $request->input($key) ?? [];
+
+                    // Merge new key/value pairs
+                    $newKeys = $request->input($key.'_new_key', []);
+                    $newValues = $request->input($key.'_new_value', []);
+                    foreach ($newKeys as $i => $newKey) {
+                        $newKey = trim($newKey);
+                        if ($newKey !== '' && isset($newValues[$i])) {
+                            $existing[$newKey] = trim($newValues[$i]);
+                        }
+                    }
+
+                    $substance->$key = json_encode($existing);
                 } else {
                     $substance->$key = $request->input($key);
+                }
+            } else {
+                // Handle new metadata entries when no existing keys were submitted
+                if (substr($key, 0, 8) == 'metadata') {
+                    $newKeys = $request->input($key.'_new_key', []);
+                    $newValues = $request->input($key.'_new_value', []);
+                    $newData = [];
+                    foreach ($newKeys as $i => $newKey) {
+                        $newKey = trim($newKey);
+                        if ($newKey !== '' && isset($newValues[$i])) {
+                            $newData[$newKey] = trim($newValues[$i]);
+                        }
+                    }
+                    if (! empty($newData)) {
+                        $substance->$key = json_encode($newData);
+                    }
                 }
             }
         }
