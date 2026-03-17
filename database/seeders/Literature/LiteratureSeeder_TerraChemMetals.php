@@ -26,6 +26,7 @@ class LiteratureSeeder_TerraChemMetals extends Seeder
 
     protected array $commonNamesCache = [];
 
+    
     protected array $matricesCache = [];
 
     protected array $substanceCache = [];
