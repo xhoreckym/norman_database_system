@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -157,7 +158,26 @@ class SubstanceController extends Controller
      */
     public function create()
     {
-        //
+        $nextCode = (int) Substance::where('code', '<', '00400000')->max('code') + 1;
+        $nextCode = str_pad((string) $nextCode, 8, '0', STR_PAD_LEFT);
+
+        $substance = new Substance(['code' => $nextCode]);
+        $editables = $this->getEditableColumns();
+
+        $categories = Category::orderBy('name', 'asc')->get();
+        $sources = SuspectListExchangeSource::orderBy('id', 'asc')->get();
+        $sourceList = [];
+        foreach ($sources as $s) {
+            $sourceList[$s->id] = $s->code.' - '.$s->sanitized_name;
+        }
+
+        return view('susdat.create', [
+            'substance' => $substance,
+            'categories' => $categories,
+            'sources' => $sources,
+            'sourceList' => $sourceList,
+            'editables' => $editables,
+        ]);
     }
 
     /**
@@ -165,7 +185,55 @@ class SubstanceController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'code' => 'required|string|unique:susdat_substances,code',
+            'name' => 'required|string|max:1000',
+        ]);
+
+        $substance = new Substance;
+        $editables = $this->getEditableColumns();
+
+        foreach ($editables as $key) {
+            if ($request->has($key)) {
+                if (substr($key, 0, 8) == 'metadata') {
+                    $substance->$key = json_encode($request->input($key));
+                } else {
+                    $substance->$key = $request->input($key);
+                }
+            }
+
+            // Handle new metadata key/value pairs
+            if (substr($key, 0, 8) == 'metadata') {
+                $newKeys = $request->input($key.'_new_key', []);
+                $newValues = $request->input($key.'_new_value', []);
+                $newData = [];
+                foreach ($newKeys as $i => $newKey) {
+                    $newKey = trim($newKey);
+                    if ($newKey !== '' && isset($newValues[$i])) {
+                        $newData[$newKey] = trim($newValues[$i]);
+                    }
+                }
+                if (! empty($newData)) {
+                    $substance->$key = json_encode($newData);
+                }
+            }
+        }
+
+        $substance->added_by = Auth::id();
+
+        try {
+            $substance->save();
+            session()->flash('success', 'Substance created successfully');
+
+            return redirect()->route('substances.show', ['substance' => $substance->id]);
+        } catch (Exception $e) {
+            session()->flash('failure', 'An error occurred while creating the substance. '.$e->getMessage());
+
+            return redirect()
+                ->route('substances.create')
+                ->withInput()
+                ->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -213,11 +281,43 @@ class SubstanceController extends Controller
         $editables = $this->getEditableColumns();
 
         foreach ($editables as $key) {
+            if ($key === 'code') {
+                continue;
+            }
+
             if ($request->has($key)) {
                 if (substr($key, 0, 8) == 'metadata') {
-                    $substance->$key = json_encode($request->input($key));
+                    $existing = $request->input($key) ?? [];
+
+                    // Merge new key/value pairs
+                    $newKeys = $request->input($key.'_new_key', []);
+                    $newValues = $request->input($key.'_new_value', []);
+                    foreach ($newKeys as $i => $newKey) {
+                        $newKey = trim($newKey);
+                        if ($newKey !== '' && isset($newValues[$i])) {
+                            $existing[$newKey] = trim($newValues[$i]);
+                        }
+                    }
+
+                    $substance->$key = json_encode($existing);
                 } else {
                     $substance->$key = $request->input($key);
+                }
+            } else {
+                // Handle new metadata entries when no existing keys were submitted
+                if (substr($key, 0, 8) == 'metadata') {
+                    $newKeys = $request->input($key.'_new_key', []);
+                    $newValues = $request->input($key.'_new_value', []);
+                    $newData = [];
+                    foreach ($newKeys as $i => $newKey) {
+                        $newKey = trim($newKey);
+                        if ($newKey !== '' && isset($newValues[$i])) {
+                            $newData[$newKey] = trim($newValues[$i]);
+                        }
+                    }
+                    if (! empty($newData)) {
+                        $substance->$key = json_encode($newData);
+                    }
                 }
             }
         }
@@ -557,6 +657,102 @@ class SubstanceController extends Controller
         }
 
         return $searchParameters;
+    }
+
+    /**
+     * Show substances with code but no name, with option to fetch from NORMAN API.
+     */
+    public function missingNames()
+    {
+        $substances = Substance::whereNotNull('code')
+            ->where(function ($query) {
+                $query->whereNull('name')->orWhere('name', '');
+            })
+            ->select(['id', 'code', 'name', 'cas_number', 'stdinchikey', 'molecular_formula'])
+            ->orderBy('code')
+            ->get();
+
+        return view('susdat.missing-names', [
+            'substances' => $substances,
+        ]);
+    }
+
+    /**
+     * Fetch missing substance data from the NORMAN SusDat API and update local records.
+     */
+    public function fetchMissingNames(Request $request)
+    {
+        $substances = Substance::whereNotNull('code')
+            ->where(function ($query) {
+                $query->whereNull('name')->orWhere('name', '');
+            })
+            ->orderBy('code')
+            ->get();
+
+        $updated = 0;
+        $failed = 0;
+        $errors = [];
+
+        foreach ($substances as $substance) {
+            try {
+                $nsid = $substance->code;
+                $response = Http::timeout(10)->get("https://www.norman-network.com/nds/api/susdat/nsid/{$nsid}/JSON");
+
+                if ($response->successful()) {
+                    $data = $response->json();
+
+                    if (! empty($data['Compound name'])) {
+                        $substance->name = $data['Compound name'];
+                    }
+                    if (! empty($data['CAS RN']) && empty($substance->cas_number)) {
+                        $substance->cas_number = $data['CAS RN'];
+                    }
+                    if (! empty($data['SMILES']) && empty($substance->smiles)) {
+                        $substance->smiles = $data['SMILES'];
+                    }
+                    if (! empty($data['InChI string']) && empty($substance->stdinchi)) {
+                        $substance->stdinchi = $data['InChI string'];
+                    }
+                    if (! empty($data['InChIKey']) && empty($substance->stdinchikey)) {
+                        $substance->stdinchikey = $data['InChIKey'];
+                    }
+                    if (! empty($data['PubChem CID']) && empty($substance->pubchem_cid)) {
+                        $substance->pubchem_cid = $data['PubChem CID'];
+                    }
+                    if (! empty($data['DSSTox Substance ID']) && empty($substance->dtxid)) {
+                        $substance->dtxid = $data['DSSTox Substance ID'];
+                    }
+                    if (! empty($data['Molecular formula']) && empty($substance->molecular_formula)) {
+                        $substance->molecular_formula = $data['Molecular formula'];
+                    }
+                    if (! empty($data['Monoisotopic Mass [g/mol]']) && empty($substance->mass_iso)) {
+                        $substance->mass_iso = $data['Monoisotopic Mass [g/mol]'];
+                    }
+                    if (! empty($data['Average Mass [g/mol]']) && empty($substance->average_mass)) {
+                        $substance->average_mass = $data['Average Mass [g/mol]'];
+                    }
+
+                    $substance->save();
+                    $updated++;
+                } else {
+                    $failed++;
+                    $errors[] = "NS{$nsid}: HTTP {$response->status()}";
+                }
+            } catch (Exception $e) {
+                $failed++;
+                $errors[] = "NS{$substance->code}: {$e->getMessage()}";
+            }
+
+            // Be respectful to the API
+            usleep(200000); // 200ms delay
+        }
+
+        session()->flash('success', "Fetched data for {$updated} substances. Failed: {$failed}.");
+        if (! empty($errors)) {
+            session()->flash('fetch_errors', $errors);
+        }
+
+        return redirect()->route('substances.missing-names');
     }
 
     protected function getEditableColumns()

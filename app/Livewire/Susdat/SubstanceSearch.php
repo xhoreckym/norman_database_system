@@ -15,21 +15,29 @@ class SubstanceSearch extends Component
     {
         $results = [];
         $resultsAvailable = false;
-        if(strlen($this->search) > 2) {
+        // Detect "starts with" mode: user appends % to the search term
+        $startsWithMode = str_ends_with($this->search, '%');
+        $searchTerm = $startsWithMode ? rtrim($this->search, '%') : $this->search;
+
+        if(strlen($searchTerm) > 2) {
+
             $results = Substance::orderBy('id', 'asc');
             if($this->searchType == 'cas_number') {
-                $results = $results->where('cas_number', 'ilike', '%' . $this->search . '%');
+                $pattern = $startsWithMode ? $searchTerm . '%' : '%' . $searchTerm . '%';
+                $results = $results->where('cas_number', 'ilike', $pattern);
             } elseif($this->searchType == 'name') {
-                $results = $results->where('name', 'ilike', '%' . $this->search . '%');
+                $pattern = $startsWithMode ? $searchTerm . '%' : '%' . $searchTerm . '%';
+                $results = $results->where('name', 'ilike', $pattern);
             } elseif($this->searchType == 'stdinchikey') {
-                $results = $results->where('stdinchikey', 'ilike', $this->search);
+                $results = $results->where('stdinchikey', 'ilike', $searchTerm);
             } elseif($this->searchType == 'code') {
                 // Strip "NS" prefix if present and search by code
-                $searchCode = $this->search;
+                $searchCode = $searchTerm;
                 if(strtoupper(substr($searchCode, 0, 2)) === 'NS') {
                     $searchCode = substr($searchCode, 2);
                 }
-                $results = $results->where('code', 'ilike', '%' . $searchCode . '%');
+                $pattern = $startsWithMode ? $searchCode . '%' : '%' . $searchCode . '%';
+                $results = $results->where('code', 'ilike', $pattern);
             } else{
                 $results = $results->where('id', '<=', 50);
             }

@@ -53,6 +53,16 @@ class LiteratureFileSeeder extends Seeder
                 'database_entity_id' => 17,
                 'matrice_dct' => 1, // Biota-Terrestrial
             ],
+            [
+                'id' => 9003,
+                'original_name' => 'DCT_BIOTA_TerraChem_Naturalis_LiteratureData_metals_08082024_v2',
+                'name' => 'TerraChem Naturalis Metals Literature Data',
+                'description' => 'DCT Biota Literature data for metals from TerraChem/Naturalis. Long format across 3 sheets (mammals + birds). ~15,000 records.',
+                'file_path' => 'literature/DCT_BIOTA_TerraChem_Naturalis_LiteratureData_metals_08082024_v2',
+                'mime_type' => 'text/csv',
+                'database_entity_id' => 17,
+                'matrice_dct' => 1, // Biota-Terrestrial
+            ],
         ];
 
         $now = Carbon::now();

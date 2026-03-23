@@ -72,6 +72,9 @@ Server infrastructure is moved to: [https://github.com/mklauco/norman_database_s
 3. Download filtered results as CSV files
 4. Access API endpoints for programmatic data retrieval
 
+### Commands
+- `php artisan db:fix-sequences` — reset all PostgreSQL auto-increment sequences to match current MAX(id). Run after every database restore.
+
 ### For Administrators
 1. Access the admin dashboard after authentication
 2. Manage database entities and user accounts

@@ -24,7 +24,7 @@
 
   <!-- Info -->
   <div class="mt-4">
-    <span class="text-gray-600 text-sm">Click the input to see the first 3 available files. The search is limited to 10 files from the Literature module</span>
+    <span class="text-gray-600 text-sm">Click the input to see all available files. The search is limited to 10 files from the Literature module</span>
   </div>
 
   <!-- Search Results -->

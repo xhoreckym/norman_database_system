@@ -48,9 +48,23 @@
     @endif
   @endauth
 
+  @auth
+    @if (auth()->user()->hasRole(['super_admin', 'admin', 'susdat']))
+      <x-nav-link-header :href="route('substances.create')" :active="request()->routeIs('substances.create')">
+        Create New Substance
+      </x-nav-link-header>
+    @endif
+  @endauth
+
   <x-nav-link-header :href="route('susdat.batch.index')" :active="request()->is('*batch*')">
     Batch Conversion
   </x-nav-link-header>
+
+  @role('super_admin')
+    <x-nav-link-header :href="route('substances.missing-names')" :active="request()->routeIs('substances.missing-names')">
+      Fetch Missing Names
+    </x-nav-link-header>
+  @endrole
 
 
 </div>
